@@ -1,0 +1,8 @@
+  version: "3"
+  tasks:
+    run:
+      aliases:
+        - runflag
+      desc: "Runs main.go file with correct config path in flag"
+      cmds:
+        - go run cmd/auth/main.go -config="./config/local.yaml"
