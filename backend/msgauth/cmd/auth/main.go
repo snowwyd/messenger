@@ -3,9 +3,12 @@ package main
 
 import (
 	"log/slog"
+	"msgauth/internal/app"
 	"msgauth/internal/config"
 	"msgauth/internal/lib/logger"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 const (
@@ -23,9 +26,27 @@ func main() {
 		slog.String("env", cfg.Env),
 		slog.Any("config", cfg),
 		slog.Int("port", cfg.GRPC.Port))
-	// TODO: инициализировать приложение
+
+	// инициализация приложения
+	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.TokenTTL)
+
+	// асинхронный запуск сервера из-за необходимости асинхронно слушать сигналы ОС
+	go application.GRPCSrv.MustRun()
 
 	// TODO: запуск gRPC сервера
+
+	// graceful shutdown
+	stop := make(chan os.Signal, 1)
+	// получение сигнала от ОС о завершении программы и запись в канал
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+	// ожидание записи в канал, в противном случае остановка main на этой строчке
+	sign := <-stop
+	log.Info("stopping application", slog.String("signal", sign.String()))
+
+	application.GRPCSrv.Stop()
+
+	log.Info("application stopped")
 }
 
 // setupLogger настраивает логгер в зависимости от окружения и возвращает объект *slog.Logger

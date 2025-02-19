@@ -85,17 +85,17 @@ func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
 	return nil
 }
 
-//func (h *PrettyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-//	return &PrettyHandler{
-//		Handler: h.Handler,
-//		l:       h.l,
-//		attrs:   attrs,
-//	}
-//}
-//
-//func (h *PrettyHandler) WithGroup(name string) slog.Handler {
-//	return &PrettyHandler{
-//		Handler: h.Handler.WithGroup(name),
-//		l:       h.l,
-//	}
-//}
+func (h *PrettyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return &PrettyHandler{
+		Handler: h.Handler,
+		l:       h.l,
+		attrs:   attrs,
+	}
+}
+
+func (h *PrettyHandler) WithGroup(name string) slog.Handler {
+	return &PrettyHandler{
+		Handler: h.Handler.WithGroup(name),
+		l:       h.l,
+	}
+}
