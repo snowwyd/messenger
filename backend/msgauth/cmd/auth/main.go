@@ -20,6 +20,7 @@ const (
 func main() {
 	// инициализация конфига
 	cfg := config.MustLoad()
+	storageName := "auth"
 
 	log := setupLogger(cfg.Env)
 	log.Info("starting application",
@@ -28,12 +29,10 @@ func main() {
 		slog.Int("port", cfg.GRPC.Port))
 
 	// инициализация приложения
-	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.TokenTTL)
-
+	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, storageName, cfg.TokenTTL)
+	log.Info("storageName", slog.String("storageName", storageName))
 	// асинхронный запуск сервера из-за необходимости асинхронно слушать сигналы ОС
 	go application.GRPCSrv.MustRun()
-
-	// TODO: запуск gRPC сервера
 
 	// graceful shutdown
 	stop := make(chan os.Signal, 1)

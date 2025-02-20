@@ -1,6 +1,7 @@
-  env: "local"
-  storage_path: "./storage/auth.db"
-  token_ttl: 1h
-  grpc:
+env: "local"
+storage_path: "localhost:27017"
+token_ttl: 1h
+grpc:
     port: 809
     timeout: 10h #5s для prod
+

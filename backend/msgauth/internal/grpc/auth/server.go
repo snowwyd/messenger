@@ -3,10 +3,14 @@ package auth
 // Сервисный слой
 import (
 	"context"
+	"errors"
 	msgv1 "github.com/snowwyd/protos/gen/go/msgauth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"log"
+	"log/slog"
+	"msgauth/internal/services/auth"
 )
 
 const (
@@ -16,8 +20,8 @@ const (
 // Auth (его реализация) содержится в сервисном слое (internal/services) и представляет собой основную бизнес-логику
 type Auth interface {
 	Login(ctx context.Context, email string, password string, appID int) (token string, err error)
-	RegisterNewUser(ctx context.Context, email string, password string) (userID int64, err error)
-	IsAdmin(ctx context.Context, userID int64) (isAdmin bool, err error)
+	RegisterNewUser(ctx context.Context, email string, password string) (err error)
+	IsAdmin(ctx context.Context, email string) (isAdmin bool, err error)
 }
 
 // serverAPI обрабатывает все входящие запросы
@@ -40,8 +44,12 @@ func (s *serverAPI) Login(ctx context.Context, req *msgv1.LoginRequest) (*msgv1.
 
 	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), int(req.GetAppId()))
 	if err != nil {
-		// TODO: обработка в зависимости от ошибки
-		return nil, status.Error(codes.Internal, "internal error") // "internal error" для сокрытия подробностей ошибки от клиента
+		if errors.Is(err, auth.ErrInvalidCredentials) {
+			return nil, status.Error(codes.InvalidArgument, "invalid credentials")
+		}
+
+		slog.Error("login failed", "error", err)
+		return nil, status.Error(codes.Internal, "login") // "internal error" для сокрытия подробностей ошибки от клиента
 	}
 
 	return &msgv1.LoginResponse{
@@ -54,23 +62,32 @@ func (s *serverAPI) Register(ctx context.Context, req *msgv1.RegisterRequest) (*
 		return nil, err
 	}
 
-	userID, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
+	err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
+		if errors.Is(err, auth.ErrUserExists) {
+			return nil, status.Error(codes.InvalidArgument, "user already exists")
+		}
+
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	return &msgv1.RegisterResponse{
-		UserId: userID,
+		UserId: 1,
 	}, nil
 }
 
 func (s *serverAPI) IsAdmin(ctx context.Context, req *msgv1.IsAdminRequest) (*msgv1.IsAdminResponse, error) {
+	log.Printf("Checking admin for email: %s", req.Email)
 	if err := validateIsAdmin(req); err != nil {
 		return nil, err
 	}
 
-	isAdmin, err := s.auth.IsAdmin(ctx, req.GetUserId())
+	isAdmin, err := s.auth.IsAdmin(ctx, req.GetEmail())
 	if err != nil {
+		if errors.Is(err, auth.ErrUserNotFound) {
+			return nil, status.Error(codes.NotFound, "user not found")
+		}
+
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return &msgv1.IsAdminResponse{
@@ -106,8 +123,9 @@ func validateRegister(req *msgv1.RegisterRequest) error {
 }
 
 func validateIsAdmin(req *msgv1.IsAdminRequest) error {
-	if req.GetUserId() == emptyValue {
-		return status.Error(codes.InvalidArgument, "user_id is required")
+
+	if req.GetEmail() == "" {
+		return status.Error(codes.InvalidArgument, "email is required")
 	}
 	return nil
 }
