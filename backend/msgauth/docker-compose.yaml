@@ -1,0 +1,13 @@
+services:
+  mongodb:
+    image: mongo
+    container_name: msgauth
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 809809
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./storage:/data/db
+

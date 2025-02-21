@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	_ "go.mongodb.org/mongo-driver/x/mongo/driver"
@@ -71,21 +72,32 @@ func (m *MongoDB) User(ctx context.Context, email string) (models.User, error) {
 }
 
 // SaveUser сохраняет пользователя в базе по email и хэшу пароля
-func (m *MongoDB) SaveUser(ctx context.Context, email string, passHash []byte) error {
+func (m *MongoDB) SaveUser(ctx context.Context, email string, passHash []byte) (string, error) {
 	const op = "storage.mongodb.User"
 
-	_, err := m.usersCol.InsertOne(ctx, bson.M{"email": email, "passHash": passHash})
+	res, err := m.usersCol.InsertOne(ctx, bson.M{"email": email, "passHash": passHash})
 	if err != nil {
-		return fmt.Errorf("%s : %w", op, err)
+		return "", fmt.Errorf("%s : %w", op, err)
 	}
-	return nil
+
+	objectID, ok := res.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return "", fmt.Errorf("%s : internal error", op)
+	}
+
+	return objectID.Hex(), nil
 }
 
-func (m *MongoDB) App(ctx context.Context, appID int) (models.App, error) {
+func (m *MongoDB) App(ctx context.Context, appID string) (models.App, error) {
 	const op = "storage.mongodb.App"
 
+	objID, err := primitive.ObjectIDFromHex(appID)
+	if err != nil {
+		return models.App{}, fmt.Errorf("%s : internal error", op)
+	}
+
 	var app models.App
-	err := m.appsCol.FindOne(ctx, bson.M{"id": appID}).Decode(&app)
+	err = m.appsCol.FindOne(ctx, bson.M{"_id": objID}).Decode(&app)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return models.App{}, ErrAppNotFound
@@ -95,22 +107,28 @@ func (m *MongoDB) App(ctx context.Context, appID int) (models.App, error) {
 	return app, nil
 }
 
-func (m *MongoDB) IsAdmin(ctx context.Context, email string) (bool, error) {
+func (m *MongoDB) IsAdmin(ctx context.Context, userID string) (bool, error) {
 	const op = "storage.mongodb.IsAdmin"
 
-	var user struct {
-		IsAdmin *bool `bson:"is_admin"`
+	objID, err := primitive.ObjectIDFromHex(userID)
+
+	if err != nil {
+		return false, fmt.Errorf("%s : internal error", op)
 	}
-	err := m.usersCol.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+
+	var result struct {
+		IsAdmin *bool `bson:"is_admin,omitempty"`
+	}
+
+	err = m.usersCol.FindOne(ctx, bson.M{"_id": objID}).Decode(&result)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return false, fmt.Errorf("%s : %w", op, ErrAppNotFound)
 		}
 		return false, fmt.Errorf("%s : %w", op, err)
 	}
-	if user.IsAdmin == nil {
-		return false, nil // Если поле отсутствует, считаем, что это не админ
+	if result.IsAdmin == nil {
+		return false, nil
 	}
-
-	return *user.IsAdmin, nil
+	return *result.IsAdmin, nil
 }

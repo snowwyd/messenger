@@ -28,16 +28,16 @@ type Auth struct {
 // UserSaver ... Интерфейсы, которые будут реализованы в Storage для любых БД, разбиение для обеспечения гибкости
 // минус: неудобно передавать в качестве объекта
 type UserSaver interface {
-	SaveUser(ctx context.Context, email string, passHash []byte) (err error)
+	SaveUser(ctx context.Context, email string, passHash []byte) (uid string, err error)
 }
 
 type UserProvider interface {
 	User(ctx context.Context, email string) (user models.User, err error)
-	IsAdmin(ctx context.Context, email string) (bool, error)
+	IsAdmin(ctx context.Context, userID string) (bool, error)
 }
 
 type AppProvider interface {
-	App(ctx context.Context, appID int) (app models.App, err error)
+	App(ctx context.Context, appID string) (app models.App, err error)
 }
 
 var (
@@ -61,7 +61,7 @@ func New(log *slog.Logger, userSaver UserSaver, userProvider UserProvider, appPr
 }
 
 // Login проверяет, есть ли User с предоставленными данными в системе
-func (a *Auth) Login(ctx context.Context, email string, password string, appID int) (string, error) {
+func (a *Auth) Login(ctx context.Context, email string, password string, appID string) (string, error) {
 	const op = "auth.Login"
 
 	log := a.log.With(slog.String("op", op), slog.String("email", email))
@@ -75,7 +75,7 @@ func (a *Auth) Login(ctx context.Context, email string, password string, appID i
 			return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 		}
 		a.log.Error("failed to get user", logger.Err(err))
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
@@ -84,6 +84,7 @@ func (a *Auth) Login(ctx context.Context, email string, password string, appID i
 	}
 
 	app, err := a.appProvider.App(ctx, appID)
+
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
@@ -99,7 +100,7 @@ func (a *Auth) Login(ctx context.Context, email string, password string, appID i
 }
 
 // RegisterNewUser проверяет, есть ли уже такой пользователь, если нет - возвращает новый id
-func (a *Auth) RegisterNewUser(ctx context.Context, email string, password string) error {
+func (a *Auth) RegisterNewUser(ctx context.Context, email string, password string) (res string, err error) {
 	const op = "auth.RegisterNewUser"
 
 	log := a.log.With(slog.String("op", op), slog.String("email", email))
@@ -109,33 +110,39 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, password strin
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Error("failed to hash password", logger.Err(err))
-		return fmt.Errorf("%s: %w", op, err)
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = a.usrSaver.SaveUser(ctx, email, passHash)
+	_, err = a.usrProvider.User(ctx, email)
+	if err == nil {
+		return "", fmt.Errorf("%s: %w", op, ErrUserExists)
+	}
+	
+	id, err := a.usrSaver.SaveUser(ctx, email, passHash)
 	if err != nil {
 		if errors.Is(err, ErrUserExists) {
 			a.log.Warn("user already exists", logger.Err(err))
-			return fmt.Errorf("%s: %w", op, ErrUserExists)
+			return "", fmt.Errorf("%s: %w", op, ErrUserExists)
 		}
 
 		log.Error("failed to save user", logger.Err(err))
-		return fmt.Errorf("%s: %w", op, err)
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	log.Info("user registered")
-	return nil
+	return id, nil
 }
 
 // IsAdmin проверяет, существует ли пользователь и является ли он админом, результат проверки возвращается
-func (a *Auth) IsAdmin(ctx context.Context, email string) (bool, error) {
+func (a *Auth) IsAdmin(ctx context.Context, userID string) (bool, error) {
 	const op = "auth.IsAdmin"
 
-	log := a.log.With(slog.String("op", op), slog.String("userID", email))
+	log := a.log.With(slog.String("op", op), slog.String("userID", userID))
 
 	log.Info("checking if user is admin")
 
-	isAdmin, err := a.usrProvider.IsAdmin(ctx, email)
+	isAdmin, err := a.usrProvider.IsAdmin(ctx, userID)
+
 	if err != nil {
 		if errors.Is(err, ErrAppNotFound) {
 			a.log.Warn("user not found", logger.Err(err))

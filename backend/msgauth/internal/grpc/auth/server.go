@@ -13,15 +13,11 @@ import (
 	"msgauth/internal/services/auth"
 )
 
-const (
-	emptyValue = 0
-)
-
 // Auth (его реализация) содержится в сервисном слое (internal/services) и представляет собой основную бизнес-логику
 type Auth interface {
-	Login(ctx context.Context, email string, password string, appID int) (token string, err error)
-	RegisterNewUser(ctx context.Context, email string, password string) (err error)
-	IsAdmin(ctx context.Context, email string) (isAdmin bool, err error)
+	Login(ctx context.Context, email string, password string, appID string) (token string, err error)
+	RegisterNewUser(ctx context.Context, email string, password string) (userID string, err error)
+	IsAdmin(ctx context.Context, userID string) (isAdmin bool, err error)
 }
 
 // serverAPI обрабатывает все входящие запросы
@@ -42,7 +38,8 @@ func (s *serverAPI) Login(ctx context.Context, req *msgv1.LoginRequest) (*msgv1.
 		return nil, err
 	}
 
-	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), int(req.GetAppId()))
+	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), req.GetAppId())
+
 	if err != nil {
 		if errors.Is(err, auth.ErrInvalidCredentials) {
 			return nil, status.Error(codes.InvalidArgument, "invalid credentials")
@@ -62,7 +59,7 @@ func (s *serverAPI) Register(ctx context.Context, req *msgv1.RegisterRequest) (*
 		return nil, err
 	}
 
-	err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
+	userId, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
 		if errors.Is(err, auth.ErrUserExists) {
 			return nil, status.Error(codes.InvalidArgument, "user already exists")
@@ -72,17 +69,17 @@ func (s *serverAPI) Register(ctx context.Context, req *msgv1.RegisterRequest) (*
 	}
 
 	return &msgv1.RegisterResponse{
-		UserId: 1,
+		UserId: userId,
 	}, nil
 }
 
 func (s *serverAPI) IsAdmin(ctx context.Context, req *msgv1.IsAdminRequest) (*msgv1.IsAdminResponse, error) {
-	log.Printf("Checking admin for email: %s", req.Email)
+	log.Printf("Checking admin for user_id: %s", req.UserId)
 	if err := validateIsAdmin(req); err != nil {
 		return nil, err
 	}
 
-	isAdmin, err := s.auth.IsAdmin(ctx, req.GetEmail())
+	isAdmin, err := s.auth.IsAdmin(ctx, req.GetUserId())
 	if err != nil {
 		if errors.Is(err, auth.ErrUserNotFound) {
 			return nil, status.Error(codes.NotFound, "user not found")
@@ -105,7 +102,7 @@ func validateLogin(req *msgv1.LoginRequest) error {
 		return status.Error(codes.InvalidArgument, "password is required")
 	}
 
-	if req.GetAppId() == emptyValue {
+	if req.GetAppId() == "" {
 		return status.Error(codes.InvalidArgument, "appId is required")
 	}
 	return nil
@@ -124,7 +121,7 @@ func validateRegister(req *msgv1.RegisterRequest) error {
 
 func validateIsAdmin(req *msgv1.IsAdminRequest) error {
 
-	if req.GetEmail() == "" {
+	if req.GetUserId() == "" {
 		return status.Error(codes.InvalidArgument, "email is required")
 	}
 	return nil
