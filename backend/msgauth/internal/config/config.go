@@ -4,9 +4,10 @@ package config
 
 import (
 	"flag"
-	"github.com/ilyakaznacheev/cleanenv"
 	"os"
 	"time"
+
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 // Config - go структура конфига со стракт-тегами для дальнейшего парсинга
@@ -30,17 +31,21 @@ func MustLoad() *Config {
 		panic("config path is empty")
 	}
 
+	return MustLoadByPath(path)
+}
+
+func MustLoadByPath(configPath string) *Config {
 	// через os Stat проверяется, существует ли файл в данной директории
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		panic("config file does not exist" + path)
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		panic("config file does not exist")
 	}
 
 	var cfg Config
-
 	// парсинг в структуру через cleanenv и обработка ошибки
-	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
-		panic("failed to read config: " + err.Error())
+	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
+		panic("cannot read config: " + err.Error())
 	}
+
 	return &cfg
 }
 

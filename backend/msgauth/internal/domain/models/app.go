@@ -1,7 +1,7 @@
 package models
 
 type App struct {
-	ID     string
-	Name   string
-	Secret string // AppSecret для подписи токенов и валидации их на клиентской стороне
+	ID     string `bson:"_id"`
+	Name   string `bson:"name"`
+	Secret string `bson:"app_secret"` // AppSecret для подписи токенов и валидации их на клиентской стороне
 }

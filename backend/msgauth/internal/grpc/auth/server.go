@@ -4,13 +4,14 @@ package auth
 import (
 	"context"
 	"errors"
+	"log"
+	"log/slog"
+	"msgauth/internal/services/auth"
+
 	msgv1 "github.com/snowwyd/protos/gen/go/msgauth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"log"
-	"log/slog"
-	"msgauth/internal/services/auth"
 )
 
 // Auth (его реализация) содержится в сервисном слое (internal/services) и представляет собой основную бизнес-логику
@@ -103,7 +104,7 @@ func validateLogin(req *msgv1.LoginRequest) error {
 	}
 
 	if req.GetAppId() == "" {
-		return status.Error(codes.InvalidArgument, "appId is required")
+		return status.Error(codes.InvalidArgument, "app_id is required")
 	}
 	return nil
 }

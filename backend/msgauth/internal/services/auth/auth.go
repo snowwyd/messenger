@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"msgauth/internal/domain/models"
 	"msgauth/internal/lib/jwt"
 	"msgauth/internal/lib/logger"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Сервисный слой занимается бизнес-логикой
@@ -72,6 +73,7 @@ func (a *Auth) Login(ctx context.Context, email string, password string, appID s
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
 			a.log.Warn("user not found", logger.Err(err))
+
 			return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 		}
 		a.log.Error("failed to get user", logger.Err(err))
@@ -117,7 +119,7 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, password strin
 	if err == nil {
 		return "", fmt.Errorf("%s: %w", op, ErrUserExists)
 	}
-	
+
 	id, err := a.usrSaver.SaveUser(ctx, email, passHash)
 	if err != nil {
 		if errors.Is(err, ErrUserExists) {

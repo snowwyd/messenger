@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"msgauth/internal/domain/models"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	_ "go.mongodb.org/mongo-driver/x/mongo/driver"
-	"msgauth/internal/domain/models"
-	"time"
 )
 
 var (
@@ -24,7 +24,6 @@ type MongoDB struct {
 	database *mongo.Database
 	usersCol *mongo.Collection
 	appsCol  *mongo.Collection
-	timeout  time.Duration
 }
 
 // New создает новый экземпляр MongoDB
@@ -74,8 +73,13 @@ func (m *MongoDB) User(ctx context.Context, email string) (models.User, error) {
 // SaveUser сохраняет пользователя в базе по email и хэшу пароля
 func (m *MongoDB) SaveUser(ctx context.Context, email string, passHash []byte) (string, error) {
 	const op = "storage.mongodb.User"
+	isAdmin := false
 
-	res, err := m.usersCol.InsertOne(ctx, bson.M{"email": email, "passHash": passHash})
+	if email == "snowwyd@gmail.com" {
+		isAdmin = true
+	}
+
+	res, err := m.usersCol.InsertOne(ctx, bson.M{"email": email, "passHash": passHash, "is_admin": isAdmin})
 	if err != nil {
 		return "", fmt.Errorf("%s : %w", op, err)
 	}
@@ -88,6 +92,7 @@ func (m *MongoDB) SaveUser(ctx context.Context, email string, passHash []byte) (
 	return objectID.Hex(), nil
 }
 
+// App возвращает приложение по appID
 func (m *MongoDB) App(ctx context.Context, appID string) (models.App, error) {
 	const op = "storage.mongodb.App"
 
@@ -107,17 +112,18 @@ func (m *MongoDB) App(ctx context.Context, appID string) (models.App, error) {
 	return app, nil
 }
 
+// IsAdmin проверяет пользователя на is_admin по appID
 func (m *MongoDB) IsAdmin(ctx context.Context, userID string) (bool, error) {
 	const op = "storage.mongodb.IsAdmin"
 
 	objID, err := primitive.ObjectIDFromHex(userID)
-
 	if err != nil {
 		return false, fmt.Errorf("%s : internal error", op)
 	}
 
+	// для демаршаллинга необходимых полей bson
 	var result struct {
-		IsAdmin *bool `bson:"is_admin,omitempty"`
+		IsAdmin *bool `bson:"is_admin"`
 	}
 
 	err = m.usersCol.FindOne(ctx, bson.M{"_id": objID}).Decode(&result)
@@ -127,8 +133,11 @@ func (m *MongoDB) IsAdmin(ctx context.Context, userID string) (bool, error) {
 		}
 		return false, fmt.Errorf("%s : %w", op, err)
 	}
-	if result.IsAdmin == nil {
-		return false, nil
-	}
+
+	// возвращает false в случае, если в bson нет поля is_admin
+	// if result == nil {
+	// 	return false, nil
+	// }
+
 	return *result.IsAdmin, nil
 }

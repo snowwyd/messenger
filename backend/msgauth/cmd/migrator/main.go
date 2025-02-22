@@ -1,34 +1,34 @@
-package migrator
+package main
 
 import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
+
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/mongodb"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func main() {
-	// migrationsTable для тестов
-	var storagePath, migrationsPath, migrationsTable string
-
-	flag.StringVar(&storagePath, "storage-path", "", "path to storage")
-	flag.StringVar(&migrationsPath, "migrations-path", "", "path to migrations")
-	flag.StringVar(&migrationsTable, "migrations-table", "migrations", "name of migrations table")
+	var dbURI, dbName, migrationsPath string
+	flag.StringVar(&dbURI, "db-uri", "mongodb://localhost:27017", "MongoDB connection URI")
+	flag.StringVar(&dbName, "db-name", "messenger", "MongoDB database name")
+	flag.StringVar(&migrationsPath, "migrations-path", "", "Path to migrations")
 	flag.Parse()
 
-	if storagePath == "" {
-		panic("storage-path is required")
-	}
 	if migrationsPath == "" {
-		panic("migrations-path is required")
+		log.Fatal("migrations-path flag is required")
 	}
 
+	dbURL := fmt.Sprintf("mongodb://%s/%s", dbURI, dbName)
 	m, err := migrate.New(
 		"file://"+migrationsPath,
-		fmt.Sprintf("file://%s", storagePath),
+		dbURL,
 	)
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to create migrate instance: %v", err)
 	}
 
 	if err := m.Up(); err != nil {
@@ -36,7 +36,8 @@ func main() {
 			fmt.Println("no migrations to apply")
 			return
 		}
-		panic(err)
+		log.Fatalf("migration failed: %v", err)
 	}
+
 	fmt.Println("migrations applied successfully")
 }
