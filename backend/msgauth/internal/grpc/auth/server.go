@@ -17,7 +17,7 @@ import (
 // Auth (его реализация) содержится в сервисном слое (internal/services) и представляет собой основную бизнес-логику
 type Auth interface {
 	Login(ctx context.Context, email string, password string, appID string) (token string, err error)
-	RegisterNewUser(ctx context.Context, email string, password string) (userID string, err error)
+	RegisterNewUser(ctx context.Context, email string, password string, isAdmin bool) (userID string, err error)
 	IsAdmin(ctx context.Context, userID string) (isAdmin bool, err error)
 }
 
@@ -60,10 +60,13 @@ func (s *serverAPI) Register(ctx context.Context, req *msgv1.RegisterRequest) (*
 		return nil, err
 	}
 
-	userId, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
+	userId, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword(), req.GetIsAdmin())
 	if err != nil {
 		if errors.Is(err, auth.ErrUserExists) {
 			return nil, status.Error(codes.InvalidArgument, "user already exists")
+		}
+		if errors.Is(err, auth.ErrInvalidEmailPassFormat) {
+			return nil, status.Error(codes.InvalidArgument, "email format must be example@mail.com and password must be at least 8 characters long")
 		}
 
 		return nil, status.Error(codes.Internal, "internal error")

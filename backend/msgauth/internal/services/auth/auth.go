@@ -8,6 +8,7 @@ import (
 	"msgauth/internal/domain/models"
 	"msgauth/internal/lib/jwt"
 	"msgauth/internal/lib/logger"
+	"regexp"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -29,7 +30,7 @@ type Auth struct {
 // UserSaver ... Интерфейсы, которые будут реализованы в Storage для любых БД, разбиение для обеспечения гибкости
 // минус: неудобно передавать в качестве объекта
 type UserSaver interface {
-	SaveUser(ctx context.Context, email string, passHash []byte) (uid string, err error)
+	SaveUser(ctx context.Context, email string, passHash []byte, isAdmin bool) (uid string, err error)
 }
 
 type UserProvider interface {
@@ -44,6 +45,10 @@ type AppProvider interface {
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrInvalidAppID       = errors.New("invalid app id")
+
+	emailRegex                = regexp.MustCompile(`^[\w.-]+@[\w]+\.[a-zA-Z]{2,}$`)
+	passwordRegex             = regexp.MustCompile(`^[a-zA-Z0-9!@#\$%\^&\*\(\)_\+\-=\[\]{};':",.<>\/?]{8,}$`)
+	ErrInvalidEmailPassFormat = errors.New("email format must be example@mail.com and password must be at least 8 characters long")
 
 	ErrUserNotFound = errors.New("user not found")
 	ErrUserExists   = errors.New("user already exists")
@@ -102,12 +107,17 @@ func (a *Auth) Login(ctx context.Context, email string, password string, appID s
 }
 
 // RegisterNewUser проверяет, есть ли уже такой пользователь, если нет - возвращает новый id
-func (a *Auth) RegisterNewUser(ctx context.Context, email string, password string) (res string, err error) {
+func (a *Auth) RegisterNewUser(ctx context.Context, email string, password string, isAdmin bool) (res string, err error) {
 	const op = "auth.RegisterNewUser"
 
 	log := a.log.With(slog.String("op", op), slog.String("email", email))
 
 	log.Info("registering new user")
+
+	if err := validateCredentials(email, password); err != nil {
+		log.Error("failed to validate credentials", logger.Err(err))
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
 
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -120,7 +130,7 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, password strin
 		return "", fmt.Errorf("%s: %w", op, ErrUserExists)
 	}
 
-	id, err := a.usrSaver.SaveUser(ctx, email, passHash)
+	id, err := a.usrSaver.SaveUser(ctx, email, passHash, isAdmin)
 	if err != nil {
 		if errors.Is(err, ErrUserExists) {
 			a.log.Warn("user already exists", logger.Err(err))
@@ -155,4 +165,12 @@ func (a *Auth) IsAdmin(ctx context.Context, userID string) (bool, error) {
 	}
 	log.Info("checking proceed successfully", slog.Bool("isAdmin", isAdmin))
 	return isAdmin, nil
+}
+
+// validateCredentials проверяет email и password на соответствие regexp
+func validateCredentials(email, password string) error {
+	if !emailRegex.MatchString(email) || !passwordRegex.MatchString(password) {
+		return ErrInvalidEmailPassFormat
+	}
+	return nil
 }

@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	grpcapp "msgauth/internal/app/grpc"
 	"msgauth/internal/services/auth"
-	"msgauth/internal/storage/mongodb"
+	mongostorage "msgauth/internal/storage/mongodb"
 	"time"
 )
 

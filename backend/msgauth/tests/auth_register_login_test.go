@@ -1,8 +1,11 @@
 package tests
 
 import (
+	"log"
 	"math/rand"
+	"msgauth/internal/storage"
 	"msgauth/tests/suite"
+	"os"
 	"testing"
 	"time"
 
@@ -13,18 +16,34 @@ import (
 )
 
 const (
-	emptyAppID = 0
-	appID      = "67ba002d979a4dbd25ebefd7"
-	appSecret  = "sanyakrut"
-	passLen    = 10
-	adminEmail = "snowwyd@gmail.com"
+	appID          = "67bb08d65b846fe6cf7b51f9"
+	appSecret      = "sanyakrut"
+	passLenValid   = 10
+	passLenInvalid = 7
+	testValidEmail = "snowwyd@gmail.com"
 )
+
+// инициализация базы через утилиту init.go
+func TestMain(m *testing.M) {
+	cleaner, err := storage.NewTestDBCleaner("mongodb://localhost:27017", "auth")
+	if err != nil {
+		log.Fatalf("MongoDB connection error: %v", err)
+	}
+	defer cleaner.Close()
+
+	if err := cleaner.Cleanup(); err != nil {
+		log.Fatalf("Error initializing DB: %v", err)
+	}
+
+	code := m.Run()
+	os.Exit(code)
+}
 
 func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 	ctx, st := suite.New(t)
 
-	email := genEmail(adminEmail)
-	pass := "asbasda"
+	email := genEmail(testValidEmail)
+	pass := genPassword(passLenValid)
 
 	respReg, err := st.AuthClient.Register(ctx, &msgv1.RegisterRequest{
 		Email:    email,
@@ -64,13 +83,14 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 func TestRegisterIsAdmin(t *testing.T) {
 	ctx, st := suite.New(t)
 
-	email := adminEmail
-	pass := "asbasda"
+	email := testValidEmail
+	pass := genPassword(passLenValid)
 	isAdmin := true
 
 	respReg, err := st.AuthClient.Register(ctx, &msgv1.RegisterRequest{
 		Email:    email,
 		Password: pass,
+		IsAdmin:  isAdmin,
 	})
 	require.NoError(t, err)
 	assert.NotEmpty(t, respReg.GetUserId())
@@ -83,13 +103,14 @@ func TestRegisterIsAdmin(t *testing.T) {
 
 	assert.Equal(t, respIsAdmin.IsAdmin, isAdmin)
 
-	email = genEmail(adminEmail)
-	pass = "asbasda"
+	email = genEmail(testValidEmail)
+	pass = genPassword(passLenValid)
 	isAdmin = false
 
 	respReg, err = st.AuthClient.Register(ctx, &msgv1.RegisterRequest{
 		Email:    email,
 		Password: pass,
+		IsAdmin:  isAdmin,
 	})
 	require.NoError(t, err)
 	assert.NotEmpty(t, respReg.GetUserId())
@@ -104,6 +125,77 @@ func TestRegisterIsAdmin(t *testing.T) {
 
 }
 
+func TestRegister_FailCases(t *testing.T) {
+	ctx, st := suite.New(t)
+
+	tests := []struct {
+		name        string
+		email       string
+		password    string
+		expectedErr string
+	}{
+		{
+			name:        "Register with Empty Password",
+			email:       genEmail(testValidEmail),
+			password:    "",
+			expectedErr: "password is required",
+		},
+		{
+			name:        "Register with Empty Email",
+			email:       "",
+			password:    genPassword(passLenValid),
+			expectedErr: "email is required",
+		},
+		{
+			name:        "Register with Both Empty Email and Password",
+			email:       "",
+			password:    "",
+			expectedErr: "email is required",
+		},
+		{
+			name:        "Register with non valid Email 1",
+			email:       "incorrect email",
+			password:    genPassword(passLenValid),
+			expectedErr: "email format must be example@mail.com and password must be at least 8 characters long",
+		},
+		{
+			name:        "Register with non valid Email 2",
+			email:       "incorrect email@gmail.com",
+			password:    genPassword(passLenValid),
+			expectedErr: "email format must be example@mail.com and password must be at least 8 characters long",
+		},
+		{
+			name:        "Register with non valid Email 3",
+			email:       "incorrect_email@gmail..com",
+			password:    genPassword(passLenValid),
+			expectedErr: "email format must be example@mail.com and password must be at least 8 characters long",
+		},
+		{
+			name:        "Register with non valid Password 1",
+			email:       genEmail(testValidEmail),
+			password:    genPassword(passLenInvalid),
+			expectedErr: "email format must be example@mail.com and password must be at least 8 characters long",
+		},
+		{
+			name:        "Register with non valid Password 2",
+			email:       genEmail(testValidEmail),
+			password:    "invalid password ",
+			expectedErr: "email format must be example@mail.com and password must be at least 8 characters long",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := st.AuthClient.Register(ctx, &msgv1.RegisterRequest{
+				Email:    tt.email,
+				Password: tt.password,
+			})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tt.expectedErr)
+		})
+	}
+}
+
 func TestLogin_FailCases(t *testing.T) {
 	ctx, st := suite.New(t)
 
@@ -116,7 +208,7 @@ func TestLogin_FailCases(t *testing.T) {
 	}{
 		{
 			name:        "Login with Empty Password",
-			email:       genEmail(adminEmail),
+			email:       genEmail(testValidEmail),
 			password:    "",
 			appID:       appID,
 			expectedErr: "password is required",
@@ -124,7 +216,7 @@ func TestLogin_FailCases(t *testing.T) {
 		{
 			name:        "Login with Empty Email",
 			email:       "",
-			password:    genPassword(passLen),
+			password:    genPassword(passLenValid),
 			appID:       appID,
 			expectedErr: "email is required",
 		},
@@ -137,15 +229,15 @@ func TestLogin_FailCases(t *testing.T) {
 		},
 		{
 			name:        "Login with Non-Matching Password",
-			email:       genEmail(adminEmail),
-			password:    genPassword(passLen),
+			email:       genEmail(testValidEmail),
+			password:    genPassword(passLenValid),
 			appID:       appID,
 			expectedErr: "invalid credentials",
 		},
 		{
 			name:        "Login without AppID",
-			email:       genEmail(adminEmail),
-			password:    genPassword(passLen),
+			email:       genEmail(testValidEmail),
+			password:    genPassword(passLenValid),
 			appID:       "",
 			expectedErr: "app_id is required",
 		},
@@ -154,8 +246,8 @@ func TestLogin_FailCases(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := st.AuthClient.Register(ctx, &msgv1.RegisterRequest{
-				Email:    genEmail(adminEmail),
-				Password: genPassword(passLen),
+				Email:    genEmail(testValidEmail),
+				Password: genPassword(passLenValid),
 			})
 			require.NoError(t, err)
 
