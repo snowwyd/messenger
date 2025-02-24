@@ -71,10 +71,10 @@ func (m *MongoDB) User(ctx context.Context, email string) (models.User, error) {
 }
 
 // SaveUser сохраняет пользователя в базе по email и хэшу пароля
-func (m *MongoDB) SaveUser(ctx context.Context, email string, passHash []byte, isAdmin bool) (string, error) {
+func (m *MongoDB) SaveUser(ctx context.Context, email string, passHash []byte) (string, error) {
 	const op = "storage.mongodb.User"
 
-	res, err := m.usersCol.InsertOne(ctx, bson.M{"email": email, "passHash": passHash, "is_admin": isAdmin})
+	res, err := m.usersCol.InsertOne(ctx, bson.M{"email": email, "passHash": passHash})
 	if err != nil {
 		return "", fmt.Errorf("%s : %w", op, err)
 	}

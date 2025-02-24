@@ -90,7 +90,6 @@ func TestRegisterIsAdmin(t *testing.T) {
 	respReg, err := st.AuthClient.Register(ctx, &msgv1.RegisterRequest{
 		Email:    email,
 		Password: pass,
-		IsAdmin:  isAdmin,
 	})
 	require.NoError(t, err)
 	assert.NotEmpty(t, respReg.GetUserId())
@@ -110,7 +109,6 @@ func TestRegisterIsAdmin(t *testing.T) {
 	respReg, err = st.AuthClient.Register(ctx, &msgv1.RegisterRequest{
 		Email:    email,
 		Password: pass,
-		IsAdmin:  isAdmin,
 	})
 	require.NoError(t, err)
 	assert.NotEmpty(t, respReg.GetUserId())

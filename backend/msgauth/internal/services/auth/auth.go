@@ -30,7 +30,7 @@ type Auth struct {
 // UserSaver ... Интерфейсы, которые будут реализованы в Storage для любых БД, разбиение для обеспечения гибкости
 // минус: неудобно передавать в качестве объекта
 type UserSaver interface {
-	SaveUser(ctx context.Context, email string, passHash []byte, isAdmin bool) (uid string, err error)
+	SaveUser(ctx context.Context, email string, passHash []byte) (uid string, err error)
 }
 
 type UserProvider interface {
@@ -107,7 +107,7 @@ func (a *Auth) Login(ctx context.Context, email string, password string, appID s
 }
 
 // RegisterNewUser проверяет, есть ли уже такой пользователь, если нет - возвращает новый id
-func (a *Auth) RegisterNewUser(ctx context.Context, email string, password string, isAdmin bool) (res string, err error) {
+func (a *Auth) RegisterNewUser(ctx context.Context, email string, password string) (res string, err error) {
 	const op = "auth.RegisterNewUser"
 
 	log := a.log.With(slog.String("op", op), slog.String("email", email))
@@ -130,7 +130,7 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, password strin
 		return "", fmt.Errorf("%s: %w", op, ErrUserExists)
 	}
 
-	id, err := a.usrSaver.SaveUser(ctx, email, passHash, isAdmin)
+	id, err := a.usrSaver.SaveUser(ctx, email, passHash)
 	if err != nil {
 		if errors.Is(err, ErrUserExists) {
 			a.log.Warn("user already exists", logger.Err(err))
