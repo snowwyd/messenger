@@ -8,7 +8,7 @@ import (
 	"log/slog"
 	"msgauth/internal/services/auth"
 
-	msgv1 "github.com/snowwyd/protos/gen/go/msgauth"
+	msgv1auth "github.com/snowwyd/protos/gen/go/messenger/msgauth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,17 +24,17 @@ type Auth interface {
 // serverAPI обрабатывает все входящие запросы
 type serverAPI struct {
 	// UnimplementedAuthServer делает автоматически заглушки для неимплементированных ручек
-	msgv1.UnimplementedAuthServer
+	msgv1auth.UnimplementedAuthServer
 	auth Auth // сервис
 }
 
 func Register(gRPC *grpc.Server, auth Auth) {
-	msgv1.RegisterAuthServer(gRPC, &serverAPI{auth: auth}) // добавляет в grpc сервер сервис auth
+	msgv1auth.RegisterAuthServer(gRPC, &serverAPI{auth: auth}) // добавляет в grpc сервер сервис auth
 }
 
 // все ручки сервиса
 
-func (s *serverAPI) Login(ctx context.Context, req *msgv1.LoginRequest) (*msgv1.LoginResponse, error) {
+func (s *serverAPI) Login(ctx context.Context, req *msgv1auth.LoginRequest) (*msgv1auth.LoginResponse, error) {
 	if err := validateLogin(req); err != nil {
 		return nil, err
 	}
@@ -50,12 +50,12 @@ func (s *serverAPI) Login(ctx context.Context, req *msgv1.LoginRequest) (*msgv1.
 		return nil, status.Error(codes.Internal, "login") // "internal error" для сокрытия подробностей ошибки от клиента
 	}
 
-	return &msgv1.LoginResponse{
+	return &msgv1auth.LoginResponse{
 		Token: token,
 	}, nil
 }
 
-func (s *serverAPI) Register(ctx context.Context, req *msgv1.RegisterRequest) (*msgv1.RegisterResponse, error) {
+func (s *serverAPI) Register(ctx context.Context, req *msgv1auth.RegisterRequest) (*msgv1auth.RegisterResponse, error) {
 	if err := validateRegister(req); err != nil {
 		return nil, err
 	}
@@ -72,12 +72,12 @@ func (s *serverAPI) Register(ctx context.Context, req *msgv1.RegisterRequest) (*
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	return &msgv1.RegisterResponse{
+	return &msgv1auth.RegisterResponse{
 		UserId: userId,
 	}, nil
 }
 
-func (s *serverAPI) IsAdmin(ctx context.Context, req *msgv1.IsAdminRequest) (*msgv1.IsAdminResponse, error) {
+func (s *serverAPI) IsAdmin(ctx context.Context, req *msgv1auth.IsAdminRequest) (*msgv1auth.IsAdminResponse, error) {
 	log.Printf("Checking admin for user_id: %s", req.UserId)
 	if err := validateIsAdmin(req); err != nil {
 		return nil, err
@@ -91,13 +91,13 @@ func (s *serverAPI) IsAdmin(ctx context.Context, req *msgv1.IsAdminRequest) (*ms
 
 		return nil, status.Error(codes.Internal, "internal error")
 	}
-	return &msgv1.IsAdminResponse{
+	return &msgv1auth.IsAdminResponse{
 		IsAdmin: isAdmin,
 	}, nil
 }
 
 // функции проверки на правильность ввода
-func validateLogin(req *msgv1.LoginRequest) error {
+func validateLogin(req *msgv1auth.LoginRequest) error {
 	if req.GetEmail() == "" {
 		return status.Error(codes.InvalidArgument, "email is required")
 	}
@@ -112,7 +112,7 @@ func validateLogin(req *msgv1.LoginRequest) error {
 	return nil
 }
 
-func validateRegister(req *msgv1.RegisterRequest) error {
+func validateRegister(req *msgv1auth.RegisterRequest) error {
 	if req.GetEmail() == "" {
 		return status.Error(codes.InvalidArgument, "email is required")
 	}
@@ -123,7 +123,7 @@ func validateRegister(req *msgv1.RegisterRequest) error {
 	return nil
 }
 
-func validateIsAdmin(req *msgv1.IsAdminRequest) error {
+func validateIsAdmin(req *msgv1auth.IsAdminRequest) error {
 
 	if req.GetUserId() == "" {
 		return status.Error(codes.InvalidArgument, "email is required")

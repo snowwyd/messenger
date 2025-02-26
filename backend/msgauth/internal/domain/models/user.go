@@ -1,8 +1,8 @@
 package models
 
 type User struct {
-	ID       string `bson:"_id"`
-	Email    string `bson:"email"`
+	ID       string `bson:"_id,omitempty"`
+	Email    string `bson:"email,omitempty"`
 	PassHash []byte `bson:"passHash"` // Для обеспечения безопасности
 	IsAdmin  bool   `bson:"is_admin,omitempty"`
 }

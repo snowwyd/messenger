@@ -3,6 +3,7 @@ package tests
 import (
 	"log"
 	"math/rand"
+	"msgauth/internal/config"
 	"msgauth/internal/storage"
 	"msgauth/tests/suite"
 	"os"
@@ -10,13 +11,13 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	msgv1 "github.com/snowwyd/protos/gen/go/msgauth"
+	msgv1auth "github.com/snowwyd/protos/gen/go/messenger/msgauth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	appID          = "67bb08d65b846fe6cf7b51f9"
+	appID          = "67bdaa08e574192b82932ddd"
 	appSecret      = "sanyakrut"
 	passLenValid   = 10
 	passLenInvalid = 7
@@ -25,7 +26,9 @@ const (
 
 // инициализация базы через утилиту init.go
 func TestMain(m *testing.M) {
-	cleaner, err := storage.NewTestDBCleaner("mongodb://localhost:27017", "auth")
+	os.Setenv("CONFIG_PATH", "../config/local.yaml")
+	cfg := config.MustLoad()
+	cleaner, err := storage.NewTestDBCleaner(cfg.StoragePath, "auth")
 	if err != nil {
 		log.Fatalf("MongoDB connection error: %v", err)
 	}
@@ -45,14 +48,14 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 	email := genEmail(testValidEmail)
 	pass := genPassword(passLenValid)
 
-	respReg, err := st.AuthClient.Register(ctx, &msgv1.RegisterRequest{
+	respReg, err := st.AuthClient.Register(ctx, &msgv1auth.RegisterRequest{
 		Email:    email,
 		Password: pass,
 	})
 	require.NoError(t, err)
 	assert.NotEmpty(t, respReg.GetUserId())
 
-	respLogin, err := st.AuthClient.Login(ctx, &msgv1.LoginRequest{
+	respLogin, err := st.AuthClient.Login(ctx, &msgv1auth.LoginRequest{
 		Email:    email,
 		Password: pass,
 		AppId:    appID,
@@ -87,14 +90,14 @@ func TestRegisterIsAdmin(t *testing.T) {
 	pass := genPassword(passLenValid)
 	isAdmin := true
 
-	respReg, err := st.AuthClient.Register(ctx, &msgv1.RegisterRequest{
+	respReg, err := st.AuthClient.Register(ctx, &msgv1auth.RegisterRequest{
 		Email:    email,
 		Password: pass,
 	})
 	require.NoError(t, err)
 	assert.NotEmpty(t, respReg.GetUserId())
 
-	respIsAdmin, err := st.AuthClient.IsAdmin(ctx, &msgv1.IsAdminRequest{
+	respIsAdmin, err := st.AuthClient.IsAdmin(ctx, &msgv1auth.IsAdminRequest{
 		UserId: respReg.GetUserId(),
 	})
 	require.NoError(t, err)
@@ -106,14 +109,14 @@ func TestRegisterIsAdmin(t *testing.T) {
 	pass = genPassword(passLenValid)
 	isAdmin = false
 
-	respReg, err = st.AuthClient.Register(ctx, &msgv1.RegisterRequest{
+	respReg, err = st.AuthClient.Register(ctx, &msgv1auth.RegisterRequest{
 		Email:    email,
 		Password: pass,
 	})
 	require.NoError(t, err)
 	assert.NotEmpty(t, respReg.GetUserId())
 
-	respIsAdmin, err = st.AuthClient.IsAdmin(ctx, &msgv1.IsAdminRequest{
+	respIsAdmin, err = st.AuthClient.IsAdmin(ctx, &msgv1auth.IsAdminRequest{
 		UserId: respReg.GetUserId(),
 	})
 	require.NoError(t, err)
@@ -184,7 +187,7 @@ func TestRegister_FailCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := st.AuthClient.Register(ctx, &msgv1.RegisterRequest{
+			_, err := st.AuthClient.Register(ctx, &msgv1auth.RegisterRequest{
 				Email:    tt.email,
 				Password: tt.password,
 			})
@@ -243,13 +246,13 @@ func TestLogin_FailCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := st.AuthClient.Register(ctx, &msgv1.RegisterRequest{
+			_, err := st.AuthClient.Register(ctx, &msgv1auth.RegisterRequest{
 				Email:    genEmail(testValidEmail),
 				Password: genPassword(passLenValid),
 			})
 			require.NoError(t, err)
 
-			_, err = st.AuthClient.Login(ctx, &msgv1.LoginRequest{
+			_, err = st.AuthClient.Login(ctx, &msgv1auth.LoginRequest{
 				Email:    tt.email,
 				Password: tt.password,
 				AppId:    tt.appID,
