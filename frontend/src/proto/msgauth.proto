@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package auth;
+
+// option go_package = "snowwy.msg.v1;msgv1";
+
+service Auth {
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc Login (LoginRequest) returns (LoginResponse);
+  rpc IsAdmin (IsAdminRequest) returns (IsAdminResponse);
+
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  bool is_admin = 3;
+}
+
+message RegisterResponse {
+  string user_id = 1;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+  string app_id = 3;
+}
+
+message LoginResponse {
+  string token = 1;
+}
+
+message IsAdminRequest {
+  string user_id = 1;
+}
+
+message IsAdminResponse {
+  bool is_admin = 1;
+}
