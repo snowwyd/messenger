@@ -30,14 +30,15 @@ type ChatSaver interface {
 }
 
 type MessageProvider interface {
-	Messages(ctx context.Context, chatID string, limit int32, offset int32) (messages []models.Message, err error)
+	Message(ctx context.Context, messageID string) (message models.Message, err error)
+	Messages(ctx context.Context, chatID string, limit int32, offset int32) (message []*models.Message, err error)
 }
 
 type ChatProvider interface {
 	// Chat возвращает chat по его id
 	Chat(ctx context.Context, chatID string) (chat models.Chat, err error)
 	// Chats возвращает чаты пользователя по user_id
-	Chats(ctx context.Context, userID string) (chats []models.Chat, err error)
+	Chats(ctx context.Context, userID string) (chats []*models.Chat, err error)
 }
 
 // New - конструктор Chat
@@ -53,11 +54,13 @@ func New(log *slog.Logger, messageSaver MessageSaver, messageProvider MessagePro
 }
 
 var (
+	ErrMsgNotFound    = errors.New("message not found")
 	ErrEmptyMessage   = errors.New("message cannot be empty")
 	ErrMessageTooLong = errors.New("message length must be less than 1000 symbols")
 
 	ErrChatNotFound    = errors.New("chat not found")
 	ErrUserOutsideChat = errors.New("user is not in a chat")
+	ErrNotEnoughUsers  = errors.New("not enough users to create the chat")
 )
 
 // SendMessage отправляет сообщение в чат
@@ -98,30 +101,102 @@ func (c *Chat) SendMessage(ctx context.Context, senderID string, chatID string, 
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
+	c.log.Info("message sent successfully")
 	return messageID, nil
 }
 
 // GetMessages получает сообщения из чата с пагинацией
 func (c *Chat) GetMessages(ctx context.Context, chatID string, limit int32, offset int32) ([]*models.Message, error) {
-	panic("GetMessages is not implemented yet")
+	const op = "chat.GetMessages"
+
+	// TODO: возможно сделать преаллокацию для производительности
+
+	log := c.log.With(slog.String("op", op), slog.String("chatID", chatID))
+	log.Info("getting messages")
+
+	// проверка существования чата
+	_, err := c.chatProvider.Chat(ctx, chatID)
+	if err != nil {
+		c.log.Error("chat not found", logger.Err(err))
+		return nil, fmt.Errorf("%s: %w", op, ErrChatNotFound)
+	}
+
+	// в слое работы с данными будет сортировка по Timestamp, а также пагинация с SetLimit(limit) и Skip(offset)
+	messages, err := c.msgProvider.Messages(ctx, chatID, limit, offset)
+	if err != nil {
+		c.log.Error("failed to get messages", logger.Err(err))
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	c.log.Info("messages got successfully")
+	return messages, nil
 }
 
 // CreateChat создает новый чат между пользователями
 func (c *Chat) CreateChat(ctx context.Context, userIDs []string) (string, error) {
-	panic("CreateChat is not implemented yet")
+	const op = "chat.CreateChat"
+
+	log := c.log.With(slog.String("op", op))
+	log.Info("creating chat")
+
+	// TODO: проверка на ID пользователей
+	if len(userIDs) < 2 {
+		c.log.Error("failed to create chat: not enough users")
+		return "", fmt.Errorf("%s: %w", op, ErrNotEnoughUsers)
+	}
+
+	chatID, err := c.chatSaver.SaveChat(ctx, userIDs)
+	if err != nil {
+		c.log.Error("failed to save chat", logger.Err(err))
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	c.log.Info("chat created successfully")
+	return chatID, nil
 }
 
 // GetUserChats получает список чатов, в которых состоит пользователь
 func (c *Chat) GetUserChats(ctx context.Context, userID string) ([]*models.Chat, error) {
-	panic("GetUserChats is not implemented yet")
+	const op = "chat.GetUserChats"
+
+	log := c.log.With(slog.String("op", op), slog.String("userID", userID))
+	log.Info("getting user chats")
+
+	// проверка на UserID произойдет в слое работы с данными
+	chats, err := c.chatProvider.Chats(ctx, userID)
+	if err != nil {
+		log.Error("failed to get user chats", logger.Err(err))
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	log.Info("provided user chats successfully")
+	return chats, nil
 }
 
 // DeleteMessage удаляет сообщение по ID
 func (c *Chat) DeleteMessage(ctx context.Context, messageID string) (bool, error) {
-	panic("DeleteMessage is not implemented yet")
+	const op = "chat.DeleteMessage"
+
+	log := c.log.With(slog.String("op", op), slog.String("messageID", messageID))
+	log.Info("deleting message")
+
+	_, err := c.msgProvider.Message(ctx, messageID)
+	if err != nil {
+		log.Error("message not found", logger.Err(err))
+		return false, fmt.Errorf("%s: %w", op, ErrMsgNotFound)
+	}
+
+	if err := c.msgSaver.DeleteMessage(ctx, messageID); err != nil {
+		log.Error("failed deleting message", logger.Err(err))
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	log.Info("deleted message successfully")
+	return true, nil
 }
 
 func validateMessage(text string) error {
+	// TODO: вынести хардкод
 	const maxLength = 1000
 	if len(text) == 0 {
 		return ErrEmptyMessage
