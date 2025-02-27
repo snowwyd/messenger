@@ -1,6 +1,7 @@
-.idea/
-node_modules/
-dist/
+node_modules
+dist
+.idea
+.vscode
+
 .env
-backend/msgauth/config/
-backend/msgchat/config/
+backend/*/config/
