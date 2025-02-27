@@ -28,7 +28,8 @@ type MongoDB struct {
 
 // New создает новый экземпляр MongoDB
 func New(storagePath string, dbName string) (*MongoDB, error) {
-	uri := fmt.Sprintf("mongodb://%s", storagePath)
+	//uri := fmt.Sprintf("mongodb://%s", storagePath)
+	uri := (storagePath)
 
 	clientOpts := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.Background(), clientOpts)

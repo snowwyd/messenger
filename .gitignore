@@ -2,3 +2,5 @@
 node_modules/
 dist/
 .env
+backend/msgauth/config/
+backend/msgchat/config/

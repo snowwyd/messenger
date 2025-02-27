@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"testing"
 
-	msgv1 "github.com/snowwyd/protos/gen/go/msgauth"
+	msgv1auth "github.com/snowwyd/protos/gen/go/messenger/msgauth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -15,7 +15,7 @@ import (
 type Suite struct {
 	*testing.T
 	Cfg        *config.Config
-	AuthClient msgv1.AuthClient // Клиент для взаимодействия с grpc-сервером
+	AuthClient msgv1auth.AuthClient // Клиент для взаимодействия с grpc-сервером
 }
 
 const (
@@ -43,7 +43,7 @@ func New(t *testing.T) (context.Context, *Suite) {
 	return ctx, &Suite{
 		T:          t,
 		Cfg:        cfg,
-		AuthClient: msgv1.NewAuthClient(cc),
+		AuthClient: msgv1auth.NewAuthClient(cc),
 	}
 }
 
