@@ -24,8 +24,8 @@ func New(
 	if err != nil {
 		panic(err)
 	}
-	
-	chatService := chat.New(log, storage, storage, storage, storage, tokenTTL) 
+
+	chatService := chat.New(log, storage, storage, storage, storage, tokenTTL)
 
 	grpcApp := grpcapp.New(log, chatService, grpcPort)
 
