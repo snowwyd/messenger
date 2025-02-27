@@ -9,6 +9,8 @@ import (
 	"msgchat/internal/lib/logger"
 	"slices"
 	"time"
+
+	msgv1chat "github.com/snowwyd/protos/gen/go/messenger/msgchat"
 )
 
 type Chat struct {
@@ -22,7 +24,7 @@ type Chat struct {
 
 type MessageSaver interface {
 	SaveMessage(ctx context.Context, senderID string, chatID string, text string, timestamp time.Time) (messageID string, err error)
-	DeleteMessage(ctx context.Context, messageID string) error
+	DeleteMessage(ctx context.Context, messageID string) (bool, error)
 }
 
 type ChatSaver interface {
@@ -106,7 +108,7 @@ func (c *Chat) SendMessage(ctx context.Context, senderID string, chatID string, 
 }
 
 // GetMessages получает сообщения из чата с пагинацией
-func (c *Chat) GetMessages(ctx context.Context, chatID string, limit int32, offset int32) ([]*models.Message, error) {
+func (c *Chat) GetMessages(ctx context.Context, chatID string, limit int32, offset int32) ([]*msgv1chat.Message, error) {
 	const op = "chat.GetMessages"
 
 	// TODO: возможно сделать преаллокацию для производительности
@@ -128,8 +130,10 @@ func (c *Chat) GetMessages(ctx context.Context, chatID string, limit int32, offs
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	protoMessages := models.ConvertMessagesToProto(messages)
+
 	c.log.Info("messages got successfully")
-	return messages, nil
+	return protoMessages, nil
 }
 
 // CreateChat создает новый чат между пользователями
@@ -140,7 +144,7 @@ func (c *Chat) CreateChat(ctx context.Context, userIDs []string) (string, error)
 	log.Info("creating chat")
 
 	// TODO: проверка на ID пользователей
-	if len(userIDs) < 2 {
+	if len(userIDs) < 1 {
 		c.log.Error("failed to create chat: not enough users")
 		return "", fmt.Errorf("%s: %w", op, ErrNotEnoughUsers)
 	}
@@ -151,12 +155,20 @@ func (c *Chat) CreateChat(ctx context.Context, userIDs []string) (string, error)
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
+	timestamp := time.Now()
+	// TODO: убрать хардкод
+	_, err = c.msgSaver.SaveMessage(ctx, userIDs[0], chatID, "started new chat", timestamp)
+	if err != nil {
+		c.log.Error("failed to start new chat", logger.Err(err))
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
 	c.log.Info("chat created successfully")
 	return chatID, nil
 }
 
 // GetUserChats получает список чатов, в которых состоит пользователь
-func (c *Chat) GetUserChats(ctx context.Context, userID string) ([]*models.Chat, error) {
+func (c *Chat) GetUserChats(ctx context.Context, userID string) ([]*msgv1chat.ChatInfo, error) {
 	const op = "chat.GetUserChats"
 
 	log := c.log.With(slog.String("op", op), slog.String("userID", userID))
@@ -169,8 +181,10 @@ func (c *Chat) GetUserChats(ctx context.Context, userID string) ([]*models.Chat,
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	protoChats := models.ConvertChatsToProto(chats)
+
 	log.Info("provided user chats successfully")
-	return chats, nil
+	return protoChats, nil
 }
 
 // DeleteMessage удаляет сообщение по ID
@@ -180,15 +194,15 @@ func (c *Chat) DeleteMessage(ctx context.Context, messageID string) (bool, error
 	log := c.log.With(slog.String("op", op), slog.String("messageID", messageID))
 	log.Info("deleting message")
 
-	_, err := c.msgProvider.Message(ctx, messageID)
+	success, err := c.msgSaver.DeleteMessage(ctx, messageID)
 	if err != nil {
-		log.Error("message not found", logger.Err(err))
-		return false, fmt.Errorf("%s: %w", op, ErrMsgNotFound)
-	}
-
-	if err := c.msgSaver.DeleteMessage(ctx, messageID); err != nil {
 		log.Error("failed deleting message", logger.Err(err))
 		return false, fmt.Errorf("%s: %w", op, err)
+	}
+	if !success {
+		// Если сообщение не найдено, логируем предупреждение
+		c.log.Warn("message not found", slog.String("messageID", messageID))
+		return false, fmt.Errorf("%s: %w", op, ErrMsgNotFound)
 	}
 
 	log.Info("deleted message successfully")

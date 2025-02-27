@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -21,8 +20,6 @@ const (
 func main() {
 	cfg := config.MustLoad()
 	storageName := "chat"
-
-	fmt.Println(cfg)
 
 	log := setupLogger(cfg.Env)
 	log.Info("starting application",
