@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"fmt"
 
 	msgv1chat "github.com/snowwyd/protos/gen/go/messenger/msgchat"
 	"google.golang.org/grpc"
@@ -31,6 +32,8 @@ func Register(gRPC *grpc.Server, chat Chat) {
 }
 
 func (s *serverAPI) SendMessage(ctx context.Context, req *msgv1chat.SendMessageRequest) (*msgv1chat.SendMessageResponse, error) {
+	fmt.Println(ctx)
+
 	if err := validateSendMessage(req); err != nil {
 		return nil, err
 	}
@@ -46,6 +49,8 @@ func (s *serverAPI) SendMessage(ctx context.Context, req *msgv1chat.SendMessageR
 }
 
 func (s *serverAPI) GetMessages(ctx context.Context, req *msgv1chat.GetMessagesRequest) (*msgv1chat.GetMessagesResponse, error) {
+	fmt.Println(ctx)
+
 	if err := validateGetMessages(req); err != nil {
 		return nil, err
 	}
@@ -61,6 +66,8 @@ func (s *serverAPI) GetMessages(ctx context.Context, req *msgv1chat.GetMessagesR
 }
 
 func (s *serverAPI) CreateChat(ctx context.Context, req *msgv1chat.CreateChatRequest) (*msgv1chat.CreateChatResponse, error) {
+	fmt.Println(ctx)
+
 	if err := validateCreateChat(req); err != nil {
 		return nil, err
 	}
@@ -76,6 +83,8 @@ func (s *serverAPI) CreateChat(ctx context.Context, req *msgv1chat.CreateChatReq
 }
 
 func (s *serverAPI) GetUserChats(ctx context.Context, req *msgv1chat.GetUserChatsRequest) (*msgv1chat.GetUserChatsResponse, error) {
+	fmt.Println(ctx)
+
 	if err := validateGetUserChats(req); err != nil {
 		return nil, err
 	}
@@ -90,6 +99,8 @@ func (s *serverAPI) GetUserChats(ctx context.Context, req *msgv1chat.GetUserChat
 }
 
 func (s *serverAPI) DeleteMessage(ctx context.Context, req *msgv1chat.DeleteMessageRequest) (*msgv1chat.DeleteMessageResponse, error) {
+	fmt.Println(ctx)
+
 	if err := validateDeleteMessage(req); err != nil {
 		return nil, err
 	}

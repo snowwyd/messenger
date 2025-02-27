@@ -6,6 +6,7 @@ import (
 	"net"
 
 	chatgrpc "msgchat/internal/grpc/chat"
+	"msgchat/internal/grpc/middleware"
 
 	"google.golang.org/grpc"
 )
@@ -18,7 +19,9 @@ type App struct {
 
 func New(log *slog.Logger, chatService chatgrpc.Chat, port int) *App {
 	// NewServer запускает сервер
-	gRPCServer := grpc.NewServer()
+	gRPCServer := grpc.NewServer(
+		grpc.UnaryInterceptor(middleware.AuthInterceptor()),
+	)
 
 	chatgrpc.Register(gRPCServer, chatService)
 
