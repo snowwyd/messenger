@@ -1,7 +1,7 @@
-node_modules
-dist
-.idea
-.vscode
-
-.env
+.idea/
+.vscode/
+node_modules/
+dist/
+frontend/src/proto/generated/
 backend/*/config/
+.env

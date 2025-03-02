@@ -4,7 +4,9 @@
     "type": "module",
     "scripts": {
         "dev": "vite --host",
-        "build": "vite build"
+        "build": "vite build",
+        "preview": "vite preview",
+        "genproto": "mkdirp src/proto/generated && npx protoc --proto_path=src/proto/ --ts_out=src/proto/generated/ src/proto/*.proto"
     },
     "author": "deoxce",
     "license": "ISC",
@@ -18,6 +20,7 @@
         "@protobuf-ts/grpcweb-transport": "^2.9.4",
         "@protobuf-ts/plugin": "^2.9.4",
         "@vitejs/plugin-react": "^4.3.4",
+        "mkdirp": "^3.0.1",
         "vite": "^6.1.0"
     }
 }
