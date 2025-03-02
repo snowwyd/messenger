@@ -1,7 +1,0 @@
-node_modules
-dist
-.idea
-.vscode
-
-Dockerfile
-docker-compose.yml
