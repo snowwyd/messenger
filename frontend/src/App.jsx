@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { AuthClient } from "./proto/generated/msgauth.client";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 
@@ -8,6 +8,8 @@ const client = new AuthClient(transport);
 import './App.css';
 
 export default function App() {
+    const errorMessageRef = useRef(null);
+
     async function handleSignUp(event) {
         event.preventDefault();
 
@@ -19,20 +21,21 @@ export default function App() {
 
         try {
             const response = await client.register(user);
-            console.log(response);
+            errorMessageRef.current.innerHTML = "successful registration";
         } catch (error) {
-            console.log(error);
+            errorMessageRef.current.innerHTML = "error: " + error.message;
         }
     }
 
     return (
         <div className="register-form-container">
             <form className="register-form" method="post" onSubmit={handleSignUp}>
+                <h2>sign up form</h2>
                 <input type="text" name="email" placeholder="email" />
                 <input type="text" name="login" placeholder="login" />
                 <input type="password" name="password" placeholder="password" />
-                <p className="error-message"></p>
-                <input className="register-submit" type="submit" value="register" />
+                <p className="error-message" ref={errorMessageRef}></p>
+                <input className="register-submit" type="submit" value="sign up" />
             </form>
         </div>
     )

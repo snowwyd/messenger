@@ -1,0 +1,36 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url(fonts/Roboto-VariableFont.ttf);
+    font-weight: 100 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url(fonts/Roboto-Italic-VariableFont.ttf);
+    font-weight: 100 900;
+    font-style: italic;
+}
+
+:root {
+    /* --secondary-color: rgb(120, 100, 255); */
+    --secondary-color: rgb(100, 110, 255);
+    --main-color: rgb(40, 40, 40);
+    --text-color: rgb(40, 40, 40);
+}
+
+html {
+    font-family: 'Roboto';
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+::selection {
+    background-color: var(--secondary-color);
+    color: white;
+}
