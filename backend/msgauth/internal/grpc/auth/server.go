@@ -16,8 +16,8 @@ import (
 
 // Auth (его реализация) содержится в сервисном слое (internal/services) и представляет собой основную бизнес-логику
 type Auth interface {
-	Login(ctx context.Context, email string, password string, appID string) (token string, err error)
-	RegisterNewUser(ctx context.Context, email string, password string) (userID string, err error)
+	Login(ctx context.Context, email string, password string) (token string, err error)
+	RegisterNewUser(ctx context.Context, email string, password string, username string) (userID string, err error)
 	IsAdmin(ctx context.Context, userID string) (isAdmin bool, err error)
 }
 
@@ -39,7 +39,7 @@ func (s *serverAPI) Login(ctx context.Context, req *msgv1auth.LoginRequest) (*ms
 		return nil, err
 	}
 
-	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), req.GetAppId())
+	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword())
 
 	if err != nil {
 		if errors.Is(err, auth.ErrInvalidCredentials) {
@@ -60,8 +60,9 @@ func (s *serverAPI) Register(ctx context.Context, req *msgv1auth.RegisterRequest
 		return nil, err
 	}
 
-	userId, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
+	userId, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword(), req.GetUsername())
 	if err != nil {
+		// TODO: обработать ошибку с username
 		if errors.Is(err, auth.ErrUserExists) {
 			return nil, status.Error(codes.InvalidArgument, "user already exists")
 		}
@@ -106,9 +107,6 @@ func validateLogin(req *msgv1auth.LoginRequest) error {
 		return status.Error(codes.InvalidArgument, "password is required")
 	}
 
-	if req.GetAppId() == "" {
-		return status.Error(codes.InvalidArgument, "app_id is required")
-	}
 	return nil
 }
 
@@ -119,6 +117,10 @@ func validateRegister(req *msgv1auth.RegisterRequest) error {
 
 	if req.GetPassword() == "" {
 		return status.Error(codes.InvalidArgument, "password is required")
+	}
+
+	if req.GetUsername() == "" {
+		return status.Error(codes.InvalidArgument, "username is required")
 	}
 	return nil
 }

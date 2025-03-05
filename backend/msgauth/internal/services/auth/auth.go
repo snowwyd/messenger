@@ -23,14 +23,14 @@ type Auth struct {
 	log         *slog.Logger
 	usrSaver    UserSaver
 	usrProvider UserProvider
-	appProvider AppProvider
 	tokenTTL    time.Duration
+	appSecret   string
 }
 
 // UserSaver ... Интерфейсы, которые будут реализованы в Storage для любых БД, разбиение для обеспечения гибкости
 // минус: неудобно передавать в качестве объекта
 type UserSaver interface {
-	SaveUser(ctx context.Context, email string, passHash []byte) (uid string, err error)
+	SaveUser(ctx context.Context, email string, passHash []byte, username string) (uid string, err error)
 }
 
 type UserProvider interface {
@@ -38,13 +38,8 @@ type UserProvider interface {
 	IsAdmin(ctx context.Context, userID string) (bool, error)
 }
 
-type AppProvider interface {
-	App(ctx context.Context, appID string) (app models.App, err error)
-}
-
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrInvalidAppID       = errors.New("invalid app id")
 
 	emailRegex                = regexp.MustCompile(`^[\w.-]+@[\w]+\.[a-zA-Z]{2,}$`)
 	passwordRegex             = regexp.MustCompile(`^[a-zA-Z0-9!@#\$%\^&\*\(\)_\+\-=\[\]{};':",.<>\/?]{8,}$`)
@@ -52,22 +47,21 @@ var (
 
 	ErrUserNotFound = errors.New("user not found")
 	ErrUserExists   = errors.New("user already exists")
-	ErrAppNotFound  = errors.New("app not found")
 )
 
 // New - конструктор Auth сервиса
-func New(log *slog.Logger, userSaver UserSaver, userProvider UserProvider, appProvider AppProvider, tokenTTL time.Duration) *Auth {
+func New(log *slog.Logger, userSaver UserSaver, userProvider UserProvider, tokenTTL time.Duration, appSecret string) *Auth {
 	return &Auth{
 		log:         log,
 		usrSaver:    userSaver,
 		usrProvider: userProvider,
-		appProvider: appProvider,
 		tokenTTL:    tokenTTL,
+		appSecret:   appSecret,
 	}
 }
 
 // Login проверяет, есть ли User с предоставленными данными в системе
-func (a *Auth) Login(ctx context.Context, email string, password string, appID string) (string, error) {
+func (a *Auth) Login(ctx context.Context, email string, password string) (string, error) {
 	const op = "auth.Login"
 
 	log := a.log.With(slog.String("op", op), slog.String("email", email))
@@ -90,14 +84,8 @@ func (a *Auth) Login(ctx context.Context, email string, password string, appID s
 		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 	}
 
-	app, err := a.appProvider.App(ctx, appID)
-
-	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
-	}
-	log.Info("logged user in successfully")
-
-	token, err := jwt.NewToken(user, app, a.tokenTTL)
+	fmt.Println(a.appSecret)
+	token, err := jwt.NewToken(user, a.appSecret, a.tokenTTL)
 	if err != nil {
 		a.log.Error("failed to generate token", logger.Err(err))
 		return "", fmt.Errorf("%s: %w", op, err)
@@ -107,7 +95,7 @@ func (a *Auth) Login(ctx context.Context, email string, password string, appID s
 }
 
 // RegisterNewUser проверяет, есть ли уже такой пользователь, если нет - возвращает новый id
-func (a *Auth) RegisterNewUser(ctx context.Context, email string, password string) (res string, err error) {
+func (a *Auth) RegisterNewUser(ctx context.Context, email string, password string, username string) (res string, err error) {
 	const op = "auth.RegisterNewUser"
 
 	log := a.log.With(slog.String("op", op), slog.String("email", email))
@@ -130,7 +118,7 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, password strin
 		return "", fmt.Errorf("%s: %w", op, ErrUserExists)
 	}
 
-	id, err := a.usrSaver.SaveUser(ctx, email, passHash)
+	id, err := a.usrSaver.SaveUser(ctx, email, passHash, username)
 	if err != nil {
 		if errors.Is(err, ErrUserExists) {
 			a.log.Warn("user already exists", logger.Err(err))
@@ -156,10 +144,6 @@ func (a *Auth) IsAdmin(ctx context.Context, userID string) (bool, error) {
 	isAdmin, err := a.usrProvider.IsAdmin(ctx, userID)
 
 	if err != nil {
-		if errors.Is(err, ErrAppNotFound) {
-			a.log.Warn("user not found", logger.Err(err))
-			return false, fmt.Errorf("%s: %w", op, ErrInvalidAppID)
-		}
 		log.Error("failed to check if user is admin", logger.Err(err))
 		return false, fmt.Errorf("%s: %w", op, err)
 	}

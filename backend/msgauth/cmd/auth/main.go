@@ -29,7 +29,7 @@ func main() {
 		slog.Int("port", cfg.GRPC.Port))
 
 	// инициализация приложения
-	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, storageName, cfg.TokenTTL)
+	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, storageName, cfg.TokenTTL, cfg.AppSecret)
 	log.Info("storageName", slog.String("storageName", storageName))
 	// асинхронный запуск сервера из-за необходимости асинхронно слушать сигналы ОС
 	go application.GRPCSrv.MustRun()

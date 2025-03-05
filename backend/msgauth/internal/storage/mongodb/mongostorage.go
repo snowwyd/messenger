@@ -16,7 +16,6 @@ import (
 var (
 	ErrUserExists   = errors.New("user already exists")
 	ErrUserNotFound = errors.New("user not found")
-	ErrAppNotFound  = errors.New("app not found")
 )
 
 type MongoDB struct {
@@ -43,7 +42,6 @@ func New(storagePath string, dbName string) (*MongoDB, error) {
 		client:   client,
 		database: db,
 		usersCol: db.Collection("users"),
-		appsCol:  db.Collection("apps"),
 	}, nil
 }
 
@@ -72,10 +70,10 @@ func (m *MongoDB) User(ctx context.Context, email string) (models.User, error) {
 }
 
 // SaveUser сохраняет пользователя в базе по email и хэшу пароля
-func (m *MongoDB) SaveUser(ctx context.Context, email string, passHash []byte) (string, error) {
+func (m *MongoDB) SaveUser(ctx context.Context, email string, passHash []byte, username string) (string, error) {
 	const op = "storage.mongodb.User"
 
-	res, err := m.usersCol.InsertOne(ctx, bson.M{"email": email, "passHash": passHash})
+	res, err := m.usersCol.InsertOne(ctx, bson.M{"email": email, "passHash": passHash, "username": username})
 	if err != nil {
 		return "", fmt.Errorf("%s : %w", op, err)
 	}
@@ -86,26 +84,6 @@ func (m *MongoDB) SaveUser(ctx context.Context, email string, passHash []byte) (
 	}
 
 	return objectID.Hex(), nil
-}
-
-// App возвращает приложение по appID
-func (m *MongoDB) App(ctx context.Context, appID string) (models.App, error) {
-	const op = "storage.mongodb.App"
-
-	objID, err := primitive.ObjectIDFromHex(appID)
-	if err != nil {
-		return models.App{}, fmt.Errorf("%s : internal error", op)
-	}
-
-	var app models.App
-	err = m.appsCol.FindOne(ctx, bson.M{"_id": objID}).Decode(&app)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return models.App{}, ErrAppNotFound
-		}
-		return models.App{}, fmt.Errorf("%s : %w", op, err)
-	}
-	return app, nil
 }
 
 // IsAdmin проверяет пользователя на is_admin по appID
@@ -124,9 +102,6 @@ func (m *MongoDB) IsAdmin(ctx context.Context, userID string) (bool, error) {
 
 	err = m.usersCol.FindOne(ctx, bson.M{"_id": objID}).Decode(&result)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return false, fmt.Errorf("%s : %w", op, ErrAppNotFound)
-		}
 		return false, fmt.Errorf("%s : %w", op, err)
 	}
 

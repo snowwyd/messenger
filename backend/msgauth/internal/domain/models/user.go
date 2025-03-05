@@ -5,4 +5,5 @@ type User struct {
 	Email    string `bson:"email,omitempty"`
 	PassHash []byte `bson:"passHash"` // Для обеспечения безопасности
 	IsAdmin  bool   `bson:"is_admin,omitempty"`
+	Username string `bson:"username"`
 }

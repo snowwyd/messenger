@@ -18,13 +18,14 @@ func New(
 	storagePath string,
 	storageName string,
 	tokenTTL time.Duration,
+	appSecret string,
 ) *App {
 	storage, err := mongostorage.New(storagePath, storageName)
 	if err != nil {
 		panic(err)
 	}
 
-	authService := auth.New(log, storage, storage, storage, tokenTTL)
+	authService := auth.New(log, storage, storage, tokenTTL, appSecret)
 
 	grpcApp := grpcapp.New(log, authService, grpcPort)
 
