@@ -34,16 +34,21 @@ type UserSaver interface {
 }
 
 type UserProvider interface {
-	User(ctx context.Context, email string) (user models.User, err error)
+	UserEmail(ctx context.Context, email string) (user models.User, err error)
+	UserUsername(ctx context.Context, username string) (user models.User, err error)
 	IsAdmin(ctx context.Context, userID string) (bool, error)
 }
 
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 
-	emailRegex                = regexp.MustCompile(`^[\w.-]+@[\w]+\.[a-zA-Z]{2,}$`)
-	passwordRegex             = regexp.MustCompile(`^[a-zA-Z0-9!@#\$%\^&\*\(\)_\+\-=\[\]{};':",.<>\/?]{8,}$`)
-	ErrInvalidEmailPassFormat = errors.New("email format must be example@mail.com and password must be at least 8 characters long")
+	emailRegex    = regexp.MustCompile(`^[\w.-]+@[\w]+\.[a-zA-Z]{2,}$`)
+	passwordRegex = regexp.MustCompile(`^[a-zA-Z0-9!@#\$%\^&\*\(\)_\+\-=\[\]{};':",.<>\/?]{8,}$`)
+	usernameRegex = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_]*$`)
+
+	ErrInvalidPassFormat     = errors.New("password must be at least 8 characters long")
+	ErrInvalidEmailFormat    = errors.New("email format must be example@mail.com")
+	ErrInvalidUsernameFormat = errors.New("username must contain only numbers, letters, and underscores (not first symbol)")
 
 	ErrUserNotFound = errors.New("user not found")
 	ErrUserExists   = errors.New("user already exists")
@@ -68,7 +73,7 @@ func (a *Auth) Login(ctx context.Context, email string, password string) (string
 
 	log.Info("logging user in")
 
-	user, err := a.usrProvider.User(ctx, email)
+	user, err := a.usrProvider.UserEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
 			a.log.Warn("user not found", logger.Err(err))
@@ -84,7 +89,6 @@ func (a *Auth) Login(ctx context.Context, email string, password string) (string
 		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 	}
 
-	fmt.Println(a.appSecret)
 	token, err := jwt.NewToken(user, a.appSecret, a.tokenTTL)
 	if err != nil {
 		a.log.Error("failed to generate token", logger.Err(err))
@@ -98,11 +102,11 @@ func (a *Auth) Login(ctx context.Context, email string, password string) (string
 func (a *Auth) RegisterNewUser(ctx context.Context, email string, password string, username string) (res string, err error) {
 	const op = "auth.RegisterNewUser"
 
-	log := a.log.With(slog.String("op", op), slog.String("email", email))
+	log := a.log.With(slog.String("op", op), slog.String("email", email), slog.String("username", username))
 
 	log.Info("registering new user")
 
-	if err := validateCredentials(email, password); err != nil {
+	if err := validateCredentials(email, password, username); err != nil {
 		log.Error("failed to validate credentials", logger.Err(err))
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
@@ -113,15 +117,22 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, password strin
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	_, err = a.usrProvider.User(ctx, email)
+	_, err = a.usrProvider.UserEmail(ctx, email)
 	if err == nil {
+		log.Error("user already exists", logger.Err(ErrUserExists))
+		return "", fmt.Errorf("%s: %w", op, ErrUserExists)
+	}
+
+	_, err = a.usrProvider.UserUsername(ctx, username)
+	if err == nil {
+		log.Error("user already exists", logger.Err(ErrUserExists))
 		return "", fmt.Errorf("%s: %w", op, ErrUserExists)
 	}
 
 	id, err := a.usrSaver.SaveUser(ctx, email, passHash, username)
 	if err != nil {
 		if errors.Is(err, ErrUserExists) {
-			a.log.Warn("user already exists", logger.Err(err))
+			log.Error("user already exists", logger.Err(err))
 			return "", fmt.Errorf("%s: %w", op, ErrUserExists)
 		}
 
@@ -152,9 +163,18 @@ func (a *Auth) IsAdmin(ctx context.Context, userID string) (bool, error) {
 }
 
 // validateCredentials проверяет email и password на соответствие regexp
-func validateCredentials(email, password string) error {
-	if !emailRegex.MatchString(email) || !passwordRegex.MatchString(password) {
-		return ErrInvalidEmailPassFormat
+func validateCredentials(email, password, username string) error {
+	if !emailRegex.MatchString(email) {
+		return ErrInvalidEmailFormat
 	}
+
+	if !passwordRegex.MatchString(password) {
+		return ErrInvalidPassFormat
+	}
+
+	if !usernameRegex.MatchString(username) {
+		return ErrInvalidUsernameFormat
+	}
+
 	return nil
 }

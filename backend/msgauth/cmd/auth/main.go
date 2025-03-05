@@ -25,8 +25,8 @@ func main() {
 	log := setupLogger(cfg.Env)
 	log.Info("starting application",
 		slog.String("env", cfg.Env),
-		slog.Any("config", cfg),
-		slog.Int("port", cfg.GRPC.Port))
+		slog.Any("tokenTTL", cfg.TokenTTL),
+		slog.Any("GRPC", cfg.GRPC))
 
 	// инициализация приложения
 	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, storageName, cfg.TokenTTL, cfg.AppSecret)

@@ -11,7 +11,7 @@ import (
 	"msgchat/internal/lib/jwtutil" // Утилита для работы с JWT
 )
 
-func AuthInterceptor() grpc.UnaryServerInterceptor {
+func AuthInterceptor(appSecret string) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
@@ -38,7 +38,7 @@ func AuthInterceptor() grpc.UnaryServerInterceptor {
 		token := tokenParts[1]
 
 		// Проверяем и декодируем токен
-		claims, err := jwtutil.ValidateToken(token)
+		claims, err := jwtutil.ValidateToken(token, appSecret)
 		if err != nil {
 			return nil, err
 		}

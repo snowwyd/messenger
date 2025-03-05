@@ -18,6 +18,7 @@ func New(
 	storagePath string,
 	storageName string,
 	tokenTTL time.Duration,
+	appSecret string,
 ) *App {
 
 	storage, err := mongodb.New(storagePath, storageName)
@@ -25,9 +26,9 @@ func New(
 		panic(err)
 	}
 
-	chatService := chat.New(log, storage, storage, storage, storage, tokenTTL)
+	chatService := chat.New(log, storage, storage, storage, storage, tokenTTL, appSecret)
 
-	grpcApp := grpcapp.New(log, chatService, grpcPort)
+	grpcApp := grpcapp.New(log, chatService, grpcPort, appSecret)
 
 	return &App{
 		GRPCSrv: grpcApp,

@@ -16,7 +16,6 @@ type TestDBCleaner struct {
 	client    *mongo.Client
 	dbName    string
 	usersColl string
-	appsColl  string
 }
 
 // NewTestDBCleaner создает новый инстанс TestDBCleaner
@@ -33,7 +32,6 @@ func NewTestDBCleaner(uri, dbName string) (*TestDBCleaner, error) {
 		client:    client,
 		dbName:    dbName,
 		usersColl: "users",
-		appsColl:  "apps",
 	}, nil
 }
 

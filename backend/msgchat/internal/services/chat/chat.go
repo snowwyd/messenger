@@ -20,6 +20,7 @@ type Chat struct {
 	chatSaver    ChatSaver
 	chatProvider ChatProvider
 	tokenTTL     time.Duration
+	appSecret    string
 }
 
 type MessageSaver interface {
@@ -44,7 +45,7 @@ type ChatProvider interface {
 }
 
 // New - конструктор Chat
-func New(log *slog.Logger, messageSaver MessageSaver, messageProvider MessageProvider, chatSaver ChatSaver, chatProvider ChatProvider, tokenTTL time.Duration) *Chat {
+func New(log *slog.Logger, messageSaver MessageSaver, messageProvider MessageProvider, chatSaver ChatSaver, chatProvider ChatProvider, tokenTTL time.Duration, appSecret string) *Chat {
 	return &Chat{
 		msgSaver:     messageSaver,
 		msgProvider:  messageProvider,
@@ -52,6 +53,7 @@ func New(log *slog.Logger, messageSaver MessageSaver, messageProvider MessagePro
 		chatProvider: chatProvider,
 		log:          log,
 		tokenTTL:     tokenTTL,
+		appSecret:    appSecret,
 	}
 }
 

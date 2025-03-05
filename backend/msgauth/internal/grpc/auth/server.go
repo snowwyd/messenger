@@ -62,12 +62,17 @@ func (s *serverAPI) Register(ctx context.Context, req *msgv1auth.RegisterRequest
 
 	userId, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword(), req.GetUsername())
 	if err != nil {
-		// TODO: обработать ошибку с username
 		if errors.Is(err, auth.ErrUserExists) {
 			return nil, status.Error(codes.InvalidArgument, "user already exists")
 		}
-		if errors.Is(err, auth.ErrInvalidEmailPassFormat) {
-			return nil, status.Error(codes.InvalidArgument, "email format must be example@mail.com and password must be at least 8 characters long")
+		if errors.Is(err, auth.ErrInvalidEmailFormat) {
+			return nil, status.Error(codes.InvalidArgument, "email format must be example@mail.com")
+		}
+		if errors.Is(err, auth.ErrInvalidPassFormat) {
+			return nil, status.Error(codes.InvalidArgument, "password must be at least 8 characters long")
+		}
+		if errors.Is(err, auth.ErrInvalidUsernameFormat) {
+			return nil, status.Error(codes.InvalidArgument, "username must contain only numbers, letters, and underscores (not first symbol)")
 		}
 
 		return nil, status.Error(codes.Internal, "internal error")

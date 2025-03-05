@@ -26,7 +26,7 @@ func New(t *testing.T) (context.Context, *Suite) {
 	t.Helper()   // Для правильного формирования стека вызовов
 	t.Parallel() // Ускорение
 
-	cfg := config.MustLoadByPath("../config/local_tests.yaml")
+	cfg := config.MustLoadByPath("../config/local.yaml")
 
 	ctx, cancelCtx := context.WithTimeout(context.Background(), cfg.GRPC.Timeout)
 

@@ -50,8 +50,8 @@ func (m *MongoDB) Close() error {
 	return m.client.Disconnect(context.Background())
 }
 
-// User возвращает пользователя по email
-func (m *MongoDB) User(ctx context.Context, email string) (models.User, error) {
+// UserEmail возвращает пользователя по email
+func (m *MongoDB) UserEmail(ctx context.Context, email string) (models.User, error) {
 	const op = "storage.mongodb.User"
 	//ctx, cancel := context.WithTimeout(ctx, m.timeout)
 	//defer cancel()
@@ -59,6 +59,23 @@ func (m *MongoDB) User(ctx context.Context, email string) (models.User, error) {
 	var user models.User
 
 	err := m.usersCol.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return models.User{}, fmt.Errorf("%s : %w", op, ErrUserNotFound)
+		}
+		return models.User{}, fmt.Errorf("%s : %w", op, err)
+	}
+
+	return user, nil
+}
+
+// UserUsername возвращает пользователя по username
+func (m *MongoDB) UserUsername(ctx context.Context, username string) (models.User, error) {
+	const op = "storage.mongodb.User"
+
+	var user models.User
+
+	err := m.usersCol.FindOne(ctx, bson.M{"username": username}).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return models.User{}, fmt.Errorf("%s : %w", op, ErrUserNotFound)

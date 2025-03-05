@@ -14,10 +14,10 @@ import (
 // Config - go структура конфига со стракт-тегами для дальнейшего парсинга
 type Config struct {
 	Env         string        `yaml:"env" env-default:"local"` // для парсинга файла через cleanenv
-	StoragePath string        `yaml:"storage_path" env-required:"true"`
 	TokenTTL    time.Duration `yaml:"token_ttl" env-required:"true"`
 	GRPC        GRPCConfig    `yaml:"grpc"`
 	AppSecret   string
+	StoragePath string
 }
 
 // GRPCConfig - go структура grpc со стракт-тегами
@@ -33,12 +33,13 @@ func MustLoad() *Config {
 		panic("config path is empty")
 	}
 
+	//godotenv.Load()
 	return MustLoadByPath(path)
 }
 
 func MustLoadByPath(configPath string) *Config {
 	// через os Stat проверяется, существует ли файл в данной директории
-	godotenv.Load()
+
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		panic("config file does not exist")
 	}
@@ -48,7 +49,13 @@ func MustLoadByPath(configPath string) *Config {
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		panic("cannot read config: " + err.Error())
 	}
+	godotenv.Load()
+	cfg.StoragePath = os.Getenv("STORAGE_PATH")
 	cfg.AppSecret = os.Getenv("APP_SECRET")
+	if cfg.StoragePath == "" || cfg.AppSecret == "" {
+		panic("cannot get .env")
+	}
+
 	return &cfg
 }
 

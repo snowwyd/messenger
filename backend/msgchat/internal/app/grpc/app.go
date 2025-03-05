@@ -17,10 +17,10 @@ type App struct {
 	port       int
 }
 
-func New(log *slog.Logger, chatService chatgrpc.Chat, port int) *App {
+func New(log *slog.Logger, chatService chatgrpc.Chat, port int, appSecret string) *App {
 	// NewServer запускает сервер
 	gRPCServer := grpc.NewServer(
-		grpc.UnaryInterceptor(middleware.AuthInterceptor()),
+		grpc.UnaryInterceptor(middleware.AuthInterceptor(appSecret)),
 	)
 
 	chatgrpc.Register(gRPCServer, chatService)
