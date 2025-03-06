@@ -1,42 +1,28 @@
-import React, { useRef } from "react";
-import { AuthClient } from "./proto/generated/msgauth.client";
-import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
+import React, { useEffect } from "react";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 
-const transport = new GrpcWebFetchTransport({ baseUrl: "http://localhost:810" });
-const client = new AuthClient(transport);
-
-import './App.css';
+import AppProvider from "./AppContext.jsx";
+import Auth from "./pages/Auth.jsx";
+import Chats from "./pages/Chats.jsx";
 
 export default function App() {
-    const errorMessageRef = useRef(null);
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    async function handleSignUp(event) {
-        event.preventDefault();
-
-        const user = {
-            email: event.target.email.value,
-            // login: event.target.login.value,
-            password: event.target.password.value
-        };
-
-        try {
-            const response = await client.register(user);
-            errorMessageRef.current.innerHTML = "successful registration";
-        } catch (error) {
-            errorMessageRef.current.innerHTML = "error: " + error.message;
+    useEffect(() => {
+        if (localStorage.getItem('token') != null) {
+            navigate('/chats');
+        } else {
+            navigate('/');
         }
-    }
+    }, []);
 
     return (
-        <div className="register-form-container">
-            <form className="register-form" method="post" onSubmit={handleSignUp}>
-                <h2>sign up form</h2>
-                <input type="text" name="email" placeholder="email" />
-                <input type="text" name="login" placeholder="login" />
-                <input type="password" name="password" placeholder="password" />
-                <p className="error-message" ref={errorMessageRef}></p>
-                <input className="register-submit" type="submit" value="sign up" />
-            </form>
-        </div>
+        <AppProvider>
+            <Routes>
+                <Route path="/" element={<Auth />}/>
+                <Route path="/chats/*" element={<Chats />} />
+            </Routes>
+        </AppProvider>
     )
 }
