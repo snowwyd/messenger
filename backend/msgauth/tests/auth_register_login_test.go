@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	appSecret      = "sanyakrut"
+	testAppSecret  = "sanyakrut"
 	usernameLen    = 6
 	passLenValid   = 10
 	passLenInvalid = 7
@@ -72,7 +72,7 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 	require.NotEmpty(t, token)
 
 	tokenParsed, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return []byte(appSecret), nil
+		return []byte(testAppSecret), nil
 	})
 	require.NoError(t, err)
 
@@ -272,6 +272,48 @@ func TestLogin_FailCases(t *testing.T) {
 			require.Contains(t, err.Error(), tt.expectedErr)
 		})
 	}
+}
+
+func TestGetters_HappyPath(t *testing.T) {
+	ctx, st := suite.New(t)
+
+	usernames := make([]string, 0, 2)
+	userIDs := make([]string, 0, 2)
+
+	usernames = append(usernames, genUsername(usernameLen))
+
+	respReg, err := st.AuthClient.Register(ctx, &msgv1auth.RegisterRequest{
+		Email:    genEmail(testValidEmail),
+		Password: genPassword(passLenValid),
+		Username: usernames[0],
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, respReg.GetUserId())
+
+	userIDs = append(userIDs, respReg.GetUserId())
+
+	usernames = append(usernames, genUsername(usernameLen))
+	respReg, err = st.AuthClient.Register(ctx, &msgv1auth.RegisterRequest{
+		Email:    genEmail(testValidEmail),
+		Password: genPassword(passLenValid),
+		Username: usernames[1],
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, respReg.GetUserId())
+
+	userIDs = append(userIDs, respReg.GetUserId())
+
+	respUID, err := st.AuthClient.GetUserIDs(ctx, &msgv1auth.GetUserIDsRequest{
+		Usernames: usernames,
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, respUID.GetUserIds())
+
+	respUsrnames, err := st.AuthClient.GetUsernames(ctx, &msgv1auth.GetUsernamesRequest{
+		UserIds: userIDs,
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, respUsrnames.GetUsernames())
 }
 
 // Функция генерирует строку из трех случайных букв от 'a' до 'z'
