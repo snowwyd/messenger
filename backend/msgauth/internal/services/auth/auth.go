@@ -37,6 +37,11 @@ type UserProvider interface {
 	UserEmail(ctx context.Context, email string) (user models.User, err error)
 	UserUsername(ctx context.Context, username string) (user models.User, err error)
 	IsAdmin(ctx context.Context, userID string) (bool, error)
+
+	// Usernames - выдает множество usernames по множеству user_id
+	Usernames(ctx context.Context, userIDs []string) (usernames map[string]string, err error)
+	// UserIDs - выдает множество user_ids по множеству username
+	UserIDs(ctx context.Context, usernames []string) (userIDs map[string]string, err error)
 }
 
 var (
@@ -50,8 +55,10 @@ var (
 	ErrInvalidEmailFormat    = errors.New("email format must be example@mail.com")
 	ErrInvalidUsernameFormat = errors.New("username must contain only numbers, letters, and underscores (not first symbol)")
 
-	ErrUserNotFound = errors.New("user not found")
-	ErrUserExists   = errors.New("user already exists")
+	ErrUserNotFound     = errors.New("user not found")
+	ErrUserExists       = errors.New("user already exists")
+	ErrUsernameNotFound = errors.New("username not found")
+	ErrMissingUsernames = errors.New("missing usernames")
 )
 
 // New - конструктор Auth сервиса
@@ -160,6 +167,70 @@ func (a *Auth) IsAdmin(ctx context.Context, userID string) (bool, error) {
 	}
 	log.Info("checking proceed successfully", slog.Bool("isAdmin", isAdmin))
 	return isAdmin, nil
+}
+
+func (a *Auth) GetUsernames(ctx context.Context, userIDs []string) (map[string]string, error) {
+	const op = "auth.GetUsernames"
+	log := a.log.With(slog.String("op", op), slog.Any("userIDs", userIDs))
+	log.Info("getting usernames")
+
+	usernames, err := a.usrProvider.Usernames(ctx, userIDs)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			log.Error("user not found", logger.Err(err))
+			return nil, fmt.Errorf("%s: %w", op, ErrUserNotFound)
+		}
+		a.log.Error("failed to get usernames", logger.Err(err))
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	missingUserIDs := make([]string, 0, len(userIDs))
+	for _, uid := range userIDs {
+		if _, exists := usernames[uid]; !exists {
+			missingUserIDs = append(missingUserIDs, uid)
+		}
+	}
+
+	if len(missingUserIDs) > 0 {
+		log.Warn("some user_ids were not found", slog.Any("missing_user_ids", missingUserIDs))
+	}
+
+	log.Info("usernames got successfully")
+	return usernames, nil
+}
+
+func (a *Auth) GetUserIDs(ctx context.Context, usernames []string) (map[string]string, error) {
+	const op = "auth.GetUserIDs"
+	log := a.log.With(slog.String("op", op), slog.Any("usernames", usernames))
+	log.Info("getting usernames")
+
+	userIDs, err := a.usrProvider.UserIDs(ctx, usernames)
+	if err != nil {
+		if errors.Is(err, ErrUsernameNotFound) {
+			log.Error("username not found", logger.Err(err))
+			return nil, fmt.Errorf("%s: %w", op, ErrUsernameNotFound)
+		}
+		a.log.Error("failed to get usernames", logger.Err(err))
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	missingUsernames := make([]string, 0, len(usernames))
+	for _, username := range usernames {
+		if !usernameRegex.MatchString(username) {
+			a.log.Error("failed to validate usernames", logger.Err(ErrInvalidUsernameFormat))
+			return nil, fmt.Errorf("%s: %w", op, ErrInvalidUsernameFormat)
+		}
+		if _, exists := userIDs[username]; !exists {
+			missingUsernames = append(missingUsernames, username)
+		}
+	}
+
+	if len(missingUsernames) > 0 {
+		log.Warn("some usernames were not found", slog.Any("missing_usernames", missingUsernames))
+	}
+
+	log.Info("usernames got successfully")
+	return userIDs, nil
 }
 
 // validateCredentials проверяет email и password на соответствие regexp

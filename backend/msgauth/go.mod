@@ -7,7 +7,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/joho/godotenv v1.5.1
-	github.com/snowwyd/protos v0.1.2
+	github.com/snowwyd/protos v0.2.0
 	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver v1.17.2
 	golang.org/x/crypto v0.33.0

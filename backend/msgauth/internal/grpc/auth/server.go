@@ -19,6 +19,8 @@ type Auth interface {
 	Login(ctx context.Context, email string, password string) (token string, err error)
 	RegisterNewUser(ctx context.Context, email string, password string, username string) (userID string, err error)
 	IsAdmin(ctx context.Context, userID string) (isAdmin bool, err error)
+	GetUsernames(ctx context.Context, userIDs []string) (usernames map[string]string, err error)
+	GetUserIDs(ctx context.Context, usernames []string) (userIDs map[string]string, err error)
 }
 
 // serverAPI обрабатывает все входящие запросы
@@ -102,6 +104,44 @@ func (s *serverAPI) IsAdmin(ctx context.Context, req *msgv1auth.IsAdminRequest) 
 	}, nil
 }
 
+func (s *serverAPI) GetUsernames(ctx context.Context, req *msgv1auth.GetUsernamesRequest) (*msgv1auth.GetUsernamesResponse, error) {
+	if err := validateGetUsername(req); err != nil {
+		return nil, err
+	}
+
+	usernames, err := s.auth.GetUsernames(ctx, req.GetUserIds())
+	if err != nil {
+		if errors.Is(err, auth.ErrUserNotFound) {
+			return nil, status.Error(codes.NotFound, "user not found")
+		}
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+	return &msgv1auth.GetUsernamesResponse{
+		Usernames: usernames,
+	}, nil
+}
+
+func (s *serverAPI) GetUserIDs(ctx context.Context, req *msgv1auth.GetUserIDsRequest) (*msgv1auth.GetUserIDsResponse, error) {
+	if err := validateGetUserIDs(req); err != nil {
+		return nil, err
+	}
+
+	userIDs, err := s.auth.GetUserIDs(ctx, req.GetUsernames())
+	if err != nil {
+		if errors.Is(err, auth.ErrUsernameNotFound) {
+			return nil, status.Error(codes.NotFound, "username not found")
+		}
+		if errors.Is(err, auth.ErrInvalidUsernameFormat) {
+			return nil, status.Error(codes.InvalidArgument, "username must contain only numbers, letters, and underscores (not first symbol)")
+		}
+
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+	return &msgv1auth.GetUserIDsResponse{
+		UserIds: userIDs,
+	}, nil
+}
+
 // функции проверки на правильность ввода
 func validateLogin(req *msgv1auth.LoginRequest) error {
 	if req.GetEmail() == "" {
@@ -134,6 +174,20 @@ func validateIsAdmin(req *msgv1auth.IsAdminRequest) error {
 
 	if req.GetUserId() == "" {
 		return status.Error(codes.InvalidArgument, "email is required")
+	}
+	return nil
+}
+
+func validateGetUsername(req *msgv1auth.GetUsernamesRequest) error {
+	if req.GetUserIds() == nil {
+		return status.Error(codes.InvalidArgument, "user_ids are required")
+	}
+	return nil
+}
+
+func validateGetUserIDs(req *msgv1auth.GetUserIDsRequest) error {
+	if req.GetUsernames() == nil {
+		return status.Error(codes.InvalidArgument, "user_ids are required")
 	}
 	return nil
 }
