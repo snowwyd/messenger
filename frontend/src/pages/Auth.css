@@ -1,0 +1,118 @@
+.auth-forms-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.auth-forms {
+    position: relative;
+    width: 900px;
+    height: 600px;
+    display: flex;
+    justify-content: space-around;
+    background-color: #242424;
+    border-radius: 5px;
+    box-shadow: 5px 5px 15px 0 rgba(0, 0, 0, 0.4);
+}
+
+.forms {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    width: 250px;
+    height: 600px;
+
+    h2 {
+        color: #BFBFBF;
+        font-size: 24px;
+        text-align: center;
+    }
+
+    .inputs-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    input {
+        font-family: 'Roboto';
+        font-size: 14px;
+        border: none;
+        outline: none;
+
+        &::placeholder {
+            color: rgb(80, 80, 80);
+        }
+    }
+
+    input:not([type="submit"]) {
+        height: 25px;
+        padding: 5px 10px;
+        background-color: rgba(0, 0, 0, 0);
+        color: white;
+        border-bottom: 1px solid rgb(80, 80, 80);
+    }
+
+    input[type="submit"] {
+        font-weight: 500;
+        height: 40px;
+        border-radius: 4px;
+        background-color: white;
+        color: rgb(24, 24, 24);
+        cursor: pointer;
+    }
+
+    .error-message {
+        font-size: 13px;
+        padding: 0px 10px;
+    }
+}
+
+.image-block {
+    position: absolute;
+    width: 900px;
+    height: 600px;
+    background-color: #242424;
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    clip-path: xywh(50% 0% 51% 100%);
+
+    h2 {
+        padding: 5px 10px;
+        position: relative;
+        font-size: 48px;
+        font-weight: 900;
+        cursor: pointer;
+        user-select: none;
+        z-index: 1;
+        clip-path: xywh(0 10% 100% 90%);
+        color: white;
+        mix-blend-mode: difference;
+
+        &>span {
+            position: relative;
+            z-index: -1;
+        }
+    }
+
+    .footage {
+        position: absolute;
+        height: 100%;
+        filter: brightness(0.5);
+        left: -40px;
+    }
+
+    .selection {
+        position: absolute;
+        height: 0;
+        width: 0;
+        z-index: 0;
+        background-color: white;
+        clip-path: xywh(0 10% 100% 90%);
+    }
+}

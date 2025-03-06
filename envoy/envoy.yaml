@@ -2,7 +2,7 @@ static_resources:
   listeners:
     - name: listener_0
       address:
-        socket_address: { address: 0.0.0.0, port_value: 810 }
+        socket_address: { address: 0.0.0.0, port_value: 808 }
       filter_chains:
         - filters:
           - name: envoy.filters.network.http_connection_manager
@@ -16,18 +16,23 @@ static_resources:
                   - name: local_service
                     domains: ["*"]
                     routes:
-                      - match: { prefix: "/" }
+                      - match: { prefix: "/auth" }
                         route:
-                          cluster: greeter_service
+                          cluster: grpc_auth
+                          max_stream_duration:
+                            grpc_timeout_header_max: 0s
+                      - match: { prefix: "/chat" }
+                        route:
+                          cluster: grpc_chat
                           max_stream_duration:
                             grpc_timeout_header_max: 0s
                     cors:
                       allow_origin_string_match: 
                         - prefix: "*"
                       allow_methods: GET, PUT, DELETE, POST, OPTIONS
-                      allow_headers: keep-alive, user-agent, cache-control, content-type, content-transfer-encoding, custom-header-1, x-accept-content-transfer-encoding, x-accept-response-streaming, x-user-agent, x-grpc-web, grpc-timeout
+                      allow_headers: authorization, keep-alive, user-agent, cache-control, content-type, content-transfer-encoding, x-accept-content-transfer-encoding, x-accept-response-streaming, x-user-agent, x-grpc-web, grpc-timeout
                       max_age: "1728000"
-                      expose_headers: custom-header-1, grpc-status, grpc-message
+                      expose_headers: grpc-status, grpc-message
               http_filters:
                 - name: envoy.filters.http.grpc_web
                   typed_config:
@@ -39,17 +44,13 @@ static_resources:
                   typed_config:
                     "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
   clusters:
-    - name: greeter_service
+    - name: grpc_auth
       connect_timeout: 0.25s
       type: logical_dns
-      typed_extension_protocol_options:
-        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
-          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
-          explicit_http_config:
-            http2_protocol_options: {}
+      http2_protocol_options: {}
       lb_policy: round_robin
       load_assignment:
-        cluster_name: cluster_0
+        cluster_name: grpc_auth
         endpoints:
           - lb_endpoints:
             - endpoint:
@@ -57,3 +58,17 @@ static_resources:
                   socket_address:
                     address: msgauth
                     port_value: 809
+    - name: grpc_chat
+      connect_timeout: 0.25s
+      type: logical_dns
+      http2_protocol_options: {}
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: grpc_chat
+        endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: msgchat
+                    port_value: 810

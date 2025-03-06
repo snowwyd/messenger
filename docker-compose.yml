@@ -9,10 +9,24 @@ services:
     networks:
       - dev
     ports:
-      - 810:810
+      - 808:808
   msgauth:
     container_name: msgauth
     build:
       context: ./backend/msgauth
     networks:
       - dev
+    ports:
+      - 809:809
+    env_file:
+      - backend/msgauth/.env
+  msgchat:
+    container_name: msgchat
+    build:
+      context: ./backend/msgchat
+    networks:
+      - dev
+    ports:
+      - 810:810
+    env_file:
+      - backend/msgchat/.env
