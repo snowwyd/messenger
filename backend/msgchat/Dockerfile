@@ -4,8 +4,8 @@ RUN add-apt-repository ppa:longsleep/golang-backports
 RUN apt-get install -y golang-go
 RUN curl -fsSL https://pkgx.sh | sh
 ENV PATH="/root/.pkgx/bin:$PATH"
-WORKDIR /msgauth
-COPY . /msgauth
+WORKDIR /msgchat
+COPY . /msgchat
 RUN go mod tidy
-EXPOSE 809
+EXPOSE 810
 ENTRYPOINT ["pkgx", "task", "run"]
