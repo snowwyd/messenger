@@ -29,3 +29,8 @@ html {
 a {
     text-decoration: none;
 }
+
+textarea, input {
+    outline: none;
+    font-family: 'Roboto';
+}
