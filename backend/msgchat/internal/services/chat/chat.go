@@ -7,8 +7,11 @@ import (
 	"log/slog"
 	"msgchat/internal/domain/models"
 	"msgchat/internal/lib/logger"
+	"os"
+	"strconv"
 	"time"
 
+	"github.com/joho/godotenv"
 	msgv1chat "github.com/snowwyd/protos/gen/go/messenger/msgchat"
 )
 
@@ -59,21 +62,26 @@ var (
 	ErrChannelNotFound = errors.New("channel not found")
 
 	ErrChatExists = errors.New("chat already exists")
+	ErrSameUser   = errors.New("cannot create chat with same user")
 
 	ErrAccessDenied = errors.New("access denied")
+
+	ErrEmptyGroupName = errors.New("group name is empty")
 
 	ErrInvalidChannelType = errors.New("invalid channel type")
 	ErrInvalidChatType    = errors.New("invalid chat type")
 	ErrInvalidUserCount   = errors.New("chat type and user_ids count mismatch")
+	ErrInvalidMessage     = errors.New("invalid message format")
+	ErrInvalidPage        = errors.New("invalid pagination params")
 )
 
 // CREATE METHODS
 // CreateChat создает личные сообщения между UserID из контекста и ContactID, вбивает структуру Chat в базу, содает в ней канал General и возвращает ID структуры Chat
 func (c *Chat) CreateChat(ctx context.Context, chatType string, name string, user_ids []string) (string, error) {
-	const op = "chat.CreateDM"
+	const op = "chat.CreateChat"
 
 	log := c.log.With(slog.String("op", op))
-	log.Info("creating DM")
+	log.Info("creating chat")
 
 	// user_id из контекста
 	log.Info("getting user_id from context")
@@ -83,23 +91,34 @@ func (c *Chat) CreateChat(ctx context.Context, chatType string, name string, use
 		return "", err
 	}
 
-	if chatType != "private" && chatType != "group" {
-		log.Error("invalid chat type", logger.Err(err))
+	if !Contains([]string{"group", "private"}, chatType) {
+		log.Error("invalid chat type", logger.Err(ErrInvalidChatType))
 		return "", ErrInvalidChatType
 	}
 
 	// Логика для Private Chat
 	// проверка на корректность запроса
-	if len(user_ids) != 1 && chatType == "private" {
-		log.Error("invalid input: private chat must contain only 1 user_id", logger.Err(err))
-		return "", ErrInvalidUserCount
+	if chatType == "private" {
+		if len(user_ids) != 1 {
+			log.Error("invalid input: private chat must contain only 1 user_id", logger.Err(ErrInvalidUserCount))
+			return "", ErrInvalidUserCount
+		}
+		if user_ids[0] == userID {
+			log.Error("invalid input: private chat can be created only with another person", logger.Err(ErrSameUser))
+			return "", ErrSameUser
+		}
+	} else if name == "" {
+		log.Error("invalid input: group name must be not empty", logger.Err(ErrEmptyGroupName))
+		return "", ErrEmptyGroupName
 	}
 
 	user_ids = append(user_ids, userID)
+	user_ids = uniqueStrings(user_ids)
+
 	// проврека, существует ли чат с такими пользователями
 	existingChat, _ := c.chatProvider.FindChat(ctx, user_ids)
 	if existingChat != nil && chatType == "private" {
-		log.Warn("chat already exists!", logger.Err(err))
+		log.Warn("chat already exists!", logger.Err(ErrChatExists))
 		return "", fmt.Errorf("%s: %w", op, ErrChatExists)
 	}
 
@@ -122,9 +141,10 @@ func (c *Chat) CreateChat(ctx context.Context, chatType string, name string, use
 
 	// Создание канала General в этом чате по умолчанию
 	generalCh := models.Channel{
-		ChatID: chatID,
-		Name:   "General",
-		Type:   "text",
+		ChatID:     chatID,
+		Name:       "General",
+		Type:       "text",
+		MessageIDs: []string{},
 	}
 
 	_, err = c.channelProvider.SaveChannel(ctx, generalCh)
@@ -237,6 +257,18 @@ func (c *Chat) SendMessage(ctx context.Context, channelID string, text string) (
 
 	createdAt := time.Now()
 
+	godotenv.Load()
+	maxLen, err := strconv.Atoi(os.Getenv("MAX_MESSAGE_LENGTH"))
+	if err != nil {
+		log.Error("failed to get max message length", logger.Err(err))
+		return "", err
+	}
+
+	if len(text) > maxLen {
+		log.Error("invalid message length", logger.Err(ErrInvalidMessage))
+		return "", ErrInvalidMessage
+	}
+
 	newMessage := models.Message{
 		ChannelID: channelID,
 		Text:      text,
@@ -267,6 +299,11 @@ func (c *Chat) GetUserChats(ctx context.Context, chatType string) ([]*msgv1chat.
 	if err != nil {
 		log.Error("failed to get user_id from context", logger.Err(err))
 		return nil, err
+	}
+
+	if !Contains([]string{"group", "private"}, chatType) {
+		log.Error("invalid chat type", logger.Err(ErrInvalidChatType))
+		return nil, ErrInvalidChatType
 	}
 
 	chatPreviews, err := c.chatProvider.FindUserChats(ctx, userID, chatType)
@@ -332,6 +369,11 @@ func (c *Chat) GetMessages(ctx context.Context, channelID string, limit int32, o
 	if err != nil {
 		log.Error("failed to get user_id from context", logger.Err(err))
 		return nil, err
+	}
+
+	if limit <= 0 || offset <= 0 {
+		log.Error("invalid pagination params", logger.Err(ErrInvalidPage))
+		return nil, ErrInvalidPage
 	}
 
 	// проверка, существует ли канал
@@ -405,6 +447,7 @@ func GetUserIDFromContext(ctx context.Context) (string, error) {
 	return userID, nil
 }
 
+// вспомогательные функции
 func Contains(slice []string, value string) bool {
 	for _, v := range slice {
 		if v == value {
@@ -412,4 +455,18 @@ func Contains(slice []string, value string) bool {
 		}
 	}
 	return false
+}
+
+func uniqueStrings(input []string) []string {
+	uniqueMap := make(map[string]struct{})
+	var result []string
+
+	for _, str := range input {
+		if _, exists := uniqueMap[str]; !exists {
+			uniqueMap[str] = struct{}{}
+			result = append(result, str)
+		}
+	}
+
+	return result
 }

@@ -85,6 +85,10 @@ func (s *serverAPI) SendMessage(ctx context.Context, req *msgv1chat.SendMessageR
 // GETTER METHODS
 // GetUserChats returns slice of Chat previews of current user (from token)
 func (s *serverAPI) GetUserChats(ctx context.Context, req *msgv1chat.GetUserChatsRequest) (*msgv1chat.GetUserChatsResponse, error) {
+	if err := validateGetUserChats(req); err != nil {
+		return nil, err
+	}
+
 	ChatPrews, err := s.chat.GetUserChats(ctx, req.GetType())
 	if err != nil {
 		return nil, status.Error(codes.Internal, "internal error")
@@ -177,5 +181,17 @@ func validateSendMessage(req *msgv1chat.SendMessageRequest) error {
 	if req.GetChannelId() == "" {
 		return status.Error(codes.InvalidArgument, "channel_id is required")
 	}
+
+	if len(req.GetText()) == emptyValue {
+		return status.Error(codes.InvalidArgument, "message text is required")
+	}
 	return nil
+}
+
+func validateGetUserChats(req *msgv1chat.GetUserChatsRequest) error {
+	if req.GetType() == "" {
+		return status.Error(codes.InvalidArgument, "chat type is required")
+	}
+	return nil
+
 }
