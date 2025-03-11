@@ -21,7 +21,7 @@ static_resources:
                           cluster: grpc_auth
                           max_stream_duration:
                             grpc_timeout_header_max: 0s
-                      - match: { prefix: "/chat" }
+                      - match: { prefix: "/conversation" }
                         route:
                           cluster: grpc_chat
                           max_stream_duration:

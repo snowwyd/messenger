@@ -20,6 +20,6 @@
     }
 }
 
-.active {
+.chat-button.active {
     background-color: #1D1D1D;
 }

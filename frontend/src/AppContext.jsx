@@ -1,18 +1,18 @@
 import { createContext } from "react";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 import { AuthClient } from "./proto/generated/msgauth.client";
-import { ChatClient } from "./proto/generated/msgchat.client";
+import { ConversationClient } from "./proto/generated/msgchat.client";
 
 export const AppContext = createContext();
 
 export default function AppProvider({ children }) {
     const transport = new GrpcWebFetchTransport({ baseUrl: "http://localhost:808" });
     const authClient = new AuthClient(transport);
-    const chatClient = new ChatClient(transport);
+    const conversationClient = new ConversationClient(transport);
 
     const grpc = {
         auth: authClient,
-        chat: chatClient,
+        chat: conversationClient,
         setAuthorizationHeader: function(token) {
             const rpcOptions = {
                 interceptors: [

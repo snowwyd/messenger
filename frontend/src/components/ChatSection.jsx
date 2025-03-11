@@ -1,100 +1,75 @@
 import { useEffect, useContext, useState, useRef } from "react";
-import { useLocation, useParams } from "react-router-dom"
+import { useLocation, useParams, useNavigate, Routes, Route } from "react-router-dom"
 
 import { AppContext } from "../AppContext";
-import Message from "./Message";
+import MessagesWindow from "./MessagesWindow";
+import Channel from "./Channel";
 
 import './ChatSection.css'
 
-export default function ChatSection(params) {
+export default function ChatSection({ isEmpty }) {
     const grpc = useContext(AppContext);
-    const [messages, setMessages] = useState([]);
-    const [text, setText] = useState("");
-    const textareaRef = useRef(null);
     const location = useLocation();
     const { chatId } = useParams();
+    const navigate = useNavigate();
+
+    const [channels, setChannels] = useState([]);
+    const [channelName, setChannelName] = useState("");
 
     useEffect(() => {
-        if (!params.isEmpty) {
-            setMessages([]);
-            getMessages();
+        if (!isEmpty) {
+            getChatInfo();
         }
     }, [location.pathname]);
 
-    useEffect(() => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = "46px";
-            const scrollHeight = textareaRef.current.scrollHeight;
-            textareaRef.current.style.height = `${scrollHeight}px`;
-        }
-    }, [text]);
-
-    async function getMessages() {
-        const token = localStorage.getItem('token');
-
+    async function getChatInfo() {
         const input = {
-            chatId: chatId,
-            limit: 10,
-            offset: 1
+            chatId: chatId
         }
 
-        const rpcOptions = grpc.setAuthorizationHeader(token);
+        const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
 
         try {
-            const response = await grpc.chat.getMessages(input, rpcOptions);
-            setMessages(response.response.messages.reverse());
+            const response = await grpc.chat.getChatInfo(input, rpcOptions);
+            setChannels(response.response.channels);
         } catch (error) {
-            console.log(error.message);
+            console.log(error);
         }
     }
 
-    async function handleSubmit() {
-        const token = localStorage.getItem('token');
-        const user_id = localStorage.getItem('user_id');
-
-        if (text.trim().replace(/\n/g, '') === '') return setText("");
-
+    async function createChannel() {
         const input = {
             chatId: chatId,
-            senderId: user_id,
-            text: text
+            name: channelName,
+            type: "text"
         }
 
-        const rpcOptions = grpc.setAuthorizationHeader(token);
+        const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
 
         try {
-            await grpc.chat.sendMessage(input, rpcOptions);
-            getMessages();
-            setText("");
+            const response = await grpc.chat.createChannel(input, rpcOptions);
+            setChannelName("");
+            getChatInfo();
         } catch (error) {
-            console.log(error.message);
-        }
-    }
-
-    function handleKeyDown(event) {
-        if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            handleSubmit(event);
+            console.log(error);
         }
     }
 
     return (
         <>
             <div className="messages-window-container">
-                <div className="messages-window">
-                    {!params.isEmpty && messages.map((item, index) => <Message messages={messages} item={item} index={index} key={index} />)}
-                </div>
-                <div className="message-field">
-                    {!params.isEmpty && (
-                        <form onSubmit={handleSubmit} className="message-form">
-                            <textarea ref={textareaRef} onKeyDown={handleKeyDown} value={text} onChange={(event) => setText(event.target.value)} placeholder="write a message..."></textarea>
-                        </form>
-                    )}
-                </div>
+                <Routes>
+                    <Route path=":channelId" element={<MessagesWindow />} />
+                </Routes>
             </div>
             <div className="chat-details">
                 <div className="members-info"></div>
-                <div className="channels-list"></div>
+                <div className="channels-list">
+                    {!isEmpty && channels.map((item, index) => <Channel item={item} key={index} />)}
+                    
+                    <input value={channelName} onChange={(event) => setChannelName(event.target.value)} className="create-channel-name" placeholder="channel name" type="text" />
+                    <div onClick={createChannel} className="create-channel"></div>
+                </div>
             </div>
         </>
     )

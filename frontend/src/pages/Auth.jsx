@@ -128,7 +128,7 @@ export default function App() {
         };
 
         try {
-            const response = await services.auth.register(user);
+            await services.auth.register(user);
             registerMessageRef.current.innerHTML = "successful registration";
         } catch (error) {
             registerMessageRef.current.innerHTML = "error: " + error.message;
@@ -147,24 +147,12 @@ export default function App() {
         try {
             const response = await services.auth.login(user);
             loginMessageRef.current.innerHTML = "successful login";
-            const token = response.response.token
-            const payload = parseJwt(token);
-            localStorage.setItem('token', token);
-            localStorage.setItem('user_id', payload.uid);
+            localStorage.setItem('token', response.response.token);
             navigate('/chats');
         } catch (error) {
             console.log(error);
             loginMessageRef.current.innerHTML = "error: " + error.message;
         }
-    }
-
-    function parseJwt(token) {
-        let base64Url = token.split('.')[1];
-        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        let jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(jsonPayload);
     }
 
     return (

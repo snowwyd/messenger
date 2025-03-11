@@ -1,67 +1,116 @@
 syntax = "proto3";
 
-package chat;
+package conversation;
 
-service Chat {
-    rpc SendMessage (SendMessageRequest) returns (SendMessageResponse);
-    rpc GetMessages (GetMessagesRequest) returns (GetMessagesResponse);
+import "google/protobuf/timestamp.proto";
+
+service Conversation {
     rpc CreateChat (CreateChatRequest) returns (CreateChatResponse);
+
     rpc GetUserChats (GetUserChatsRequest) returns (GetUserChatsResponse);
-    rpc DeleteMessage (DeleteMessageRequest) returns (DeleteMessageResponse);
-}
 
-message SendMessageRequest {
-    string sender_id = 1;
-    string chat_id = 2;
-    string text = 3;
-}
+    rpc GetChatInfo (GetChatInfoRequest) returns (GetChatInfoResponse);
 
-message SendMessageResponse {
-    string message_id = 1;
-}
+    rpc CreateChannel (CreateChannelRequest) returns (CreateChannelResponse);
 
-message GetMessagesRequest {
+    rpc GetMessages (GetMessagesRequest) returns (GetMessagesResponse);
+    rpc SendMessage (SendMessageRequest) returns (SendMessageResponse);
+  }
+
+  // CreateChat
+  message CreateChatRequest {
+    string type = 1;
+    string name = 2;
+    repeated string user_ids = 3;
+  }
+  
+  message CreateChatResponse {
     string chat_id = 1;
+  }
+  
+  // GetUserChats
+  message GetUserChatsRequest {
+    string type = 1;
+  }
+
+  message GetUserChatsResponse {
+    repeated ChatPreview chats = 1;
+  }
+
+
+  // GetChatInfo
+  message GetChatInfoRequest {
+    string chat_id = 1;
+  }
+
+  message GetChatInfoResponse {
+    string chat_id = 1;
+    string type = 2;
+    string name = 3; 
+    repeated string member_ids = 4;
+    repeated Channel channels = 5;
+  }
+
+  // CreateChannel
+  message CreateChannelRequest {
+    string chat_id = 1;
+    string name = 2;
+    string type = 3;
+    
+  }
+
+  message CreateChannelResponse {
+    string channel_id = 1;
+  }
+
+
+  // GetMessages и SendMessage
+  message GetMessagesRequest {
+    string channel_id = 1;
     int32 limit = 2;
     int32 offset = 3;
-}
+  }
 
-message GetMessagesResponse {
+  message GetMessagesResponse {
     repeated Message messages = 1;
-}
+  }
 
-message Message {
+  message SendMessageRequest {
+    string channel_id = 1;
+    string text = 2;
+  }
+
+  message SendMessageResponse {
     string message_id = 1;
-    string sender_id = 2;
+  }
+
+  // Сущности
+  message Chat {
+    string chat_id = 1;
+    string type = 2;
+    string name = 3;
+    repeated string member_ids = 4;
+    repeated string channel_ids = 5;
+  }
+
+  message ChatPreview {
+    string chat_id = 1;
+    string name = 2;
+  }
+
+  message Channel {
+    string channel_id = 1;
+    string chat_id = 2;
+    string name = 3;
+    string type = 4;
+    repeated string message_ids = 5;
+    
+  }
+
+  message Message {
+    string message_id = 1;
+    string channel_id = 2;
     string text = 3;
-    string timestamp = 4;
-}
-
-message CreateChatRequest {
-    repeated string user_ids = 1;
-}
-
-message CreateChatResponse {
-    string chat_id = 1;
-}
-
-message GetUserChatsRequest {
-    string user_id = 1;
-}
-
-message GetUserChatsResponse {
-    repeated ChatInfo chats = 1;
-}
-
-message ChatInfo {
-    string chat_id = 1;
-    repeated string user_ids = 2;
-}
-
-message DeleteMessageRequest {
-    string message_id = 1;
-}
-
-message DeleteMessageResponse {
-    bool success = 1;
-}
+    string sender_id = 4;
+    google.protobuf.Timestamp created_at = 5; 
+  }
