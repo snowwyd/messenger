@@ -170,17 +170,8 @@ func (c *Chat) CreateChannel(ctx context.Context, chatID string, name string, ch
 		return "", err
 	}
 
-	// проверка, существует ли чат
-	existingChat, _ := c.chatProvider.FindChatByID(ctx, chatID, userID)
-	if existingChat.ID == "" {
-		log.Error("chat doesn't exist", logger.Err(ErrChatNotFound))
-		return "", ErrChatNotFound
-	}
-
-	// проверка, есть ли пользователь в чате
-	if !Contains(existingChat.MemberIDs, userID) {
-		log.Error("user is not in this chat", logger.Err(ErrAccessDenied))
-		return "", ErrAccessDenied
+	if err := c.chatValidation(ctx, log, chatID, userID); err != nil {
+		return "", err
 	}
 
 	// TODO: логика для voice и для text
@@ -236,23 +227,8 @@ func (c *Chat) SendMessage(ctx context.Context, channelID string, text string) (
 		return "", err
 	}
 
-	// проверка, существует ли канал
-	existingChannel, _ := c.channelProvider.FindChannelByID(ctx, channelID)
-	if existingChannel.ID == "" {
-		log.Error("channel doesn't exist", logger.Err(ErrChannelNotFound))
-		return "", ErrChannelNotFound
-	}
-
-	existingChat, _ := c.chatProvider.FindChatByID(ctx, existingChannel.ChatID, userID)
-	if existingChannel.ID == "" {
-		log.Error("chat doesn't exist", logger.Err(ErrChatNotFound))
-		return "", ErrChatNotFound
-	}
-
-	// проверка, есть ли пользователь в чате
-	if !Contains(existingChat.MemberIDs, userID) {
-		log.Error("user is not in this chat", logger.Err(ErrAccessDenied))
-		return "", ErrAccessDenied
+	if err := c.channelValidation(ctx, log, channelID, userID); err != nil {
+		return "", err
 	}
 
 	createdAt := time.Now()
@@ -363,7 +339,6 @@ func (c *Chat) GetMessages(ctx context.Context, channelID string, limit int32, o
 	log := c.log.With(slog.String("op", op))
 	log.Info("getting messages from channel")
 
-	// user_id из контекста
 	log.Info("getting user_id from context")
 	userID, err := GetUserIDFromContext(ctx)
 	if err != nil {
@@ -371,28 +346,8 @@ func (c *Chat) GetMessages(ctx context.Context, channelID string, limit int32, o
 		return nil, err
 	}
 
-	if limit <= 0 || offset <= 0 {
-		log.Error("invalid pagination params", logger.Err(ErrInvalidPage))
-		return nil, ErrInvalidPage
-	}
-
-	// проверка, существует ли канал
-	existingChannel, _ := c.channelProvider.FindChannelByID(ctx, channelID)
-	if existingChannel.ID == "" {
-		log.Error("channel doesn't exist", logger.Err(ErrChannelNotFound))
-		return nil, ErrChannelNotFound
-	}
-
-	existingChat, _ := c.chatProvider.FindChatByID(ctx, existingChannel.ChatID, userID)
-	if existingChannel.ID == "" {
-		log.Error("chat doesn't exist", logger.Err(ErrChatNotFound))
-		return nil, ErrChatNotFound
-	}
-
-	// проверка, есть ли пользователь в чате
-	if !Contains(existingChat.MemberIDs, userID) {
-		log.Error("user is not in this chat", logger.Err(ErrAccessDenied))
-		return nil, ErrAccessDenied
+	if err := c.channelValidation(ctx, log, channelID, userID); err != nil {
+		return nil, err
 	}
 
 	messages, err := c.messageProvider.GetMessages(ctx, channelID, limit, offset)
@@ -439,12 +394,51 @@ func validateMessage(text string) error {
 	return nil
 }*/
 
+// GetUserIDFromContext получает id пользователя из контекста
 func GetUserIDFromContext(ctx context.Context) (string, error) {
 	userID, ok := ctx.Value("user_id").(string)
 	if !ok || userID == "" {
 		return "", errors.New("user_id не найден в контексте")
 	}
 	return userID, nil
+}
+
+// channelValidation проверяет, существует ли канал с таким id, существует ли чат с таким каналом и существует ли пользователь в таком чате
+func (c *Chat) channelValidation(ctx context.Context, log *slog.Logger, channelID string, userID string) error {
+	// проверка, существует ли канал
+	existingChannel, _ := c.channelProvider.FindChannelByID(ctx, channelID)
+	if existingChannel.ID == "" {
+		log.Error("channel doesn't exist", logger.Err(ErrChannelNotFound))
+		return ErrChannelNotFound
+	}
+
+	existingChat, _ := c.chatProvider.FindChatByID(ctx, existingChannel.ChatID, userID)
+	if existingChannel.ID == "" {
+		log.Error("chat doesn't exist", logger.Err(ErrChatNotFound))
+		return ErrChatNotFound
+	}
+
+	// проверка, есть ли пользователь в чате
+	if !Contains(existingChat.MemberIDs, userID) {
+		log.Error("user is not in this chat", logger.Err(ErrAccessDenied))
+		return ErrAccessDenied
+	}
+	return nil
+}
+
+// chatValidation проверяет, существует ли чат с таким id и существует ли пользователь в таком чате
+func (c *Chat) chatValidation(ctx context.Context, log *slog.Logger, chatID string, userID string) error {
+	chat, err := c.chatProvider.FindChatByID(ctx, chatID, userID)
+	if err != nil {
+		log.Error("failed to get chat by id", logger.Err(err))
+		return err
+	}
+
+	if !Contains(chat.MemberIDs, userID) {
+		log.Error("user is not in this chat", logger.Err(ErrAccessDenied))
+		return ErrAccessDenied
+	}
+	return nil
 }
 
 // вспомогательные функции
