@@ -1,0 +1,18 @@
+.channel {
+    padding: 10px;
+    color: #515151;
+    font-size: 15px;
+    text-transform: lowercase;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.1s;
+
+    &:hover {
+        background-color: #171717;
+    }
+}
+
+.channel.active {
+    background-color: #171717;
+    color: #E1E1E1;
+}
