@@ -7,189 +7,363 @@ import (
 	"log/slog"
 	"msgchat/internal/domain/models"
 	"msgchat/internal/lib/logger"
-	"slices"
 	"time"
 
 	msgv1chat "github.com/snowwyd/protos/gen/go/messenger/msgchat"
 )
 
 type Chat struct {
-	log          *slog.Logger
-	msgSaver     MessageSaver
-	msgProvider  MessageProvider
-	chatSaver    ChatSaver
-	chatProvider ChatProvider
-	tokenTTL     time.Duration
-	appSecret    string
+	log             *slog.Logger
+	chatProvider    ChatProvider
+	channelProvider ChannelProvider
+	messageProvider MessageProvider
+	tokenTTL        time.Duration
+	appSecret       string
 }
 
-type MessageSaver interface {
-	SaveMessage(ctx context.Context, senderID string, chatID string, text string, timestamp time.Time) (messageID string, err error)
-	DeleteMessage(ctx context.Context, messageID string) (bool, error)
-}
-
-type ChatSaver interface {
-	SaveChat(ctx context.Context, userIDs []string) (chatID string, err error)
-}
-
-type MessageProvider interface {
-	Message(ctx context.Context, messageID string) (message models.Message, err error)
-	Messages(ctx context.Context, chatID string, limit int32, offset int32) (message []*models.Message, err error)
-}
-
+// Chat interfaces for data layer
 type ChatProvider interface {
-	// Chat возвращает chat по его id
-	Chat(ctx context.Context, chatID string) (chat models.Chat, err error)
-	// Chats возвращает чаты пользователя по user_id
-	Chats(ctx context.Context, userID string) (chats []*models.Chat, err error)
+	SaveChat(ctx context.Context, chat models.Chat) (chatID string, err error)
+	FindChat(ctx context.Context, userIDs []string) (chat *models.Chat, err error)
+	FindChatByID(ctx context.Context, chatID string, userID string) (chat models.Chat, err error)
+	FindUserChats(ctx context.Context, userID string, chatType string) (chatPreviews []*models.ChatPreview, err error)
+}
+
+// Channel interfaces for data layer
+type ChannelProvider interface {
+	SaveChannel(ctx context.Context, channel models.Channel) (chanID string, err error)
+	FindChannelByID(ctx context.Context, channelID string) (channel models.Channel, err error)
+}
+
+// Message interfaces for data layer
+type MessageProvider interface {
+	SaveMessage(ctx context.Context, message models.Message) (messageID string, err error)
+	GetMessages(ctx context.Context, channelID string, limit int32, offset int32) (messages []*models.Message, err error)
 }
 
 // New - конструктор Chat
-func New(log *slog.Logger, messageSaver MessageSaver, messageProvider MessageProvider, chatSaver ChatSaver, chatProvider ChatProvider, tokenTTL time.Duration, appSecret string) *Chat {
+func New(log *slog.Logger, chatProvider ChatProvider, channelProvider ChannelProvider, messageProvider MessageProvider, tokenTTL time.Duration, appSecret string) *Chat {
 	return &Chat{
-		msgSaver:     messageSaver,
-		msgProvider:  messageProvider,
-		chatSaver:    chatSaver,
-		chatProvider: chatProvider,
-		log:          log,
-		tokenTTL:     tokenTTL,
-		appSecret:    appSecret,
+		log:             log,
+		chatProvider:    chatProvider,
+		channelProvider: channelProvider,
+		messageProvider: messageProvider,
+		tokenTTL:        tokenTTL,
+		appSecret:       appSecret,
 	}
 }
 
 var (
-	ErrMsgNotFound    = errors.New("message not found")
-	ErrEmptyMessage   = errors.New("message cannot be empty")
-	ErrMessageTooLong = errors.New("message length must be less than 1000 symbols")
+	ErrMsgNotFound     = errors.New("message not found")
+	ErrChatNotFound    = errors.New("chat not gound")
+	ErrChannelNotFound = errors.New("channel not found")
 
-	ErrChatNotFound    = errors.New("chat not found")
-	ErrUserOutsideChat = errors.New("user is not in a chat")
-	ErrNotEnoughUsers  = errors.New("not enough users to create the chat")
+	ErrChatExists = errors.New("chat already exists")
+
+	ErrAccessDenied = errors.New("access denied")
+
+	ErrInvalidChannelType = errors.New("invalid channel type")
+	ErrInvalidChatType    = errors.New("invalid chat type")
+	ErrInvalidUserCount   = errors.New("chat type and user_ids count mismatch")
 )
 
-// SendMessage отправляет сообщение в чат
-func (c *Chat) SendMessage(ctx context.Context, senderID string, chatID string, text string) (string, error) {
-	const op = "chat.SendMessage"
-
-	log := c.log.With(slog.String("op", op), slog.String("chatID", chatID))
-	log.Info("sending message")
-
-	if err := validateMessage(text); err != nil {
-		if errors.Is(err, ErrEmptyMessage) {
-			c.log.Warn("empty message", logger.Err(err))
-			return "", fmt.Errorf("%s: %w", op, ErrEmptyMessage)
-		}
-		c.log.Warn("message is too long", logger.Err(err))
-		return "", fmt.Errorf("%s: %w", op, ErrMessageTooLong)
-	}
-
-	// проверка на существование чата
-	chat, err := c.chatProvider.Chat(ctx, chatID)
-	if err != nil {
-		c.log.Error("chat not found", logger.Err(err))
-		return "", fmt.Errorf("%s: %w", op, ErrChatNotFound)
-	}
-
-	// проверка на то, состит ли пользователь в чате
-	isMember := slices.Contains(chat.UserIDs, senderID)
-	if !isMember {
-		c.log.Warn("unauthorized message attempt", "senderID", senderID, "chatID", chatID)
-		return "", fmt.Errorf("%s: %w", op, ErrUserOutsideChat)
-	}
-
-	// получение времени отправки сообщения и сохранение сообщения в базе через метод SaveMessage
-	timestamp := time.Now()
-	messageID, err := c.msgSaver.SaveMessage(ctx, senderID, chatID, text, timestamp)
-	if err != nil {
-		c.log.Error("failed to save message", logger.Err(err))
-		return "", fmt.Errorf("%s: %w", op, err)
-	}
-
-	c.log.Info("message sent successfully")
-	return messageID, nil
-}
-
-// GetMessages получает сообщения из чата с пагинацией
-func (c *Chat) GetMessages(ctx context.Context, chatID string, limit int32, offset int32) ([]*msgv1chat.Message, error) {
-	const op = "chat.GetMessages"
-
-	// TODO: возможно сделать преаллокацию для производительности
-
-	log := c.log.With(slog.String("op", op), slog.String("chatID", chatID))
-	log.Info("getting messages")
-
-	// проверка существования чата
-	_, err := c.chatProvider.Chat(ctx, chatID)
-	if err != nil {
-		c.log.Error("chat not found", logger.Err(err))
-		return nil, fmt.Errorf("%s: %w", op, ErrChatNotFound)
-	}
-
-	// в слое работы с данными будет сортировка по Timestamp, а также пагинация с SetLimit(limit) и Skip(offset)
-	messages, err := c.msgProvider.Messages(ctx, chatID, limit, offset)
-	if err != nil {
-		c.log.Error("failed to get messages", logger.Err(err))
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	protoMessages := models.ConvertMessagesToProto(messages)
-
-	c.log.Info("messages got successfully")
-	return protoMessages, nil
-}
-
-// CreateChat создает новый чат между пользователями
-func (c *Chat) CreateChat(ctx context.Context, userIDs []string) (string, error) {
-	const op = "chat.CreateChat"
+// CREATE METHODS
+// CreateChat создает личные сообщения между UserID из контекста и ContactID, вбивает структуру Chat в базу, содает в ней канал General и возвращает ID структуры Chat
+func (c *Chat) CreateChat(ctx context.Context, chatType string, name string, user_ids []string) (string, error) {
+	const op = "chat.CreateDM"
 
 	log := c.log.With(slog.String("op", op))
-	log.Info("creating chat")
+	log.Info("creating DM")
 
-	// TODO: проверка на ID пользователей
-	if len(userIDs) < 1 {
-		c.log.Error("failed to create chat: not enough users")
-		return "", fmt.Errorf("%s: %w", op, ErrNotEnoughUsers)
-	}
-
-	chatID, err := c.chatSaver.SaveChat(ctx, userIDs)
+	// user_id из контекста
+	log.Info("getting user_id from context")
+	userID, err := GetUserIDFromContext(ctx)
 	if err != nil {
-		c.log.Error("failed to save chat", logger.Err(err))
-		return "", fmt.Errorf("%s: %w", op, err)
+		log.Error("failed to get user_id from context", logger.Err(err))
+		return "", err
 	}
 
-	timestamp := time.Now()
-	// TODO: убрать хардкод
-	_, err = c.msgSaver.SaveMessage(ctx, userIDs[0], chatID, "started new chat", timestamp)
+	if chatType != "private" && chatType != "group" {
+		log.Error("invalid chat type", logger.Err(err))
+		return "", ErrInvalidChatType
+	}
+
+	// Логика для Private Chat
+	// проверка на корректность запроса
+	if len(user_ids) != 1 && chatType == "private" {
+		log.Error("invalid input: private chat must contain only 1 user_id", logger.Err(err))
+		return "", ErrInvalidUserCount
+	}
+
+	user_ids = append(user_ids, userID)
+	// проврека, существует ли чат с такими пользователями
+	existingChat, _ := c.chatProvider.FindChat(ctx, user_ids)
+	if existingChat != nil && chatType == "private" {
+		log.Warn("chat already exists!", logger.Err(err))
+		return "", fmt.Errorf("%s: %w", op, ErrChatExists)
+	}
+
+	// создание нового чата
+	newChat := models.Chat{
+		MemberIDs:  user_ids,
+		ChannelIDs: []string{},
+		Type:       chatType,
+	}
+
+	if chatType == "group" {
+		newChat.Name = name
+	}
+
+	chatID, err := c.chatProvider.SaveChat(ctx, newChat)
 	if err != nil {
-		c.log.Error("failed to start new chat", logger.Err(err))
-		return "", fmt.Errorf("%s: %w", op, err)
+		log.Error("failed to save chat", logger.Err(err))
+		return "", err
 	}
 
-	c.log.Info("chat created successfully")
+	// Создание канала General в этом чате по умолчанию
+	generalCh := models.Channel{
+		ChatID: chatID,
+		Name:   "General",
+		Type:   "text",
+	}
+
+	_, err = c.channelProvider.SaveChannel(ctx, generalCh)
+	if err != nil {
+		log.Error("failed to save chat", logger.Err(err))
+		return "", err
+	}
 	return chatID, nil
 }
 
-// GetUserChats получает список чатов, в которых состоит пользователь
-func (c *Chat) GetUserChats(ctx context.Context, userID string) ([]*msgv1chat.ChatInfo, error) {
-	const op = "chat.GetUserChats"
+// CreateChannel проверяет, есть ли пользователь в текущем чате и, если он есть в чате, то создает новый канал по входным параметрам и отправляет сообщение о создании чата. Канал сохраняется в базу, а его айди обновляется в соотв. чате
+func (c *Chat) CreateChannel(ctx context.Context, chatID string, name string, chanType string) (string, error) {
+	const op = "chat.CreateChannel"
 
-	log := c.log.With(slog.String("op", op), slog.String("userID", userID))
-	log.Info("getting user chats")
+	log := c.log.With(slog.String("op", op))
+	log.Info("creating channel")
 
-	// проверка на UserID произойдет в слое работы с данными
-	chats, err := c.chatProvider.Chats(ctx, userID)
+	// user_id из контекста
+	log.Info("getting user_id from context")
+	userID, err := GetUserIDFromContext(ctx)
 	if err != nil {
-		log.Error("failed to get user chats", logger.Err(err))
-		return nil, fmt.Errorf("%s: %w", op, err)
+		log.Error("failed to get user_id from context", logger.Err(err))
+		return "", err
 	}
 
-	protoChats := models.ConvertChatsToProto(chats)
+	// проверка, существует ли чат
+	existingChat, _ := c.chatProvider.FindChatByID(ctx, chatID, userID)
+	if existingChat.ID == "" {
+		log.Error("chat doesn't exist", logger.Err(ErrChatNotFound))
+		return "", ErrChatNotFound
+	}
 
-	log.Info("provided user chats successfully")
-	return protoChats, nil
+	// проверка, есть ли пользователь в чате
+	if !Contains(existingChat.MemberIDs, userID) {
+		log.Error("user is not in this chat", logger.Err(ErrAccessDenied))
+		return "", ErrAccessDenied
+	}
+
+	// TODO: логика для voice и для text
+	if !Contains([]string{"voice", "text"}, chanType) {
+		log.Error("invalid channel type", logger.Err(ErrInvalidChannelType))
+		return "", ErrInvalidChannelType
+	}
+
+	// сохранение чата в БД
+	newCh := models.Channel{
+		ChatID:     chatID,
+		Name:       name,
+		Type:       chanType,
+		MessageIDs: []string{},
+	}
+
+	channelID, err := c.channelProvider.SaveChannel(ctx, newCh)
+	if err != nil {
+		log.Error("failed to save channel", logger.Err(err))
+		return "", err
+	}
+
+	// отправка сообщения об успешном создании чата
+	createdAt := time.Now()
+	startMsg := models.Message{
+		ChannelID: channelID,
+		Text:      fmt.Sprintf("started channel %s at %s", name, createdAt.Format("02-Jan-2006 15:04:05")),
+		SenderID:  userID,
+		CreatedAt: createdAt,
+	}
+
+	_, err = c.messageProvider.SaveMessage(ctx, startMsg)
+	if err != nil {
+		log.Error("failed to send message", logger.Err(err))
+		return "", err
+	}
+
+	return channelID, nil
 }
 
-// DeleteMessage удаляет сообщение по ID
+// SendMessage проверяет, есть ли пользователь в чате, где есть ChannelID и затем сохраняет сообщение в базу, а его айди в соотв. канал
+func (c *Chat) SendMessage(ctx context.Context, channelID string, text string) (string, error) {
+	const op = "chat.SendMessage"
+
+	log := c.log.With(slog.String("op", op))
+	log.Info("sending message")
+
+	// user_id из контекста
+	log.Info("getting user_id from context")
+	userID, err := GetUserIDFromContext(ctx)
+	if err != nil {
+		log.Error("failed to get user_id from context", logger.Err(err))
+		return "", err
+	}
+
+	// проверка, существует ли канал
+	existingChannel, _ := c.channelProvider.FindChannelByID(ctx, channelID)
+	if existingChannel.ID == "" {
+		log.Error("channel doesn't exist", logger.Err(ErrChannelNotFound))
+		return "", ErrChannelNotFound
+	}
+
+	existingChat, _ := c.chatProvider.FindChatByID(ctx, existingChannel.ChatID, userID)
+	if existingChannel.ID == "" {
+		log.Error("chat doesn't exist", logger.Err(ErrChatNotFound))
+		return "", ErrChatNotFound
+	}
+
+	// проверка, есть ли пользователь в чате
+	if !Contains(existingChat.MemberIDs, userID) {
+		log.Error("user is not in this chat", logger.Err(ErrAccessDenied))
+		return "", ErrAccessDenied
+	}
+
+	createdAt := time.Now()
+
+	newMessage := models.Message{
+		ChannelID: channelID,
+		Text:      text,
+		SenderID:  userID,
+		CreatedAt: createdAt,
+	}
+
+	messageID, err := c.messageProvider.SaveMessage(ctx, newMessage)
+	if err != nil {
+		log.Error("failed to save message", logger.Err(err))
+		return "", err
+	}
+
+	return messageID, nil
+}
+
+// GETTER METHODS
+// GetUserChats возвращает слайс превью чатов конкретного пользователя (user_id из контекста), конвертированных в прото формат
+func (c *Chat) GetUserChats(ctx context.Context, chatType string) ([]*msgv1chat.ChatPreview, error) {
+	const op = "chat.GetUserChats"
+
+	log := c.log.With(slog.String("op", op))
+	log.Info("getting user chats")
+
+	// user_id из контекста
+	log.Info("getting user_id from context")
+	userID, err := GetUserIDFromContext(ctx)
+	if err != nil {
+		log.Error("failed to get user_id from context", logger.Err(err))
+		return nil, err
+	}
+
+	chatPreviews, err := c.chatProvider.FindUserChats(ctx, userID, chatType)
+	if err != nil {
+		log.Error("faild to get chats", logger.Err(err))
+		return nil, err
+	}
+
+	protoChatPreviews := models.ConvertChatPreviewsToProto(chatPreviews)
+	return protoChatPreviews, nil
+}
+
+// GetChatInfo возвращает id чата, тип чата, его имя, список участников и всю информацию о каналах (конвертированные в прото формат)
+func (c *Chat) GetChatInfo(ctx context.Context, chatID string) (ID string, chatType string, name string, member_ids []string, channels []*msgv1chat.Channel, err error) {
+	const op = "chat.GetChatInfo"
+
+	log := c.log.With(slog.String("op", op))
+	log.Info("getting user chats")
+
+	// user_id из контекста
+	log.Info("getting user_id from context")
+	userID, err := GetUserIDFromContext(ctx)
+	if err != nil {
+		log.Error("failed to get user_id from context", logger.Err(err))
+		return "", "", "", nil, nil, err
+	}
+
+	chat, err := c.chatProvider.FindChatByID(ctx, chatID, userID)
+	if err != nil {
+		log.Error("failed to get chat by id", logger.Err(err))
+		return "", "", "", nil, nil, err
+	}
+
+	if !Contains(chat.MemberIDs, userID) {
+		log.Error("user is not in this chat", logger.Err(ErrAccessDenied))
+		return "", "", "", nil, nil, ErrAccessDenied
+	}
+
+	protoChannels := make([]*msgv1chat.Channel, len(chat.ChannelIDs))
+
+	for i, id := range chat.ChannelIDs {
+		channel, err := c.channelProvider.FindChannelByID(ctx, id)
+		if err != nil {
+			log.Error("failed to get chat by id", logger.Err(err))
+			return "", "", "", nil, nil, err
+		}
+		protoChannel := models.ConvertChannelToProto(channel)
+		protoChannels[i] = protoChannel
+	}
+	return chat.ID, chat.Type, chat.Name, chat.MemberIDs, protoChannels, nil
+}
+
+// GetMessages возвращает слайс со всей информацией о сообщениях (конвертированных в прото) в конкретном чате с пагинацией
+func (c *Chat) GetMessages(ctx context.Context, channelID string, limit int32, offset int32) ([]*msgv1chat.Message, error) {
+	const op = "chat.GetMessages"
+
+	log := c.log.With(slog.String("op", op))
+	log.Info("getting messages from channel")
+
+	// user_id из контекста
+	log.Info("getting user_id from context")
+	userID, err := GetUserIDFromContext(ctx)
+	if err != nil {
+		log.Error("failed to get user_id from context", logger.Err(err))
+		return nil, err
+	}
+
+	// проверка, существует ли канал
+	existingChannel, _ := c.channelProvider.FindChannelByID(ctx, channelID)
+	if existingChannel.ID == "" {
+		log.Error("channel doesn't exist", logger.Err(ErrChannelNotFound))
+		return nil, ErrChannelNotFound
+	}
+
+	existingChat, _ := c.chatProvider.FindChatByID(ctx, existingChannel.ChatID, userID)
+	if existingChannel.ID == "" {
+		log.Error("chat doesn't exist", logger.Err(ErrChatNotFound))
+		return nil, ErrChatNotFound
+	}
+
+	// проверка, есть ли пользователь в чате
+	if !Contains(existingChat.MemberIDs, userID) {
+		log.Error("user is not in this chat", logger.Err(ErrAccessDenied))
+		return nil, ErrAccessDenied
+	}
+
+	messages, err := c.messageProvider.GetMessages(ctx, channelID, limit, offset)
+	if err != nil {
+		log.Error("failed to get messages from channel", logger.Err(err))
+		return nil, err
+	}
+
+	protoMessages := models.ConvertMessagesToProto(messages)
+	return protoMessages, nil
+}
+
+/*DeleteMessage удаляет сообщение по ID
 func (c *Chat) DeleteMessage(ctx context.Context, messageID string) (bool, error) {
 	const op = "chat.DeleteMessage"
 
@@ -221,4 +395,21 @@ func validateMessage(text string) error {
 		return ErrMessageTooLong
 	}
 	return nil
+}*/
+
+func GetUserIDFromContext(ctx context.Context) (string, error) {
+	userID, ok := ctx.Value("user_id").(string)
+	if !ok || userID == "" {
+		return "", errors.New("user_id не найден в контексте")
+	}
+	return userID, nil
+}
+
+func Contains(slice []string, value string) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }

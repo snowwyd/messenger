@@ -4,8 +4,8 @@ import "time"
 
 type Message struct {
 	ID        string    `bson:"_id,omitempty"`
-	ChatID    string    `bson:"chat_id"`
-	SenderID  string    `bson:"sender_id"`
+	ChannelID string    `bson:"channel_id"`
 	Text      string    `bson:"text"`
-	Timestamp time.Time `bson:"timestamp"`
+	SenderID  string    `bson:"sender_id"`
+	CreatedAt time.Time `bson:"created_at"`
 }

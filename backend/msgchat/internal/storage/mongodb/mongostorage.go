@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"msgchat/internal/domain/models"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,11 +13,11 @@ import (
 )
 
 type MongoDB struct {
-	client        *mongo.Client
-	database      *mongo.Database
-	chatsCol      *mongo.Collection
-	messagesCol   *mongo.Collection
-	usersChatsCol *mongo.Collection
+	client      *mongo.Client
+	database    *mongo.Database
+	chatsCol    *mongo.Collection
+	messagesCol *mongo.Collection
+	channelsCol *mongo.Collection
 }
 
 func New(storagePath string, dbName string) (*MongoDB, error) {
@@ -33,11 +32,11 @@ func New(storagePath string, dbName string) (*MongoDB, error) {
 	db := client.Database(dbName)
 
 	return &MongoDB{
-		client:        client,
-		database:      db,
-		chatsCol:      db.Collection("chats"),
-		messagesCol:   db.Collection("messages"),
-		usersChatsCol: db.Collection("users_chats"),
+		client:      client,
+		database:    db,
+		chatsCol:    db.Collection("chats"),
+		messagesCol: db.Collection("messages"),
+		channelsCol: db.Collection("channels"),
 	}, nil
 }
 
@@ -47,158 +46,115 @@ func (m *MongoDB) Close() error {
 
 var (
 	ErrChatNotFound = errors.New("chat not found")
-	ErrMsgNotFound  = errors.New("message not found")
 )
 
-// Chat находит модель Chat в БД по chatID
-func (m *MongoDB) Chat(ctx context.Context, chatID string) (models.Chat, error) {
-	const op = "storage.mongodb.Chat"
+// CHAT METHODS
+// FindChat ищет чат, в поле member_ids которого есть все айди из userIDs
+func (m *MongoDB) FindChat(ctx context.Context, userIDs []string) (*models.Chat, error) {
+	const op = "storage.mongodb.FindChat"
 
 	var chat models.Chat
+
+	err := m.chatsCol.FindOne(ctx, bson.M{"member_ids": bson.M{"$all": userIDs}}).Decode(&chat)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("%s : %w", op, err)
+	}
+
+	return &chat, nil
+}
+
+// FindChatByID ищет чат по его id
+func (m *MongoDB) FindChatByID(ctx context.Context, chatID string, userID string) (models.Chat, error) {
+	const op = "storage.mongodb.FindChatByID"
 
 	objID, err := primitive.ObjectIDFromHex(chatID)
 	if err != nil {
 		return models.Chat{}, fmt.Errorf("%s : internal error", op)
 	}
 
+	var chat models.Chat
+
 	err = m.chatsCol.FindOne(ctx, bson.M{"_id": objID}).Decode(&chat)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return models.Chat{}, fmt.Errorf("%s : %w", op, ErrChatNotFound)
+			return models.Chat{}, nil
 		}
 		return models.Chat{}, fmt.Errorf("%s : %w", op, err)
+	}
+
+	if chat.Type == "private" {
+		var notUserID string
+		for _, id := range chat.MemberIDs {
+			if id != userID {
+				notUserID = id
+				break
+			}
+		}
+		chat.Name = notUserID
 	}
 
 	return chat, nil
 }
 
-// Chats находит чаты пользователя в БД по userID
-func (m *MongoDB) Chats(ctx context.Context, userID string) ([]*models.Chat, error) {
-	const op = "storage.mongodb.Chats"
+// FindUserChats ищет все чаты пользователя private/group и возвращает слайс их превью (_id, name)
+func (m *MongoDB) FindUserChats(ctx context.Context, userID string, chatType string) ([]*models.ChatPreview, error) {
+	const op = "storage.mongodb.FindUserChats"
 
-	filter := bson.M{"user_id": userID}
-	opts := options.Find().
-		SetSort(bson.D{{Key: "joined_at", Value: -1}}) // Сортировка от новых к старым
+	filter := bson.M{
+		"member_ids": bson.M{"$all": []string{userID}},
+		"type":       chatType,
+	}
 
-	// Получаем список chat_id, в которых состоит пользователь
-	cursor, err := m.usersChatsCol.Find(ctx, filter, opts)
+	cursor, err := m.chatsCol.Find(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("%s : %w", op, err)
 	}
 	defer cursor.Close(ctx)
 
-	// Структура для получения chat_ids из users_chats
-	var userChats []struct {
-		ChatID string `bson:"chat_id"`
-	}
-
-	if err := cursor.All(ctx, &userChats); err != nil {
-		return nil, fmt.Errorf("%s : %w", op, err)
-	}
-
-	// создание слайса с ObjectID чатов для их детального отображения
-	objIDs := make([]primitive.ObjectID, len(userChats))
-
-	for i, uc := range userChats {
-		objID, err := primitive.ObjectIDFromHex(uc.ChatID)
-		fmt.Println(err)
-		if err != nil {
-			return nil, fmt.Errorf("%s : internal error", op)
+	var previews []*models.ChatPreview
+	for cursor.Next(ctx) {
+		var chat struct {
+			ID        primitive.ObjectID `bson:"_id"`
+			Name      string             `bson:"name"`
+			MemberIDs []string           `bson:"member_ids"`
 		}
-		objIDs[i] = objID
-	}
 
-	// получение информации о чатах в слайс моделей
-	chatsCursor, err := m.chatsCol.Find(ctx, bson.M{"_id": bson.M{"$in": objIDs}})
-	if err != nil {
-		return nil, fmt.Errorf("%s: failed to fetch chats: %w", op, err)
-	}
-	defer chatsCursor.Close(ctx)
+		if err := cursor.Decode(&chat); err != nil {
+			return nil, fmt.Errorf("%s : %w", op, err)
+		}
 
-	var chats []*models.Chat
-	if err := chatsCursor.All(ctx, &chats); err != nil {
-		return nil, fmt.Errorf("%s : %w", op, err)
-	}
+		chatName := chat.Name
+		if chatType == "private" {
+			var notUserID string
+			for _, id := range chat.MemberIDs {
+				if id != userID {
+					notUserID = id
+					break
+				}
+			}
+			chatName = notUserID
+		}
 
-	return chats, nil
-}
-
-// SaveChat сохраняет Chat в коллекции Chats и строит связь в коллекции UsersChats
-func (m *MongoDB) SaveChat(ctx context.Context, userIDs []string) (string, error) {
-	const op = "storage.mongoDB.SaveChat"
-
-	res, err := m.chatsCol.InsertOne(ctx, bson.M{"user_ids": userIDs})
-	if err != nil {
-		return "", fmt.Errorf("%s : %w", op, err)
-	}
-
-	objectID, ok := res.InsertedID.(primitive.ObjectID)
-	if !ok {
-		return "", fmt.Errorf("%s : internal error", op)
-	}
-
-	chatID := objectID.Hex()
-
-	var userChatDocs []interface{}
-	for _, userID := range userIDs {
-		userChatDocs = append(userChatDocs, bson.M{
-			"user_id":   userID,
-			"chat_id":   chatID,
-			"joined_at": time.Now(),
+		previews = append(previews, &models.ChatPreview{
+			ID:   chat.ID.Hex(),
+			Name: chatName,
 		})
 	}
-	// Вставляем связи пользователей и чата в users_chats
-	if _, err := m.usersChatsCol.InsertMany(ctx, userChatDocs); err != nil {
-		return "", fmt.Errorf("%s : failed to insert user-chat relations: %w", op, err)
-	}
-
-	return chatID, nil
-}
-
-func (m *MongoDB) Message(ctx context.Context, messageID string) (models.Message, error) {
-	const op = "storage.mongodb.Message"
-
-	var message models.Message
-	err := m.messagesCol.FindOne(ctx, bson.M{"_id": messageID}).Decode(&message)
-	if err != nil {
-		return models.Message{}, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return message, nil
-}
-
-func (m *MongoDB) Messages(ctx context.Context, chatID string, limit int32, offset int32) ([]*models.Message, error) {
-	const op = "storage.mongodb.Messages"
-
-	// Фильтр: ищем сообщения только из конкретного чата
-	filter := bson.M{"chat_id": chatID}
-
-	// Опции запроса: сортируем по времени и применяем лимит с оффсетом
-	opts := options.Find().
-		SetSort(bson.D{{Key: "timestamp", Value: -1}}). // Сортировка от новых к старым
-		SetLimit(int64(limit)).
-		SetSkip(int64(offset - 1))
-
-	// Выполняем запрос к MongoDB
-	cursor, err := m.messagesCol.Find(ctx, filter, opts)
-	if err != nil {
-		return nil, fmt.Errorf("%s : %w", op, err)
-	}
-	defer cursor.Close(ctx)
-
-	// Обрабатываем полученные документы
-	var messages []*models.Message
-	if err := cursor.All(ctx, &messages); err != nil {
+	if err := cursor.Err(); err != nil {
 		return nil, fmt.Errorf("%s : %w", op, err)
 	}
 
-	return messages, nil
+	return previews, nil
 }
 
-func (m *MongoDB) SaveMessage(ctx context.Context, senderID string, chatID string, text string, timestamp time.Time) (string, error) {
-	const op = "storage.mongodb.SaveMessage"
+// SaveChat сохраняет чат в БД
+func (m *MongoDB) SaveChat(ctx context.Context, chat models.Chat) (string, error) {
+	const op = "storage.mongodb.SaveChat"
 
-	res, err := m.messagesCol.InsertOne(ctx, bson.M{"chat_id": chatID, "sender_id": senderID, "text": text, "timestamp": timestamp})
+	res, err := m.chatsCol.InsertOne(ctx, bson.M{"type": chat.Type, "name": chat.Name, "member_ids": chat.MemberIDs, "channel_ids": chat.ChannelIDs})
 	if err != nil {
 		return "", fmt.Errorf("%s : %w", op, err)
 	}
@@ -211,22 +167,115 @@ func (m *MongoDB) SaveMessage(ctx context.Context, senderID string, chatID strin
 	return objectID.Hex(), nil
 }
 
-func (m *MongoDB) DeleteMessage(ctx context.Context, messageID string) (bool, error) {
-	const op = "storage.mongoDB.DeleteMessage"
+// CHANNEL METHODS
+// SaveChannels сохраняет канал в БД и обновляет ChannelIDs для конкретного чата
+func (m *MongoDB) SaveChannel(ctx context.Context, channel models.Channel) (string, error) {
+	const op = "storage.mongodb.SaveChannel"
 
-	objID, err := primitive.ObjectIDFromHex(messageID)
+	res, err := m.channelsCol.InsertOne(ctx, bson.M{"chat_id": channel.ChatID, "name": channel.Name, "type": channel.Type, "message_ids": channel.MessageIDs})
 	if err != nil {
-		return false, fmt.Errorf("%s: %w", op, ErrMsgNotFound)
+		return "", fmt.Errorf("%s : %w", op, err)
 	}
 
-	res, err := m.messagesCol.DeleteOne(ctx, bson.M{"_id": objID})
+	objectID, ok := res.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return "", fmt.Errorf("%s : internal error", op)
+	}
+	chanID := objectID.Hex()
+
+	update := bson.M{
+		"$push": bson.M{"channel_ids": chanID},
+	}
+
+	objChatID, err := primitive.ObjectIDFromHex(channel.ChatID)
 	if err != nil {
-		return false, fmt.Errorf("%s: %w", op, err)
+		return "", fmt.Errorf("%s : internal error", op)
 	}
 
-	if res.DeletedCount == 0 {
-		return false, nil
+	_, err = m.chatsCol.UpdateOne(ctx, bson.M{"_id": objChatID}, update)
+	if err != nil {
+		return "", fmt.Errorf("%s : %w", op, err)
 	}
 
-	return true, nil
+	return chanID, nil
+}
+
+// FindChannelByID ищет канал по его id
+func (m *MongoDB) FindChannelByID(ctx context.Context, channelID string) (models.Channel, error) {
+	const op = "storage.mongodb.FindChatByID"
+
+	objID, err := primitive.ObjectIDFromHex(channelID)
+	if err != nil {
+		return models.Channel{}, fmt.Errorf("%s : internal error", op)
+	}
+
+	var channel models.Channel
+
+	err = m.channelsCol.FindOne(ctx, bson.M{"_id": objID}).Decode(&channel)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return models.Channel{}, nil
+		}
+		return models.Channel{}, fmt.Errorf("%s : %w", op, err)
+	}
+
+	return channel, nil
+}
+
+// MESSAGE METHODS
+// SaveMessage сохраняет сообщение в БД и обновляет MessageIDs для конкретного канала
+func (m *MongoDB) SaveMessage(ctx context.Context, message models.Message) (string, error) {
+	const op = "storage.mongodb.SaveMessage"
+
+	res, err := m.messagesCol.InsertOne(ctx, bson.M{"channel_id": message.ChannelID, "sender_id": message.SenderID, "text": message.Text, "created_at": message.CreatedAt})
+	if err != nil {
+		return "", fmt.Errorf("%s : %w", op, err)
+	}
+
+	objectID, ok := res.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return "", fmt.Errorf("%s : internal error", op)
+	}
+	messageID := objectID.Hex()
+
+	update := bson.M{
+		"$push": bson.M{"message_ids": messageID},
+	}
+
+	objChannelID, err := primitive.ObjectIDFromHex(message.ChannelID)
+	if err != nil {
+		return "", fmt.Errorf("%s : internal error", op)
+	}
+
+	_, err = m.channelsCol.UpdateOne(ctx, bson.M{"_id": objChannelID}, update)
+	if err != nil {
+		return "", fmt.Errorf("%s : %w", op, err)
+	}
+
+	return messageID, nil
+}
+
+// GetMessages возварщает слайс указателей на структуры Message для конкретного канала
+func (m *MongoDB) GetMessages(ctx context.Context, channelID string, limit int32, offset int32) ([]*models.Message, error) {
+	const op = "storage.mongodb.GetMessages"
+
+	filter := bson.M{"channel_id": channelID}
+
+	opts := options.Find().
+		SetSort(bson.D{{Key: "created_at", Value: -1}}). // Сортировка от новых к старым
+		SetLimit(int64(limit)).
+		SetSkip(int64(offset - 1))
+
+	cursor, err := m.messagesCol.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, fmt.Errorf("%s : %w", op, err)
+	}
+	defer cursor.Close(ctx)
+
+	var messages []*models.Message
+	if err := cursor.All(ctx, &messages); err != nil {
+		return nil, fmt.Errorf("%s : %w", op, err)
+	}
+
+	return messages, nil
 }

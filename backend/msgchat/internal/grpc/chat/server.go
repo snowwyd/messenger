@@ -10,15 +10,18 @@ import (
 )
 
 type Chat interface {
-	SendMessage(ctx context.Context, senderID string, chatID string, text string) (messageID string, err error)
-	GetMessages(ctx context.Context, chatID string, limit int32, offset int32) (messages []*msgv1chat.Message, err error)
-	CreateChat(ctx context.Context, userIDs []string) (chatID string, err error)
-	GetUserChats(ctx context.Context, userID string) (chats []*msgv1chat.ChatInfo, err error)
-	DeleteMessage(ctx context.Context, messageID string) (success bool, err error)
+	CreateChat(ctx context.Context, chatType string, name string, user_ids []string) (chatID string, err error)
+	GetUserChats(ctx context.Context, chatType string) (chatPreviews []*msgv1chat.ChatPreview, err error)
+	GetChatInfo(ctx context.Context, chatID string) (ID string, chatType string, name string, memberIDs []string, channels []*msgv1chat.Channel, err error)
+
+	CreateChannel(ctx context.Context, chatID string, name string, chanType string) (channelID string, err error)
+
+	GetMessages(ctx context.Context, channelID string, limit int32, offset int32) (messages []*msgv1chat.Message, err error)
+	SendMessage(ctx context.Context, channelID string, text string) (messageID string, err error)
 }
 
 type serverAPI struct {
-	msgv1chat.UnimplementedChatServer
+	msgv1chat.UnimplementedConversationServer
 	chat Chat
 }
 
@@ -27,16 +30,49 @@ const (
 )
 
 func Register(gRPC *grpc.Server, chat Chat) {
-	msgv1chat.RegisterChatServer(gRPC, &serverAPI{chat: chat})
+	msgv1chat.RegisterConversationServer(gRPC, &serverAPI{chat: chat})
 }
 
-func (s *serverAPI) SendMessage(ctx context.Context, req *msgv1chat.SendMessageRequest) (*msgv1chat.SendMessageResponse, error) {
+// CREATE METHODS
+// CreateChat creates Chat
+func (s *serverAPI) CreateChat(ctx context.Context, req *msgv1chat.CreateChatRequest) (*msgv1chat.CreateChatResponse, error) {
+	if err := validateCreateChat(req); err != nil {
+		return nil, err
+	}
 
+	ChatID, err := s.chat.CreateChat(ctx, req.GetType(), req.GetName(), req.GetUserIds())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	return &msgv1chat.CreateChatResponse{
+		ChatId: ChatID,
+	}, nil
+}
+
+// CreateChannel returns channel id and creates channel in selected Chat with Name, and Type
+func (s *serverAPI) CreateChannel(ctx context.Context, req *msgv1chat.CreateChannelRequest) (*msgv1chat.CreateChannelResponse, error) {
+	if err := validateCreateChannel(req); err != nil {
+		return nil, err
+	}
+
+	channelID, err := s.chat.CreateChannel(ctx, req.GetChatId(), req.GetName(), req.GetType())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	return &msgv1chat.CreateChannelResponse{
+		ChannelId: channelID,
+	}, nil
+}
+
+// SendMessage returns message_id and sends message
+func (s *serverAPI) SendMessage(ctx context.Context, req *msgv1chat.SendMessageRequest) (*msgv1chat.SendMessageResponse, error) {
 	if err := validateSendMessage(req); err != nil {
 		return nil, err
 	}
 
-	messageID, err := s.chat.SendMessage(ctx, req.GetSenderId(), req.GetChatId(), req.GetText())
+	messageID, err := s.chat.SendMessage(ctx, req.GetChannelId(), req.GetText())
 	if err != nil {
 		return nil, status.Error(codes.Internal, "internal error")
 	}
@@ -46,13 +82,46 @@ func (s *serverAPI) SendMessage(ctx context.Context, req *msgv1chat.SendMessageR
 	}, nil
 }
 
-func (s *serverAPI) GetMessages(ctx context.Context, req *msgv1chat.GetMessagesRequest) (*msgv1chat.GetMessagesResponse, error) {
+// GETTER METHODS
+// GetUserChats returns slice of Chat previews of current user (from token)
+func (s *serverAPI) GetUserChats(ctx context.Context, req *msgv1chat.GetUserChatsRequest) (*msgv1chat.GetUserChatsResponse, error) {
+	ChatPrews, err := s.chat.GetUserChats(ctx, req.GetType())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "internal error")
+	}
 
+	return &msgv1chat.GetUserChatsResponse{
+		Chats: ChatPrews,
+	}, nil
+}
+
+// GetChatInfo returns Chat name and slice of Channels
+func (s *serverAPI) GetChatInfo(ctx context.Context, req *msgv1chat.GetChatInfoRequest) (*msgv1chat.GetChatInfoResponse, error) {
+	if err := validateGetChatInfo(req); err != nil {
+		return nil, err
+	}
+
+	ChatID, chatType, name, memberIDs, channels, err := s.chat.GetChatInfo(ctx, req.GetChatId())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	return &msgv1chat.GetChatInfoResponse{
+		ChatId:    ChatID,
+		Type:      chatType,
+		Name:      name,
+		MemberIds: memberIDs,
+		Channels:  channels,
+	}, nil
+}
+
+// GetMessages returns slice of Messages from selected channel with limit and offset
+func (s *serverAPI) GetMessages(ctx context.Context, req *msgv1chat.GetMessagesRequest) (*msgv1chat.GetMessagesResponse, error) {
 	if err := validateGetMessages(req); err != nil {
 		return nil, err
 	}
 
-	messages, err := s.chat.GetMessages(ctx, req.GetChatId(), req.GetLimit(), req.GetOffset())
+	messages, err := s.chat.GetMessages(ctx, req.GetChannelId(), req.GetLimit(), req.GetOffset())
 	if err != nil {
 		return nil, status.Error(codes.Internal, "internal error")
 	}
@@ -62,92 +131,51 @@ func (s *serverAPI) GetMessages(ctx context.Context, req *msgv1chat.GetMessagesR
 	}, nil
 }
 
-func (s *serverAPI) CreateChat(ctx context.Context, req *msgv1chat.CreateChatRequest) (*msgv1chat.CreateChatResponse, error) {
-
-	if err := validateCreateChat(req); err != nil {
-		return nil, err
+func validateCreateChat(req *msgv1chat.CreateChatRequest) error {
+	if req.GetType() == "" {
+		return status.Error(codes.InvalidArgument, "chat_type is required")
 	}
-
-	chatID, err := s.chat.CreateChat(ctx, req.GetUserIds())
-	if err != nil {
-		return nil, status.Error(codes.Internal, "internal error")
-	}
-
-	return &msgv1chat.CreateChatResponse{
-		ChatId: chatID,
-	}, nil
+	return nil
 }
 
-func (s *serverAPI) GetUserChats(ctx context.Context, req *msgv1chat.GetUserChatsRequest) (*msgv1chat.GetUserChatsResponse, error) {
-
-	if err := validateGetUserChats(req); err != nil {
-		return nil, err
-	}
-
-	chats, err := s.chat.GetUserChats(ctx, req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.Internal, "internal error")
-	}
-	return &msgv1chat.GetUserChatsResponse{
-		Chats: chats,
-	}, nil
-}
-
-func (s *serverAPI) DeleteMessage(ctx context.Context, req *msgv1chat.DeleteMessageRequest) (*msgv1chat.DeleteMessageResponse, error) {
-
-	if err := validateDeleteMessage(req); err != nil {
-		return nil, err
-	}
-
-	success, err := s.chat.DeleteMessage(ctx, req.GetMessageId())
-	if err != nil {
-		return nil, status.Error(codes.Internal, "internal error")
-	}
-	return &msgv1chat.DeleteMessageResponse{
-		Success: success,
-	}, nil
-}
-
-func validateSendMessage(req *msgv1chat.SendMessageRequest) error {
+func validateGetChatInfo(req *msgv1chat.GetChatInfoRequest) error {
 	if req.GetChatId() == "" {
 		return status.Error(codes.InvalidArgument, "chat_id is required")
 	}
-	if req.GetSenderId() == "" {
-		return status.Error(codes.InvalidArgument, "sender_id is required")
+	return nil
+}
+
+func validateCreateChannel(req *msgv1chat.CreateChannelRequest) error {
+	if req.GetChatId() == "" {
+		return status.Error(codes.InvalidArgument, "chat_id is required")
+	}
+	if req.GetName() == "" {
+		return status.Error(codes.InvalidArgument, "name is required")
+	}
+	if req.GetType() == "" {
+		return status.Error(codes.InvalidArgument, "channel_type is required")
 	}
 	return nil
 }
 
 func validateGetMessages(req *msgv1chat.GetMessagesRequest) error {
-	if req.GetChatId() == "" {
-		return status.Error(codes.InvalidArgument, "chat_id is required")
+	if req.GetChannelId() == "" {
+		return status.Error(codes.InvalidArgument, "channel_id is required")
 	}
+
 	if req.GetLimit() == emptyValue {
 		return status.Error(codes.InvalidArgument, "limit is required")
 	}
+
 	if req.GetOffset() == emptyValue {
 		return status.Error(codes.InvalidArgument, "offset is required")
 	}
 	return nil
 }
 
-func validateCreateChat(req *msgv1chat.CreateChatRequest) error {
-	if req.GetUserIds() == nil {
-		return status.Error(codes.InvalidArgument, "user_ids are required")
-	}
-	return nil
-}
-
-func validateGetUserChats(req *msgv1chat.GetUserChatsRequest) error {
-	if req.GetUserId() == "" {
-		return status.Error(codes.InvalidArgument, "user_id is required")
-	}
-	return nil
-}
-
-func validateDeleteMessage(req *msgv1chat.DeleteMessageRequest) error {
-	if req.GetMessageId() == "" {
-		return status.Error(codes.InvalidArgument, "message_id is required")
+func validateSendMessage(req *msgv1chat.SendMessageRequest) error {
+	if req.GetChannelId() == "" {
+		return status.Error(codes.InvalidArgument, "channel_id is required")
 	}
 	return nil
 }

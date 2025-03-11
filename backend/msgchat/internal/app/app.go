@@ -26,7 +26,7 @@ func New(
 		panic(err)
 	}
 
-	chatService := chat.New(log, storage, storage, storage, storage, tokenTTL, appSecret)
+	chatService := chat.New(log, storage, storage, storage, tokenTTL, appSecret)
 
 	grpcApp := grpcapp.New(log, chatService, grpcPort, appSecret)
 
