@@ -1,67 +1,47 @@
 import { useContext, useEffect, useState, useRef } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { useNavigate, useParams, NavLink, resolvePath } from "react-router-dom";
+import { useQuery } from '@tanstack/react-query';
 
 import { AppContext } from "../AppContext";
-import ChatButton from "../components/ChatButton";
 import ChatSection from "../components/ChatSection";
 
-import './Chats.css';
+import './MainPage.css';
 
-export default function Chats() {
+export default function MainPage() {
     const grpc = useContext(AppContext);
-    const navigate = useNavigate();
 
-    const [chats, setChats] = useState([]);
     const [usernameInput, setUsernameInput] = useState("");
     const [addedUsername, setAddedUsername] = useState("");
     const [addedUserID, setAddedUserID] = useState("");
-
+    
     const createChatModal = useRef(null);
+    
+    const openModal = () => createChatModal.current.style.display = "flex";
+    const closeModal = () => createChatModal.current.style.display = "none";
+    
+    const { data: chats } = useQuery({ queryKey: ['chats'], queryFn: getChats });
+    const { data: usernames } = useQuery({ queryKey: ['usernames'], queryFn: getUsernames, enabled: !!chats });
 
-    useEffect(() => {
-        getChats();
-    }, []);
+    async function getUsernames() {
+        const userIds = chats.map(item => item.name);
+        const response = await grpc.auth.getUsernames({ userIds: userIds });
+        return response.response.usernames;
+    }
 
     async function getChats() {
-        const input = {
-            type: "private"
-        }
-
         const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
-
-        try {
-            const response = await grpc.chat.getUserChats(input, rpcOptions);
-            setChats(response.response.chats);
-        } catch (error) {
-            console.dir(error)
-            if (error.message == "invalid token signature") {
-                localStorage.removeItem('token');
-                navigate('/');
-            }
-        }
-    }
-
-    function openModal() {
-        createChatModal.current.style.display = "flex";
-    }
-
-    function closeModal() {
-        createChatModal.current.style.display = "none";
+        const response = await grpc.chat.getUserChats({ type: "private" }, rpcOptions);
+        return response.response.chats;
     }
 
     async function addUser(event) {
         if (event.key === "Enter") {
-
-            const input = {
-                usernames: [usernameInput]
-            }
-    
             try {
-                const response = await grpc.auth.getUserIDs(input);
+                const response = await grpc.auth.getUserIDs({ usernames: [usernameInput] });
                 setAddedUsername(usernameInput);
                 setAddedUserID(response.response.userIds[usernameInput]);
             } catch (error) {
-                console.dir(error)
+                console.log(error);
             }
         }
     }
@@ -76,7 +56,7 @@ export default function Chats() {
 
         try {
             await grpc.chat.createChat(input, rpcOptions);
-            closeModal()
+            closeModal();
             getChats();
         } catch (error) {
             console.log(error);
@@ -89,24 +69,28 @@ export default function Chats() {
                 <div className="modal-content">
                     <input onKeyDown={addUser} value={usernameInput} onChange={(event) => setUsernameInput(event.target.value)} className="username-input" placeholder="username" type="text" />
                     {addedUsername}
-                    <input onClick={createChat} type="submit" value="create chat"/>
+                    <input onClick={createChat} type="submit" value="create chat" />
                     <div onClick={closeModal} className="close-modal"></div>
                 </div>
             </div>
             <div className="chats-container">
-                <div className="chats-list">
+                <div className="chat-list">
                     <div onClick={openModal} className="create-chat-button">create chat</div>
-                    {chats.map((item, index) => (
-                        <ChatButton chatId={item.chatId} name={item.name} key={index} />
-                    ))}
+                    {usernames && chats.map((item, index) => <ChatButton chatId={item.chatId} username={usernames[item.name]} key={index} />)}
                 </div>
                 <div className="chat-section">
-                    <Routes>
-                        <Route path=":chatId/*" element={<ChatSection />} />
-                        <Route path="*" element={<ChatSection isEmpty={true} />} />
-                    </Routes>
+                    <ChatSection />
                 </div>
             </div>
         </>
+    )
+}
+
+function ChatButton({ chatId, username }) {
+    return (
+        <NavLink className="chat-button" draggable="false" to={`/chats/${chatId}`}>
+            <div className="avatar-block"></div>
+            <p className="chat-name">{username}</p>
+        </NavLink>
     )
 }

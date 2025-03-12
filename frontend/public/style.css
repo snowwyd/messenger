@@ -1,15 +1,11 @@
 @font-face {
     font-family: 'Roboto';
     src: url(fonts/Roboto-VariableFont.ttf);
-    font-weight: 100 900;
-    font-style: normal;
 }
 
 @font-face {
-    font-family: 'Roboto';
-    src: url(fonts/Roboto-Italic-VariableFont.ttf);
-    font-weight: 100 900;
-    font-style: italic;
+    font-family: 'Inter';
+    src: url(fonts/Inter-VariableFont.ttf);
 }
 
 * {
@@ -19,7 +15,7 @@
 }
 
 html {
-    font-family: 'Roboto';
+    font-family: 'Inter';
     font-size: 14px;
     color: white;
     overflow-y: hidden;
@@ -30,7 +26,7 @@ a {
     text-decoration: none;
 }
 
-textarea, input {
+textarea, input, button {
+    font-family: 'Inter';
     outline: none;
-    font-family: 'Roboto';
 }

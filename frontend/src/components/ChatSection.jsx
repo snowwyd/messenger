@@ -1,26 +1,25 @@
 import { useEffect, useContext, useState, useRef } from "react";
-import { useLocation, useParams, useNavigate, Routes, Route } from "react-router-dom"
+import { useParams, NavLink } from "react-router-dom"
 
 import { AppContext } from "../AppContext";
 import MessagesWindow from "./MessagesWindow";
-import Channel from "./Channel";
 
 import './ChatSection.css'
 
-export default function ChatSection({ isEmpty }) {
+export default function ChatSection() {
     const grpc = useContext(AppContext);
-    const location = useLocation();
-    const { chatId } = useParams();
-    const navigate = useNavigate();
+    const { chatId, channelId } = useParams();
 
-    const [channels, setChannels] = useState([]);
     const [channelName, setChannelName] = useState("");
+    const [channels, setChannels] = useState([]);
+    const [membersUsernames, setMembersUsernames] = useState({});
 
     useEffect(() => {
-        if (!isEmpty) {
+        if (chatId) {
+            setChannels([]);
             getChatInfo();
         }
-    }, [location.pathname]);
+    }, [chatId]);
 
     async function getChatInfo() {
         const input = {
@@ -32,6 +31,8 @@ export default function ChatSection({ isEmpty }) {
         try {
             const response = await grpc.chat.getChatInfo(input, rpcOptions);
             setChannels(response.response.channels);
+            const response2 = await grpc.auth.getUsernames({ userIds: response.response.memberIds });
+            setMembersUsernames(response2.response.usernames);
         } catch (error) {
             console.log(error);
         }
@@ -47,7 +48,7 @@ export default function ChatSection({ isEmpty }) {
         const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
 
         try {
-            const response = await grpc.chat.createChannel(input, rpcOptions);
+            await grpc.chat.createChannel(input, rpcOptions);
             setChannelName("");
             getChatInfo();
         } catch (error) {
@@ -58,17 +59,18 @@ export default function ChatSection({ isEmpty }) {
     return (
         <>
             <div className="messages-window-container">
-                <Routes>
-                    <Route path=":channelId" element={<MessagesWindow />} />
-                </Routes>
+                {channelId && <MessagesWindow channelId={channelId} membersUsernames={membersUsernames }/>}
             </div>
             <div className="chat-details">
                 <div className="members-info"></div>
                 <div className="channels-list">
-                    {!isEmpty && channels.map((item, index) => <Channel item={item} key={index} />)}
-                    
-                    <input value={channelName} onChange={(event) => setChannelName(event.target.value)} className="create-channel-name" placeholder="channel name" type="text" />
-                    <div onClick={createChannel} className="create-channel"></div>
+                    {chatId && (
+                        <>
+                            {channels.map((item, index) => <NavLink className="channel" draggable="false" to={`/chats/${chatId}/${item.channelId}`} key={index}># {item.name}</NavLink>)}
+                            <input value={channelName} onChange={(event) => setChannelName(event.target.value)} className="create-channel-name" placeholder="channel name" type="text" />
+                            <div onClick={createChannel} className="create-channel"></div>
+                        </>
+                    )}
                 </div>
             </div>
         </>

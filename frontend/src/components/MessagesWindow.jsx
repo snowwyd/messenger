@@ -1,13 +1,11 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { AppContext } from "../AppContext";
-import Message from "./Message";
 
 import './MessagesWindow.css';
 
-export default function MessagesWindow() {
-    const { channelId } = useParams();
+export default function MessagesWindow({ channelId, membersUsernames }) {
     const grpc = useContext(AppContext);
     const navigate = useNavigate();
     const location = useLocation();
@@ -82,11 +80,31 @@ export default function MessagesWindow() {
     return (
         <>
             <div className="messages-window">
-                {messages.map((item, index) => <Message messages={messages} item={item} index={index} key={index} />)}
+                {messages.map((item, index) => <Message messages={messages} item={item} index={index} membersUsernames={membersUsernames} key={index} />)}
             </div>
             <div className="message-field">
                 <textarea ref={textareaRef} onKeyDown={sendMessage} value={text} onChange={(event) => setText(event.target.value)} placeholder="write a message..."></textarea>
             </div>
         </>
+    )
+}
+
+function Message({ messages, item, index, membersUsernames }) {
+    const isFirstInGroup = index === 0 || messages[index - 1].senderId !== item.senderId;
+
+    return (
+        <div className="message">
+            {isFirstInGroup ? (
+                <div className="message-user-info">
+                    <div className="avatar"></div>
+                    <div className="username-message">
+                        <span className="username">{membersUsernames[item.senderId]}</span>
+                        <pre className="message-text">{item.text}</pre>
+                    </div>
+                </div>
+            ) : (
+                <pre className="message-text">{item.text}</pre>
+            )}
+        </div>
     )
 }

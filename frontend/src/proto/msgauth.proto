@@ -3,52 +3,52 @@ syntax = "proto3";
 package auth;
 
 service Auth {
-  rpc Register (RegisterRequest) returns (RegisterResponse);
-  rpc Login (LoginRequest) returns (LoginResponse);
-  rpc IsAdmin (IsAdminRequest) returns (IsAdminResponse);
-  rpc GetUsernames (GetUsernamesRequest) returns (GetUsernamesResponse);
-  rpc GetUserIDs (GetUserIDsRequest) returns (GetUserIDsResponse);
+    rpc Register (RegisterRequest) returns (RegisterResponse);
+    rpc Login (LoginRequest) returns (LoginResponse);
+    rpc IsAdmin (IsAdminRequest) returns (IsAdminResponse);
+    rpc GetUsernames (GetUsernamesRequest) returns (GetUsernamesResponse);
+    rpc GetUserIDs (GetUserIDsRequest) returns (GetUserIDsResponse);
 }
 
 message RegisterRequest {
-  string email = 1;
-  string password = 2;
-  string username = 3;
+    string email = 1;
+    string password = 2;
+    string username = 3;
 }
 
 message RegisterResponse {
-  string user_id = 1;
+    string user_id = 1;
 }
 
 message LoginRequest {
-  string email = 1;
-  string password = 2;
+    string email = 1;
+    string password = 2;
 }
 
 message LoginResponse {
-  string token = 1;
+    string token = 1;
 }
 
 message IsAdminRequest {
-  string user_id = 1;
+    string user_id = 1;
 }
 
 message IsAdminResponse {
-  bool is_admin = 1;
+    bool is_admin = 1;
 }
 
 message GetUsernamesRequest {
-  repeated string user_ids = 1;
+    repeated string user_ids = 1;
 }
 
 message GetUsernamesResponse {
-  map<string, string> usernames = 1;
+    map<string, string> usernames = 1;
 }
 
 message GetUserIDsRequest {
-  repeated string usernames = 1;
+    repeated string usernames = 1;
 }
 
 message GetUserIDsResponse {
-  map<string, string> user_ids = 1;
+    map<string, string> user_ids = 1;
 }

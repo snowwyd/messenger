@@ -38,3 +38,47 @@
         }
     }
 }
+
+.message {
+    .message-user-info {
+        margin-top: 10px;
+        display: flex;
+        gap: 15px;
+        padding: 5px 0 5px 0;
+
+        .avatar {
+            background: url(/images/avatar.svg) center no-repeat;
+            background-size: 110%;
+            height: 40px;
+            width: 40px;
+            margin-left: 15px;
+        }
+
+        .username-message {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        &:hover {
+            background-color: #0c0c0c;
+        }
+    }
+
+    .username {
+        font-weight: 500;
+    }
+
+    .message-text {
+        color: #dadada;
+        font-family: 'Roboto';
+
+        &:hover {
+            background-color: #0c0c0c;
+        }
+    }
+
+    &>.message-text {
+        padding: 5px 0 5px 70px;
+    }
+}
