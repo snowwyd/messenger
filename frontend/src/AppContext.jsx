@@ -13,7 +13,7 @@ export default function AppProvider({ children }) {
     const grpc = {
         auth: authClient,
         chat: conversationClient,
-        setAuthorizationHeader: function(token) {
+        setAuthorizationHeader: function (token) {
             const rpcOptions = {
                 interceptors: [
                     {
@@ -31,7 +31,7 @@ export default function AppProvider({ children }) {
 
     return (
         <AppContext.Provider value={grpc}>
-            { children }
+            {children}
         </AppContext.Provider>
     )
 }
