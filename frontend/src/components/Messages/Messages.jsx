@@ -1,9 +1,9 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { AppContext } from "../AppContext";
+import { AppContext } from "../../AppContext";
 
-import './MessagesWindow.css';
+import './Messages.css';
 
 export default function MessagesWindow({ channelId, membersUsernames }) {
     const grpc = useContext(AppContext);

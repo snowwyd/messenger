@@ -1,10 +1,10 @@
 import { useEffect, useContext, useState, useRef } from "react";
 import { useParams, NavLink } from "react-router-dom"
 
-import { AppContext } from "../AppContext";
-import MessagesWindow from "./MessagesWindow";
+import { AppContext } from "../../AppContext";
+import Messages from "../Messages/Messages";
 
-import './ChatSection.css'
+import './Chat.css'
 
 export default function ChatSection() {
     const grpc = useContext(AppContext);
@@ -57,9 +57,9 @@ export default function ChatSection() {
     }
 
     return (
-        <>
+        <div className="chat">
             <div className="messages-window-container">
-                {channelId && <MessagesWindow channelId={channelId} membersUsernames={membersUsernames }/>}
+                {channelId && <Messages channelId={channelId} membersUsernames={membersUsernames }/>}
             </div>
             <div className="chat-details">
                 <div className="members-info"></div>
@@ -73,6 +73,6 @@ export default function ChatSection() {
                     )}
                 </div>
             </div>
-        </>
+        </div>
     )
 }

@@ -1,13 +1,20 @@
+.chat {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    flex-grow: 1;
+}
+
 .chat-details {
     display: flex;
     flex-direction: column;
-    width: 300px;
+    width: 350px;
     gap: 10px;
 
     .members-info {
         width: 100%;
-        height: 300px;
-        background-color: #0E0E0E;
+        height: 350px;
+        background-color: var(--section-color);
         border-radius: 5px;
     }
 
@@ -15,11 +22,11 @@
         position: relative;
         width: 100%;
         flex-grow: 1;
-        background-color: #0E0E0E;
+        background-color: var(--section-color);
         border-radius: 5px;
         display: flex;
         flex-direction: column;
-        padding: 15px;
+        padding: 10px;
         gap: 10px;
     }
 
@@ -55,20 +62,23 @@
 }
 
 .channel {
-    padding: 10px;
-    color: #515151;
+    height: 35px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    color: var(--dark-gray-text);
     font-size: 15px;
     text-transform: lowercase;
     border-radius: 5px;
     cursor: pointer;
-    transition: 0.1s;
 
     &:hover {
-        background-color: #171717;
+        color: var(--white-text);
+        background-color: var(--dark-gray-selection);
     }
 }
 
 .channel.active {
-    background-color: #171717;
-    color: #E1E1E1;
+    background-color: var(--purple-selection);
+    color: var(--white-text);
 }

@@ -2,10 +2,11 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    width: 650px;
+    min-width: 500px;
     background-color: #0E0E0E;
     border-radius: 5px;
     justify-content: end;
+    flex-grow: 1;
 }
 
 .messages-window {
@@ -47,8 +48,8 @@
         padding: 5px 0 5px 0;
 
         .avatar {
-            background: url(/images/avatar.svg) center no-repeat;
-            background-size: 110%;
+            background: url(/images/user.png) center no-repeat;
+            background-size: 100%;
             height: 40px;
             width: 40px;
             margin-left: 15px;
