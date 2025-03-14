@@ -21,6 +21,7 @@ func New(log *slog.Logger, chatService chatgrpc.Chat, port int, appSecret string
 	// NewServer запускает сервер
 	gRPCServer := grpc.NewServer(
 		grpc.UnaryInterceptor(middleware.AuthInterceptor(appSecret)),
+		grpc.StreamInterceptor(middleware.StreamAuthInterceptor(appSecret)),
 	)
 
 	chatgrpc.Register(gRPCServer, chatService)

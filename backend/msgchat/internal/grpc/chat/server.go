@@ -2,11 +2,13 @@ package chat
 
 import (
 	"context"
+	"io"
 
 	msgv1chat "github.com/snowwyd/protos/gen/go/messenger/msgchat"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Chat interface {
@@ -18,6 +20,11 @@ type Chat interface {
 
 	GetMessages(ctx context.Context, channelID string, limit int32, offset int32) (messages []*msgv1chat.Message, err error)
 	SendMessage(ctx context.Context, channelID string, text string) (messageID string, err error)
+
+	// Bidirectional streaming
+	SubscribeToChannel(ctx context.Context, channelID string, stream chan<- *msgv1chat.ChatStreamResponse)
+	UnsubscribeFromChannel(ctx context.Context, channelID string, stream chan<- *msgv1chat.ChatStreamResponse)
+	BroadcastMessage(ctx context.Context, channelID string, message *msgv1chat.Message)
 }
 
 type serverAPI struct {
@@ -133,6 +140,75 @@ func (s *serverAPI) GetMessages(ctx context.Context, req *msgv1chat.GetMessagesR
 	return &msgv1chat.GetMessagesResponse{
 		Messages: messages,
 	}, nil
+}
+
+// ChatStream для bidirectional streaming
+func (s *serverAPI) ChatStream(stream msgv1chat.Conversation_ChatStreamServer) error {
+	ctx := stream.Context()
+	subscriptions := make(map[string]chan<- *msgv1chat.ChatStreamResponse)
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			// Закрытие соединения
+			for channelID, sub := range subscriptions {
+				s.chat.UnsubscribeFromChannel(ctx, channelID, sub)
+			}
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		switch payload := req.Payload.(type) {
+		case *msgv1chat.ChatStreamRequest_SendMessage:
+			// Обработка отправленного сообщения
+			messageID, err := s.chat.SendMessage(ctx, payload.SendMessage.ChannelId, payload.SendMessage.Text)
+			if err != nil {
+				stream.Send(&msgv1chat.ChatStreamResponse{
+					Payload: &msgv1chat.ChatStreamResponse_ErrorMessage{
+						ErrorMessage: "Failed to send message",
+					},
+				})
+				continue
+			}
+
+			// Отправляем новое сообщение всем подписчикам канала
+			newMessage := &msgv1chat.Message{
+				MessageId: messageID,
+				ChannelId: payload.SendMessage.ChannelId,
+				Text:      payload.SendMessage.Text,
+				SenderId:  "user_id", // Замените на реальный ID отправителя
+				CreatedAt: timestamppb.Now(),
+			}
+			s.chat.BroadcastMessage(ctx, payload.SendMessage.ChannelId, newMessage)
+
+		case *msgv1chat.ChatStreamRequest_ChannelId:
+			// Подписка на канал
+			channelID := payload.ChannelId
+
+			// Создаем канал для подписки
+			sub := make(chan *msgv1chat.ChatStreamResponse)
+			subscriptions[channelID] = sub
+
+			// Подписываемся на канал
+			s.chat.SubscribeToChannel(ctx, channelID, sub)
+
+			// Горутина для получения новых сообщений
+			go func() {
+				defer func() {
+					delete(subscriptions, channelID)
+					close(sub)
+				}()
+
+				for resp := range sub {
+					if err := stream.Send(resp); err != nil {
+						return
+					}
+				}
+			}()
+		}
+	}
 }
 
 func validateCreateChat(req *msgv1chat.CreateChatRequest) error {

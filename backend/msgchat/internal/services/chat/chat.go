@@ -9,6 +9,7 @@ import (
 	"msgchat/internal/lib/logger"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -22,6 +23,9 @@ type Chat struct {
 	messageProvider MessageProvider
 	tokenTTL        time.Duration
 	appSecret       string
+
+	subscriptions map[string][]chan<- *msgv1chat.ChatStreamResponse
+	mu            sync.Mutex
 }
 
 // Chat interfaces for data layer
@@ -53,6 +57,8 @@ func New(log *slog.Logger, chatProvider ChatProvider, channelProvider ChannelPro
 		messageProvider: messageProvider,
 		tokenTTL:        tokenTTL,
 		appSecret:       appSecret,
+
+		subscriptions: make(map[string][]chan<- *msgv1chat.ChatStreamResponse),
 	}
 }
 
@@ -74,6 +80,59 @@ var (
 	ErrInvalidMessage     = errors.New("invalid message format")
 	ErrInvalidPage        = errors.New("invalid pagination params")
 )
+
+// STREAMING METHODS
+func (c *Chat) SubscribeToChannel(ctx context.Context, channelID string, stream chan<- *msgv1chat.ChatStreamResponse) {
+	const op = "chat.SubscribeToChannel"
+
+	log := c.log.With(slog.String("op", op), slog.String("channel_id:", channelID))
+	log.Info("subscribed to channel")
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.subscriptions[channelID] = append(c.subscriptions[channelID], stream)
+}
+
+func (c *Chat) UnsubscribeFromChannel(ctx context.Context, channelID string, stream chan<- *msgv1chat.ChatStreamResponse) {
+	const op = "chat.UnsubscribeFromChannel"
+
+	log := c.log.With(slog.String("op", op), slog.String("channel_id:", channelID))
+	log.Info("unsubscribed from channel")
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	subscribers := c.subscriptions[channelID]
+	for i, sub := range subscribers {
+		if sub == stream {
+			c.subscriptions[channelID] = append(subscribers[:i], subscribers[i+1:]...)
+			break
+		}
+	}
+}
+
+func (c *Chat) BroadcastMessage(ctx context.Context, channelID string, message *msgv1chat.Message) {
+	const op = "chat.BroadcastMessage"
+
+	log := c.log.With(slog.String("op", op), slog.String("channel_id:", channelID))
+	log.Info("broadcasting message")
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	for _, sub := range c.subscriptions[channelID] {
+		select {
+		case sub <- &msgv1chat.ChatStreamResponse{
+			Payload: &msgv1chat.ChatStreamResponse_NewMessage{
+				NewMessage: message,
+			},
+		}:
+		default:
+			// Если канал заблокирован, пропускаем
+		}
+	}
+}
 
 // CREATE METHODS
 // CreateChat создает личные сообщения между UserID из контекста и ContactID, вбивает структуру Chat в базу, содает в ней канал General и возвращает ID структуры Chat
@@ -398,7 +457,7 @@ func validateMessage(text string) error {
 func GetUserIDFromContext(ctx context.Context) (string, error) {
 	userID, ok := ctx.Value("user_id").(string)
 	if !ok || userID == "" {
-		return "", errors.New("user_id не найден в контексте")
+		return "", errors.New("failed to get user_id from context")
 	}
 	return userID, nil
 }
