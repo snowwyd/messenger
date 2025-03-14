@@ -5,6 +5,8 @@ import AppProvider from "./AppContext.jsx";
 import Auth from "./pages/Auth.jsx";
 import MainPage from "./pages/MainPage.jsx";
 
+import './App.css';
+
 export default function App() {
     const navigate = useNavigate();
 
@@ -21,7 +23,8 @@ export default function App() {
         <AppProvider>
             <Routes>
                 <Route path="/" element={<Auth />} />
-                <Route path="/chats/:chatId?/:channelId?" element={<MainPage />} />
+                <Route path="/chats/:chatId?/:channelId?" element={<MainPage type={"private"} />} />
+                <Route path="/groups/:chatId?/:channelId?" element={<MainPage type={"group"} />} />
             </Routes>
         </AppProvider>
     )

@@ -1,0 +1,16 @@
+:root {
+    --background-color: #141414;
+    --section-color: #0E0E0E;
+    --message-field-color: #0B0B0B;
+
+    --dark-gray-selection: #171717;
+    --light-gray-selection: #1D1D1D;
+    --purple-selection: #4144FF;
+
+    --dark-gray-text: #2F2F2F;
+    --gray-text: #595959;
+    --light-gray-text: #838383;
+    --white-text: #ffffff;
+
+    --direct-category: linear-gradient(90deg, #4046C9, #6445D6);
+}
