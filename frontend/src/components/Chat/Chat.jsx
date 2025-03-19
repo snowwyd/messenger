@@ -1,4 +1,4 @@
-import { useEffect, useContext, useState, useRef } from "react";
+import { useEffect, useContext, useState } from "react";
 import { useParams, NavLink } from "react-router-dom"
 
 import { AppContext } from "../../AppContext";
@@ -6,8 +6,8 @@ import Messages from "../Messages/Messages";
 
 import './Chat.css'
 
-export default function ChatSection() {
-    const grpc = useContext(AppContext);
+export default function Chat() {
+    const { grpc, categoryState } = useContext(AppContext);
     const { chatId, channelId } = useParams();
 
     const [channelName, setChannelName] = useState("");
@@ -59,14 +59,14 @@ export default function ChatSection() {
     return (
         <div className="chat">
             <div className="messages-window-container">
-                {channelId && <Messages channelId={channelId} membersUsernames={membersUsernames }/>}
+                {channelId && <Messages channelId={channelId} membersUsernames={membersUsernames} />}
             </div>
             <div className="chat-details">
                 <div className="members-info"></div>
                 <div className="channels-list">
                     {chatId && (
                         <>
-                            {channels.map((item, index) => <NavLink className="channel" draggable="false" to={`/chats/${chatId}/${item.channelId}`} key={index}># {item.name}</NavLink>)}
+                            {channels.map((item, index) => <NavLink className="channel" draggable="false" to={`/${categoryState.currentCategory}/${chatId}/${item.channelId}`} key={index}># {item.name}</NavLink>)}
                             <input value={channelName} onChange={(event) => setChannelName(event.target.value)} className="create-channel-name" placeholder="channel name" type="text" />
                             <div onClick={createChannel} className="create-channel"></div>
                         </>
