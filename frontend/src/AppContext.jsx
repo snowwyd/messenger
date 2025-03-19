@@ -1,7 +1,7 @@
 import { createContext, useState } from "react";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
-import { AuthClient } from "./proto/generated/msgauth.client";
-import { ConversationClient } from "./proto/generated/msgchat.client";
+import { AuthClient } from "./proto/gen/msgauth.client";
+import { ConversationClient } from "./proto/gen/msgchat.client";
 
 export const AppContext = createContext();
 
