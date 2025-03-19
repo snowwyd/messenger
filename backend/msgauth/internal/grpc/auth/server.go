@@ -8,7 +8,7 @@ import (
 	"log/slog"
 	"msgauth/internal/services/auth"
 
-	msgv1auth "github.com/snowwyd/protos/gen/go/messenger/msgauth"
+	msgv1auth "github.com/snowwyd/protos/gen/go/msgauth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

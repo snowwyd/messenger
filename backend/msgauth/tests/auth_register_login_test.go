@@ -12,7 +12,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
-	msgv1auth "github.com/snowwyd/protos/gen/go/messenger/msgauth"
+	msgv1auth "github.com/snowwyd/protos/gen/go/msgauth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

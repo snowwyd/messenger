@@ -1,7 +1,7 @@
 package models
 
 import (
-	msgv1chat "github.com/snowwyd/protos/gen/go/messenger/msgchat"
+	msgv1chat "github.com/snowwyd/protos/gen/go/msgchat"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
