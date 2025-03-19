@@ -19,7 +19,7 @@ export default function App() {
     const loginMessageRef = useRef(null);
 
     const navigate = useNavigate();
-    const services = useContext(AppContext)
+    const { grpc } = useContext(AppContext)
 
     useEffect(() => {
         signInButton.current.addEventListener('mouseover', () => hoverEffect(signInButton.current, signInText.current));
@@ -128,7 +128,7 @@ export default function App() {
         };
 
         try {
-            await services.auth.register(user);
+            await grpc.auth.register(user);
             registerMessageRef.current.innerHTML = "successful registration";
         } catch (error) {
             registerMessageRef.current.innerHTML = "error: " + error.message;
@@ -145,7 +145,7 @@ export default function App() {
         };
 
         try {
-            const response = await services.auth.login(user);
+            const response = await grpc.auth.login(user);
             loginMessageRef.current.innerHTML = "successful login";
             localStorage.setItem('token', response.response.token);
             navigate('/chats');

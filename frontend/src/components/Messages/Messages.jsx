@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { AppContext } from "../../AppContext";
@@ -6,7 +6,7 @@ import { AppContext } from "../../AppContext";
 import './Messages.css';
 
 export default function MessagesWindow({ channelId, membersUsernames }) {
-    const grpc = useContext(AppContext);
+    const { grpc } = useContext(AppContext);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -17,6 +17,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
     useEffect(() => {
         setMessages([]);
         getMessages();
+        // stream();
     }, [location.pathname]);
 
     useEffect(() => {
@@ -26,6 +27,19 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
             textareaRef.current.style.height = `${scrollHeight}px`;
         }
     }, [text]);
+
+    // async function stream() {
+    //     const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
+
+    //     try {
+    //         const { response } = grpc.chat.chatStream(rpcOptions);
+    //         console.log(response);
+
+    //     } catch (error) {
+    //         console.log(error);
+
+    //     }
+    // }
 
     async function getMessages() {
         const input = {

@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { createContext, useState } from "react";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 import { AuthClient } from "./proto/generated/msgauth.client";
 import { ConversationClient } from "./proto/generated/msgchat.client";
@@ -29,8 +29,15 @@ export default function AppProvider({ children }) {
         }
     }
 
+    const [currentCategory, setCurrentCategory] = useState("");
+
+    const app = {
+        grpc: grpc,
+        categoryState: {currentCategory, setCurrentCategory}
+    }
+
     return (
-        <AppContext.Provider value={grpc}>
+        <AppContext.Provider value={app}>
             {children}
         </AppContext.Provider>
     )
