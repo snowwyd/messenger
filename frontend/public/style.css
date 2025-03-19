@@ -1,36 +1,32 @@
-* {
-    margin: 0;
-    padding: 0;
-}
-
 @font-face {
     font-family: 'Roboto';
     src: url(fonts/Roboto-VariableFont.ttf);
-    font-weight: 100 900;
-    font-style: normal;
 }
 
 @font-face {
-    font-family: 'Roboto';
-    src: url(fonts/Roboto-Italic-VariableFont.ttf);
-    font-weight: 100 900;
-    font-style: italic;
+    font-family: 'Inter';
+    src: url(fonts/Inter-VariableFont.ttf);
 }
 
-:root {
-    /* --secondary-color: rgb(120, 100, 255); */
-    --secondary-color: rgb(100, 110, 255);
-    --main-color: rgb(40, 40, 40);
-    --text-color: rgb(40, 40, 40);
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 html {
-    font-family: 'Roboto';
+    font-family: 'Inter';
     font-size: 14px;
-    color: var(--text-color);
+    color: white;
+    overflow-y: hidden;
+    background-color: #141414;
 }
 
-::selection {
-    background-color: var(--secondary-color);
-    color: white;
+a {
+    text-decoration: none;
+}
+
+textarea, input, button {
+    font-family: 'Inter';
+    outline: none;
 }

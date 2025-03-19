@@ -1,0 +1,14 @@
+version: "3"
+tasks:
+  genprotos:
+    desc: "Generates pb files for Auth, Chat"
+    cmds:
+      - task genauth && task genchat
+  genauth:
+    desc: "Generates pb files for Auth"
+    cmds:
+      - mkdir -p ../backend/msgauth/gen && protoc -I proto proto/msgauth.proto --go_out=../backend/msgauth/gen --go_opt=paths=source_relative --go-grpc_out=../backend/msgauth/gen --go-grpc_opt=paths=source_relative
+  genchat:
+    desc: "Generates pb files for Chat"
+    cmds:
+      - mkdir -p ../backend/msgchat/gen && protoc -I proto proto/msgchat.proto --go_out=../backend/msgchat/gen --go_opt=paths=source_relative --go-grpc_out=../backend/msgchat/gen --go-grpc_opt=paths=source_relative

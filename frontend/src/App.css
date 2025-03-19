@@ -1,59 +1,16 @@
-.register-form-container {
-    background-color: var(--main-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
+:root {
+    --background-color: #141414;
+    --section-color: #0E0E0E;
+    --message-field-color: #0B0B0B;
 
-.register-form {
-    width: 250px;
-    padding: 20px;
-    background-color: white;
+    --dark-gray-selection: #171717;
+    --light-gray-selection: #1D1D1D;
+    --purple-selection: #4144FF;
 
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    --dark-gray-text: #2F2F2F;
+    --gray-text: #595959;
+    --light-gray-text: #838383;
+    --white-text: #ffffff;
 
-    border-radius: 5px;
-
-    input:not([type="submit"]) {
-        font-family: 'Roboto';
-        font-size: 13px;
-
-        height: 25px;
-        border: none;
-        padding: 5px 10px;
-
-        border-bottom: 1px solid rgb(187, 187, 187);
-        color: var(--text-color);
-    }
-
-    input[type="submit"] {
-        font-family: 'Roboto';
-        font-size: 15px;
-
-        height: 40px;
-        border: none;
-        border-radius: 4px;
-
-        background-color: var(--main-color);
-        color: white;
-
-        cursor: pointer;
-        transition: 0.2s;
-
-        &:hover {
-            background-color: var(--secondary-color);
-        }
-    }
-
-    h2 {
-        text-align: center;
-    }
-}
-
-.error-message {
-    font-size: 13px;
-    padding: 0px 10px;
+    --direct-category: linear-gradient(90deg, #4046C9, #6445D6);
 }

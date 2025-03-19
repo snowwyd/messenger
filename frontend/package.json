@@ -6,12 +6,13 @@
         "dev": "vite --host",
         "build": "vite build",
         "preview": "vite preview",
-        "genproto": "mkdirp src/proto/generated && npx protoc --proto_path=src/proto/ --ts_out=src/proto/generated/ src/proto/*.proto"
+        "genproto": "mkdirp src/proto/gen && npx protoc --proto_path=../protos/proto/ --ts_out=src/proto/gen/ ../protos/proto/*.proto"
     },
     "author": "deoxce",
     "license": "ISC",
     "description": "",
     "dependencies": {
+        "@tanstack/react-query": "^5.67.3",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-router-dom": "^7.1.5"
