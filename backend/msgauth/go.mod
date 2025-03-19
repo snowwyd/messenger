@@ -2,6 +2,8 @@ module msgauth
 
 go 1.23
 
+replace github.com/snowwyd/protos => ../../protos
+
 require (
 	github.com/fatih/color v1.18.0
 	github.com/golang-jwt/jwt/v5 v5.2.1

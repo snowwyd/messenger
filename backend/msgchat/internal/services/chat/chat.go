@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	msgv1chat "github.com/snowwyd/protos/gen/go/messenger/msgchat"
+	msgv1chat "github.com/snowwyd/protos/gen/go/msgchat"
 )
 
 type Chat struct {

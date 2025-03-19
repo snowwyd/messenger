@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package conversation;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "snowwy.msg.v1.conversation;msgv1chat";
+
+service Conversation {
+  rpc CreateChat (CreateChatRequest) returns (CreateChatResponse);
+
+  rpc GetUserChats (GetUserChatsRequest) returns (GetUserChatsResponse);
+
+  rpc GetChatInfo (GetChatInfoRequest) returns (GetChatInfoResponse);
+
+  rpc CreateChannel (CreateChannelRequest) returns (CreateChannelResponse);
+
+  rpc GetMessages (GetMessagesRequest) returns (GetMessagesResponse);
+  rpc SendMessage (SendMessageRequest) returns (SendMessageResponse);
+
+    // Bidirectional streaming (WIP)
+  rpc ChatStream (stream ChatStreamRequest) returns (stream ChatStreamResponse);
+}
+
+// CreateChat
+message CreateChatRequest {
+  string type = 1;
+  string name = 2;
+  repeated string user_ids = 3;
+}
+
+message CreateChatResponse {
+  string chat_id = 1;
+}
+
+// GetUserChats
+message GetUserChatsRequest {
+  string type = 1;
+}
+
+message GetUserChatsResponse {
+  repeated ChatPreview chats = 1;
+}
+
+
+// GetChatInfo
+message GetChatInfoRequest {
+  string chat_id = 1;
+}
+
+message GetChatInfoResponse {
+  string chat_id = 1;
+  string type = 2;
+  string name = 3; 
+  repeated string member_ids = 4;
+  repeated Channel channels = 5;
+}
+
+// CreateChannel
+message CreateChannelRequest {
+  string chat_id = 1;
+  string name = 2;
+  string type = 3;
+  
+}
+
+message CreateChannelResponse {
+  string channel_id = 1;
+}
+
+
+// GetMessages и SendMessage
+message GetMessagesRequest {
+  string channel_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message GetMessagesResponse {
+  repeated Message messages = 1;
+}
+
+message SendMessageRequest {
+  string channel_id = 1;
+  string text = 2;
+}
+
+message SendMessageResponse {
+  string message_id = 1;
+}
+
+// ChatStream
+message ChatStreamRequest {
+  oneof payload {
+    SendMessageRequest send_message = 1;
+    string channel_id = 2;
+  }
+}
+
+message ChatStreamResponse {
+  oneof payload {
+    Message new_message = 1;
+    string error_message = 2;
+  }
+}
+// Сущности
+message Chat {
+  string chat_id = 1;
+  string type = 2;
+  string name = 3;
+  repeated string member_ids = 4;
+  repeated string channel_ids = 5;
+}
+
+message ChatPreview {
+  string chat_id = 1;
+  string name = 2;
+}
+
+message Channel {
+  string channel_id = 1;
+  string chat_id = 2;
+  string name = 3;
+  string type = 4;
+  repeated string message_ids = 5;
+  
+}
+
+message Message {
+  string message_id = 1;
+  string channel_id = 2;
+  string text = 3;
+  string sender_id = 4;
+  google.protobuf.Timestamp created_at = 5; 
+}
