@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
+
+import { AppContext } from "../../AppContext";
 
 import './ChatList.css';
 
-export default function ChatList({ chats, usernames, type }) {
+export default function ChatList({ chats, usernames }) {
     const createChatModal = useRef(null);
+    const { grpc, categoryState } = useContext(AppContext);
 
     const [usernameInput, setUsernameInput] = useState("");
     const [addedUsername, setAddedUsername] = useState("");
@@ -36,7 +39,6 @@ export default function ChatList({ chats, usernames, type }) {
         try {
             await grpc.chat.createChat(input, rpcOptions);
             closeModal();
-            getChats();
         } catch (error) {
             console.log(error);
         }
@@ -53,7 +55,7 @@ export default function ChatList({ chats, usernames, type }) {
                 </div>
             </div>
             <div className="chat-list">
-                {type == "group" && <div onClick={openModal} className="create-chat-button">create chat</div>}
+                {categoryState.currentCategory == "groups" && <div onClick={openModal} className="create-chat-button">create chat</div>}
                 {usernames && chats.map((item, index) => <ChatButton chatId={item.chatId} username={usernames[item.name]} key={index} />)}
             </div>
         </>
@@ -61,8 +63,10 @@ export default function ChatList({ chats, usernames, type }) {
 }
 
 function ChatButton({ chatId, username }) {
+    const { categoryState } = useContext(AppContext);
+    
     return (
-        <NavLink className="chat-button" draggable="false" to={`/chats/${chatId}`}>
+        <NavLink className="chat-button" draggable="false" to={`/${categoryState.currentCategory}/${chatId}`}>
             <div className="avatar-block"></div>
             <p className="chat-name">{username}</p>
         </NavLink>

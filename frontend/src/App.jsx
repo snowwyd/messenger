@@ -12,11 +12,8 @@ export default function App() {
 
     useEffect(() => {
         localStorage.removeItem('user_id');
-        if (localStorage.getItem('token')) {
-            navigate('/chats');
-        } else {
-            navigate('/');
-        }
+        if (localStorage.getItem('token')) navigate('/chats');
+        else navigate('/');
     }, []);
 
     return (
