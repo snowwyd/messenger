@@ -1,12 +1,9 @@
-module msgchat
+module github.com/snowwyd/messenger/msgchat
 
 go 1.23.4
 
-replace github.com/snowwyd/protos => ../../protos
-
 require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/snowwyd/protos v0.3.0
 	go.mongodb.org/mongo-driver v1.17.3
 	google.golang.org/grpc v1.70.0
 	google.golang.org/protobuf v1.36.5

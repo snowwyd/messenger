@@ -6,9 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"msgchat/internal/app"
-	"msgchat/internal/config"
-	"msgchat/internal/lib/logger"
+	"github.com/snowwyd/messenger/msgchat/internal/app"
+	"github.com/snowwyd/messenger/msgchat/internal/config"
+	"github.com/snowwyd/messenger/msgchat/internal/lib/logger"
 )
 
 const (

@@ -4,7 +4,7 @@ package conversation;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "snowwy.msg.v1.conversation;msgv1chat";
+option go_package = "github.com/snowwyd/messenger/msgchat/gen;msgchatpb";
 
 service Conversation {
   rpc CreateChat (CreateChatRequest) returns (CreateChatResponse);

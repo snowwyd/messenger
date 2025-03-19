@@ -1,26 +1,10 @@
   version: "3"
   tasks:
     run:
-      aliases:
-        - runflag
       desc: "Runs main.go file with correct config path in flag"
       cmds:
         - go run cmd/auth/main.go -config="./config/local.yaml"
-    migrate:
-      aliases:
-        - migrateinit
-      desc: "Migrate"
+    proto:
+      desc: "Generates pb files for Auth"
       cmds:
-        - go run cmd/migrator/main.go --db-uri="mongodb://localhost:27017" --db-name="auth" --migrations-path="migrations"
-    mongo:
-      aliases:
-        - mongorun
-      desc: "Runs mongo server in storage"
-      cmds:
-        - mongod --dbpath=D:/go/projects/messenger/backend/msgauth/storage
-    mpath:
-      aliases:
-        - mongopath
-      desc: "Add mongo in $PATH"
-      cmds:
-        - export PATH=$PATH:/c/Program\ Files/MongoDB/Server/8.0/bin
+        - protoc -I ../../protos --go_out=./gen --go_opt=paths=source_relative --go-grpc_out=./gen --go-grpc_opt=paths=source_relative  ../../protos/msgauth.proto

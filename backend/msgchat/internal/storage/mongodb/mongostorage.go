@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"msgchat/internal/domain/models"
+
+	"github.com/snowwyd/messenger/msgchat/internal/domain/models"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"

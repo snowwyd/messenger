@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "snowwy.msg.v1.auth;msgv1auth";
+option go_package = "github.com/snowwyd/messenger/msgauth/gen;msgauthpb";
 
 service Auth {
   rpc Register (RegisterRequest) returns (RegisterResponse);

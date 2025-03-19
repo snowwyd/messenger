@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"msgauth/internal/domain/models"
-	"msgauth/internal/lib/jwt"
-	"msgauth/internal/lib/logger"
 	"regexp"
 	"time"
+
+	"github.com/snowwyd/messenger/msgauth/internal/domain/models"
+	"github.com/snowwyd/messenger/msgauth/internal/lib/jwt"
+	"github.com/snowwyd/messenger/msgauth/internal/lib/logger"
 
 	"golang.org/x/crypto/bcrypt"
 )

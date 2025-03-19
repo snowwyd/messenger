@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"net"
 
-	chatgrpc "msgchat/internal/grpc/chat"
-	"msgchat/internal/grpc/middleware"
+	chatgrpc "github.com/snowwyd/messenger/msgchat/internal/grpc/chat"
+	"github.com/snowwyd/messenger/msgchat/internal/grpc/middleware"
 
 	"google.golang.org/grpc"
 )

@@ -2,10 +2,11 @@ package app
 
 import (
 	"log/slog"
-	grpcapp "msgauth/internal/app/grpc"
-	"msgauth/internal/services/auth"
-	mongostorage "msgauth/internal/storage/mongodb"
 	"time"
+
+	grpcapp "github.com/snowwyd/messenger/msgauth/internal/app/grpc"
+	"github.com/snowwyd/messenger/msgauth/internal/services/auth"
+	mongostorage "github.com/snowwyd/messenger/msgauth/internal/storage/mongodb"
 )
 
 type App struct {

@@ -6,9 +6,10 @@ import (
 	"errors"
 	"log"
 	"log/slog"
-	"msgauth/internal/services/auth"
 
-	msgv1auth "github.com/snowwyd/protos/gen/go/msgauth"
+	"github.com/snowwyd/messenger/msgauth/internal/services/auth"
+
+	msgv1auth "github.com/snowwyd/messenger/msgauth/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

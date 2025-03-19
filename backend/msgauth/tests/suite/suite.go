@@ -2,10 +2,11 @@ package suite
 
 import (
 	"context"
-	"msgauth/internal/config"
 	"net"
 	"strconv"
 	"testing"
+
+	"github.com/snowwyd/messenger/msgauth/internal/config"
 
 	msgv1auth "github.com/snowwyd/protos/gen/go/msgauth"
 	"google.golang.org/grpc"
