@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { useQuery } from '@tanstack/react-query';
 
 import { AppContext } from "../AppContext";
@@ -10,7 +10,7 @@ import Search from "../components/Search/Search";
 import './MainPage.css';
 
 export default function MainPage({ type }) {
-    const grpc = useContext(AppContext);
+    const { grpc, categoryState } = useContext(AppContext);
 
     const { data: chats, isError, error, isLoading } = useQuery({ queryKey: ['chats', type], queryFn: getChats });
     const { data: usernames } = useQuery({ queryKey: ['usernames'], queryFn: getUsernames, enabled: !!chats });
@@ -19,22 +19,27 @@ export default function MainPage({ type }) {
 
     async function getUsernames() {
         const userIds = chats.map(item => item.name);
-        const response = await grpc.auth.getUsernames({ userIds: userIds });
-        return response.response.usernames;
+        const { response } = await grpc.auth.getUsernames({ userIds: userIds });
+        return response.usernames;
     }
 
     async function getChats() {
         const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
-        const response = await grpc.chat.getUserChats({ type: type }, rpcOptions);
-        return response.response.chats;
+        const { response } = await grpc.chat.getUserChats({ type: type }, rpcOptions);
+        return response.chats;
     }
+
+    useEffect(() => {
+        if (type == "private") categoryState.setCurrentCategory("chats");
+        else if (type == "group") categoryState.setCurrentCategory("groups");
+    });
 
     return (
         <div className="container">
             <div className="left-panel">
                 <Search />
                 <Categories />
-                {!isLoading && <ChatList chats={chats} usernames={usernames} type={type} />}
+                {!isLoading && <ChatList chats={chats} usernames={usernames} />}
             </div>
             <Chat />
         </div>
