@@ -2,7 +2,6 @@
 .vscode/
 node_modules/
 dist/
-frontend/src/proto/generated/
+gen/
 .env
 *.mp4
-gen/
