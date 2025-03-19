@@ -1,8 +1,9 @@
 package jwt
 
 import (
-	"msgauth/internal/domain/models"
 	"time"
+
+	"github.com/snowwyd/messenger/msgauth/internal/domain/models"
 
 	"github.com/golang-jwt/jwt/v5"
 )

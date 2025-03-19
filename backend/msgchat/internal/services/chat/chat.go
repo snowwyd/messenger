@@ -5,15 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"msgchat/internal/domain/models"
-	"msgchat/internal/lib/logger"
 	"os"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/snowwyd/messenger/msgchat/internal/domain/models"
+	"github.com/snowwyd/messenger/msgchat/internal/lib/logger"
+
 	"github.com/joho/godotenv"
-	msgv1chat "github.com/snowwyd/protos/gen/go/msgchat"
+	msgv1chat "github.com/snowwyd/messenger/msgchat/gen"
 )
 
 type Chat struct {

@@ -3,5 +3,9 @@
 node_modules/
 dist/
 frontend/src/proto/generated/
-backend/*/config/
+
+
 .env
+# заглушка, чтобы папка gen отслеживалась, но была пустой
+**/gen/*
+!**/gen/.gitkeep

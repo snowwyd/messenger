@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	"msgchat/internal/lib/jwtutil" // Утилита для работы с JWT
+	"github.com/snowwyd/messenger/msgchat/internal/lib/jwtutil" // Утилита для работы с JWT
 )
 
 // Общая функция для извлечения user_id из контекста

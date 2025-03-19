@@ -2,10 +2,11 @@ package grpcapp
 
 import (
 	"fmt"
-	"google.golang.org/grpc"
 	"log/slog"
-	authgrpc "msgauth/internal/grpc/auth"
 	"net"
+
+	authgrpc "github.com/snowwyd/messenger/msgauth/internal/grpc/auth"
+	"google.golang.org/grpc"
 )
 
 type App struct {

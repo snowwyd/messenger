@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	msgv1chat "github.com/snowwyd/protos/gen/go/msgchat"
+	msgv1chat "github.com/snowwyd/messenger/msgchat/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

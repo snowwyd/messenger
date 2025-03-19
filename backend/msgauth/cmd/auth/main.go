@@ -3,12 +3,13 @@ package main
 
 import (
 	"log/slog"
-	"msgauth/internal/app"
-	"msgauth/internal/config"
-	"msgauth/internal/lib/logger"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/snowwyd/messenger/msgauth/internal/app"
+	"github.com/snowwyd/messenger/msgauth/internal/config"
+	"github.com/snowwyd/messenger/msgauth/internal/lib/logger"
 )
 
 const (
