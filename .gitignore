@@ -6,6 +6,4 @@ frontend/src/proto/generated/
 
 
 .env
-# заглушка, чтобы папка gen отслеживалась, но была пустой
-**/gen/*
-!**/gen/.gitkeep
+gen/
