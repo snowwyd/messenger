@@ -9,6 +9,7 @@ export default function AppProvider({ children }) {
     const transport = new GrpcWebFetchTransport({ baseUrl: "http://localhost:808" });
     const authClient = new AuthClient(transport);
     const conversationClient = new ConversationClient(transport);
+    const abortController = new AbortController();
 
     const grpc = {
         auth: authClient,
@@ -26,6 +27,21 @@ export default function AppProvider({ children }) {
                 ]
             }
             return rpcOptions;
+        },
+        getStreamingOptions: function (token) {
+            const rpcOptions = {
+                interceptors: [
+                    {
+                        interceptServerStreaming(next, method, input, options) {
+                            if (!options.meta) options.meta = {};
+                            options.meta['Authorization'] = `Bearer ${token}`;
+                            return next(method, input, options);
+                        }
+                    }
+                ],
+                abort: abortController.signal
+            }
+            return rpcOptions;
         }
     }
 
@@ -33,7 +49,8 @@ export default function AppProvider({ children }) {
 
     const app = {
         grpc: grpc,
-        categoryState: {currentCategory, setCurrentCategory}
+        categoryState: {currentCategory, setCurrentCategory},
+        abortController: abortController
     }
 
     return (
