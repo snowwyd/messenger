@@ -25,7 +25,7 @@ type Chat struct {
 	tokenTTL        time.Duration
 	appSecret       string
 
-	subscriptions map[string][]chan<- *msgv1chat.ChatStreamResponse
+	subscriptions map[string][]chan *msgv1chat.ChatStreamResponse
 	mu            sync.Mutex
 }
 
@@ -59,7 +59,7 @@ func New(log *slog.Logger, chatProvider ChatProvider, channelProvider ChannelPro
 		tokenTTL:        tokenTTL,
 		appSecret:       appSecret,
 
-		subscriptions: make(map[string][]chan<- *msgv1chat.ChatStreamResponse),
+		subscriptions: make(map[string][]chan *msgv1chat.ChatStreamResponse),
 	}
 }
 
@@ -83,54 +83,53 @@ var (
 )
 
 // STREAMING METHODS
-func (c *Chat) SubscribeToChannel(ctx context.Context, channelID string, stream chan<- *msgv1chat.ChatStreamResponse) {
-	const op = "chat.SubscribeToChannel"
+func (c *Chat) SubscribeToChannelEvents(ctx context.Context, channelID string, userID string, sendEvent func(*msgv1chat.ChatStreamResponse)) error {
+	const op = "chat.SubscribeToChannelEvents"
 
-	log := c.log.With(slog.String("op", op), slog.String("channel_id:", channelID))
-	log.Info("subscribed to channel")
+	log := c.log.With(slog.String("op", op), slog.String("channel_id", channelID), slog.String("user_id", userID))
+	log.Info("subscribing to channel events")
 
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	c.subscriptions[channelID] = append(c.subscriptions[channelID], stream)
-}
-
-func (c *Chat) UnsubscribeFromChannel(ctx context.Context, channelID string, stream chan<- *msgv1chat.ChatStreamResponse) {
-	const op = "chat.UnsubscribeFromChannel"
-
-	log := c.log.With(slog.String("op", op), slog.String("channel_id:", channelID))
-	log.Info("unsubscribed from channel")
-
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	subscribers := c.subscriptions[channelID]
-	for i, sub := range subscribers {
-		if sub == stream {
-			c.subscriptions[channelID] = append(subscribers[:i], subscribers[i+1:]...)
-			break
-		}
+	// Валидация прав доступа к каналу
+	if err := c.channelValidation(ctx, log, channelID, userID); err != nil {
+		log.Error("access denied", logger.Err(err))
+		return fmt.Errorf("access denied: %w", err)
 	}
-}
 
-func (c *Chat) BroadcastMessage(ctx context.Context, channelID string, message *msgv1chat.Message) {
-	const op = "chat.BroadcastMessage"
+	// Создаем канал для подписчика
+	subscriberChan := make(chan *msgv1chat.ChatStreamResponse)
 
-	log := c.log.With(slog.String("op", op), slog.String("channel_id:", channelID))
-	log.Info("broadcasting message")
-
+	// Добавляем подписчика в список
 	c.mu.Lock()
-	defer c.mu.Unlock()
+	if _, exists := c.subscriptions[channelID]; !exists {
+		c.subscriptions[channelID] = []chan *msgv1chat.ChatStreamResponse{}
+	}
+	c.subscriptions[channelID] = append(c.subscriptions[channelID], subscriberChan)
+	c.mu.Unlock()
 
-	for _, sub := range c.subscriptions[channelID] {
+	// Удаляем подписчика при завершении работы
+	defer func() {
+		c.mu.Lock()
+		for i, ch := range c.subscriptions[channelID] {
+			if ch == subscriberChan {
+				c.subscriptions[channelID] = append(c.subscriptions[channelID][:i], c.subscriptions[channelID][i+1:]...)
+				break
+			}
+		}
+		close(subscriberChan)
+		c.mu.Unlock()
+	}()
+
+	// Цикл обработки событий
+	for {
 		select {
-		case sub <- &msgv1chat.ChatStreamResponse{
-			Payload: &msgv1chat.ChatStreamResponse_NewMessage{
-				NewMessage: message,
-			},
-		}:
-		default:
-			// Если канал заблокирован, пропускаем
+		case <-ctx.Done():
+			// Клиент отключился или контекст завершился
+			log.Info("client disconnected or context canceled")
+			return nil
+
+		case event := <-subscriberChan:
+			// Отправка события через callback
+			sendEvent(event)
 		}
 	}
 }
@@ -279,7 +278,7 @@ func (c *Chat) SendMessage(ctx context.Context, channelID string, text string) (
 	log := c.log.With(slog.String("op", op))
 	log.Info("sending message")
 
-	// user_id из контекста
+	// Получение user_id из контекста
 	log.Info("getting user_id from context")
 	userID, err := GetUserIDFromContext(ctx)
 	if err != nil {
@@ -287,12 +286,13 @@ func (c *Chat) SendMessage(ctx context.Context, channelID string, text string) (
 		return "", err
 	}
 
+	// Валидация прав доступа к каналу
 	if err := c.channelValidation(ctx, log, channelID, userID); err != nil {
-		return "", err
+		log.Error("access denied", logger.Err(err))
+		return "", fmt.Errorf("access denied: %w", err)
 	}
 
-	createdAt := time.Now()
-
+	// Проверка длины сообщения
 	godotenv.Load()
 	maxLen, err := strconv.Atoi(os.Getenv("MAX_MESSAGE_LENGTH"))
 	if err != nil {
@@ -305,6 +305,8 @@ func (c *Chat) SendMessage(ctx context.Context, channelID string, text string) (
 		return "", ErrInvalidMessage
 	}
 
+	// Создание нового сообщения
+	createdAt := time.Now()
 	newMessage := models.Message{
 		ChannelID: channelID,
 		Text:      text,
@@ -312,13 +314,37 @@ func (c *Chat) SendMessage(ctx context.Context, channelID string, text string) (
 		CreatedAt: createdAt,
 	}
 
-	messageID, err := c.messageProvider.SaveMessage(ctx, newMessage)
-	if err != nil {
+	// Сохранение сообщения в БД
+	if newMessage.ID, err = c.messageProvider.SaveMessage(ctx, newMessage); err != nil {
 		log.Error("failed to save message", logger.Err(err))
 		return "", err
 	}
 
-	return messageID, nil
+	// Преобразование сообщения в формат gRPC
+	protoMessage := models.ConvertMessageToProto(&newMessage)
+
+	// Создание события о новом сообщении
+	event := &msgv1chat.ChatStreamResponse{
+		Payload: &msgv1chat.ChatStreamResponse_NewMessage{
+			NewMessage: protoMessage,
+		},
+	}
+
+	// Рассылка события всем подписчикам канала
+	c.mu.Lock()
+	subscribers := c.subscriptions[channelID]
+	for _, subscriber := range subscribers {
+		select {
+		case subscriber <- event:
+		default:
+			// Если канал заблокирован, пропускаем (защита от блокировки)
+			log.Warn("failed to send event to subscriber", slog.String("channel_id", channelID))
+		}
+	}
+	c.mu.Unlock()
+
+	log.Info("message sent successfully", slog.String("message_id", newMessage.ID))
+	return newMessage.ID, nil
 }
 
 // GETTER METHODS

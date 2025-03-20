@@ -2,13 +2,13 @@ package chat
 
 import (
 	"context"
-	"io"
+	"errors"
 
 	msgv1chat "github.com/snowwyd/messenger/msgchat/gen"
+	"github.com/snowwyd/messenger/msgchat/internal/lib/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Chat interface {
@@ -22,9 +22,7 @@ type Chat interface {
 	SendMessage(ctx context.Context, channelID string, text string) (messageID string, err error)
 
 	// Bidirectional streaming
-	SubscribeToChannel(ctx context.Context, channelID string, stream chan<- *msgv1chat.ChatStreamResponse)
-	UnsubscribeFromChannel(ctx context.Context, channelID string, stream chan<- *msgv1chat.ChatStreamResponse)
-	BroadcastMessage(ctx context.Context, channelID string, message *msgv1chat.Message)
+	SubscribeToChannelEvents(ctx context.Context, channelID string, userID string, sendEvent func(*msgv1chat.ChatStreamResponse)) error
 }
 
 type serverAPI struct {
@@ -143,72 +141,35 @@ func (s *serverAPI) GetMessages(ctx context.Context, req *msgv1chat.GetMessagesR
 }
 
 // ChatStream для bidirectional streaming
-func (s *serverAPI) ChatStream(stream msgv1chat.Conversation_ChatStreamServer) error {
-	ctx := stream.Context()
-	subscriptions := make(map[string]chan<- *msgv1chat.ChatStreamResponse)
+func (s *serverAPI) ChatStream(req *msgv1chat.ChatStreamRequest, stream msgv1chat.Conversation_ChatStreamServer) error {
+	// TODO: Валидация входных данных
 
-	for {
-		req, err := stream.Recv()
-		if err == io.EOF {
-			// Закрытие соединения
-			for channelID, sub := range subscriptions {
-				s.chat.UnsubscribeFromChannel(ctx, channelID, sub)
-			}
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-
-		switch payload := req.Payload.(type) {
-		case *msgv1chat.ChatStreamRequest_SendMessage:
-			// Обработка отправленного сообщения
-			messageID, err := s.chat.SendMessage(ctx, payload.SendMessage.ChannelId, payload.SendMessage.Text)
-			if err != nil {
-				stream.Send(&msgv1chat.ChatStreamResponse{
-					Payload: &msgv1chat.ChatStreamResponse_ErrorMessage{
-						ErrorMessage: "Failed to send message",
-					},
-				})
-				continue
-			}
-
-			// Отправляем новое сообщение всем подписчикам канала
-			newMessage := &msgv1chat.Message{
-				MessageId: messageID,
-				ChannelId: payload.SendMessage.ChannelId,
-				Text:      payload.SendMessage.Text,
-				SenderId:  "user_id", // Замените на реальный ID отправителя
-				CreatedAt: timestamppb.Now(),
-			}
-			s.chat.BroadcastMessage(ctx, payload.SendMessage.ChannelId, newMessage)
-
-		case *msgv1chat.ChatStreamRequest_ChannelId:
-			// Подписка на канал
-			channelID := payload.ChannelId
-
-			// Создаем канал для подписки
-			sub := make(chan *msgv1chat.ChatStreamResponse)
-			subscriptions[channelID] = sub
-
-			// Подписываемся на канал
-			s.chat.SubscribeToChannel(ctx, channelID, sub)
-
-			// Горутина для получения новых сообщений
-			go func() {
-				defer func() {
-					delete(subscriptions, channelID)
-					close(sub)
-				}()
-
-				for resp := range sub {
-					if err := stream.Send(resp); err != nil {
-						return
-					}
-				}
-			}()
-		}
+	// Получение userID из контекста
+	userID, err := GetUserIDFromContext(stream.Context())
+	if err != nil {
+		return status.Error(codes.Unauthenticated, "failed to get user_id from context")
 	}
+
+	// Вызов сервисного слоя для подписки на события канала
+	err = s.chat.SubscribeToChannelEvents(stream.Context(), req.GetChannelId(), userID, func(event *msgv1chat.ChatStreamResponse) {
+		// Отправка события клиенту через стрим
+		if err := stream.Send(event); err != nil {
+			logger.Err(err)
+		}
+	})
+	if err != nil {
+		return status.Error(codes.Internal, "failed to subscribe to channel events")
+	}
+
+	return nil
+}
+
+func GetUserIDFromContext(ctx context.Context) (string, error) {
+	userID, ok := ctx.Value("user_id").(string)
+	if !ok || userID == "" {
+		return "", errors.New("failed to get user_id from context")
+	}
+	return userID, nil
 }
 
 func validateCreateChat(req *msgv1chat.CreateChatRequest) error {
