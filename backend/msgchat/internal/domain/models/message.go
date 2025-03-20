@@ -9,3 +9,7 @@ type Message struct {
 	SenderID  string    `bson:"sender_id"`
 	CreatedAt time.Time `bson:"created_at"`
 }
+
+type NewMessageEvent struct {
+	Message *Message
+}
