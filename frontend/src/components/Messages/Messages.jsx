@@ -6,7 +6,7 @@ import { AppContext } from "../../AppContext";
 import './Messages.css';
 
 export default function MessagesWindow({ channelId, membersUsernames }) {
-    const { grpc } = useContext(AppContext);
+    const { grpc, abortController } = useContext(AppContext);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -17,7 +17,9 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
     useEffect(() => {
         setMessages([]);
         getMessages();
-        // stream();
+        chatStream();
+
+        return () => abortController.abort();
     }, [location.pathname]);
 
     useEffect(() => {
@@ -28,33 +30,31 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
         }
     }, [text]);
 
-    // async function stream() {
-    //     const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
+    async function chatStream() {
+        const rpcOptions = grpc.getStreamingOptions(localStorage.getItem('token'));
 
-    //     try {
-    //         const { response } = grpc.chat.chatStream(rpcOptions);
-    //         console.log(response);
-
-    //     } catch (error) {
-    //         console.log(error);
-
-    //     }
-    // }
+        try {
+            const call = grpc.chat.chatStream({ channelId: channelId }, rpcOptions);
+            for await (const message of call.responses) getMessages();
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     async function getMessages() {
         const input = {
             channelId: channelId,
-            limit: 10,
+            limit: 20,
             offset: 1
         }
 
         const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
 
         try {
-            const response = await grpc.chat.getMessages(input, rpcOptions);
-            setMessages(response.response.messages.reverse());
+            const { response } = await grpc.chat.getMessages(input, rpcOptions);
+            setMessages(response.messages.reverse());
         } catch (error) {
-            console.dir(error);
+            console.log(error);
             if (error.message == "invalid token signature") {
                 localStorage.removeItem('token');
                 navigate('/');
@@ -79,10 +79,9 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
 
             try {
                 await grpc.chat.sendMessage(input, rpcOptions);
-                getMessages();
                 setText("");
             } catch (error) {
-                console.dir(error);
+                console.log(error);
                 if (error.message == "invalid token signature") {
                     localStorage.removeItem('token');
                     navigate('/');
