@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { AppContext } from "../AppContext";
@@ -7,34 +7,31 @@ import './Auth.css';
 
 export default function App() {
     const imageBlock = useRef(null);
-    const registerForm = useRef(null);
-    const loginForm = useRef(null);
+    const footageRef = useRef(null);
+    const [videoFootage, setVideoFootage] = useState(false);
+    const [pulse, setPulse] = useState([false, false]);
+
     const signUpButton = useRef(null);
     const signInButton = useRef(null);
     const signUpText = useRef(null);
     const signInText = useRef(null);
-    const footageRef = useRef(null);
-    const selectionRef = useRef(null);
+    const selectionSignUpRef = useRef(null);
+    const selectionSignInRef = useRef(null);
+    
+    const registerForm = useRef(null);
+    const loginForm = useRef(null);
+    
     const registerMessageRef = useRef(null);
     const loginMessageRef = useRef(null);
+    const [signUpMessage, setSignUpMessage] = useState("");
+    const [signInMessage, setSignInMessage] = useState("");
 
     const navigate = useNavigate();
     const { grpc } = useContext(AppContext)
 
-    useEffect(() => {
-        signInButton.current.addEventListener('mouseover', () => hoverEffect(signInButton.current, signInText.current));
-        signInButton.current.addEventListener('mouseout', () => outEffect(signInButton.current, signInText.current));
-        signUpButton.current.addEventListener('mouseover', () => hoverEffect(signUpButton.current, signUpText.current));
-        signUpButton.current.addEventListener('mouseout', () => outEffect(signUpButton.current, signUpText.current));
-    });
-
-    function hoverEffect(link, text) {
-        selectionRef.current.style.width = link.offsetWidth + 'px';
-        selectionRef.current.style.left = link.offsetLeft + 'px';
-        selectionRef.current.style.bottom = link.offsetTop + 'px';
-
+    function hoverEffect(button, text, selection, isOut = false) {
         const startTime = performance.now();
-        const duration = 500;
+        const duration = 400;
 
         requestAnimationFrame(animate);
 
@@ -43,31 +40,29 @@ export default function App() {
             if (timeFraction > 1) timeFraction = 1;
             if (timeFraction < 0) timeFraction = 0;
 
-            let progress = easeInOutCubic(timeFraction);
-            animateHover(progress, link, text);
+            let progress = easeInOutCirc(timeFraction);
+            animateHover(progress);
 
             if (timeFraction < 1) requestAnimationFrame(animate);
         }
-    }
 
-    function animateHover(progress, link, text) {
-        if (selectionRef.current === null) return;
-        selectionRef.current.style.height = progress * link.offsetHeight + 'px';
+        function animateHover(progress) {
+            if (!isOut) {
+                selection.style.height = progress * (button.offsetHeight * 0.95) + 'px';
 
-        if (progress > 0.5) {
-            text.style.top = (link.offsetHeight * 2 * progress) - (link.offsetHeight * 2) + 'px';
-        } else {
-            text.style.top = link.offsetHeight * 2 * progress + 'px';
+                if (progress > 0.5) text.style.top = -(button.offsetHeight * 2 * progress) + (button.offsetHeight * 2) + 'px';
+                else text.style.top = -(button.offsetHeight * 2 * progress) + 'px';
+            } else {
+                selection.style.height = button.offsetHeight * 0.95 - (progress * button.offsetHeight * 0.95) + 'px';
+
+                if (progress > 0.5) text.style.top = (button.offsetHeight * 2 * progress) - (button.offsetHeight * 2) + 'px';
+                else text.style.top = (button.offsetHeight * 2 * progress) + 'px';
+            }
         }
     }
 
-    function easeInOutCubic(x) {
-        return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-    }
-
-    function outEffect(button) {
-        selectionRef.current.style.width = '0';
-        selectionRef.current.style.height = '0';
+    function easeInOutCirc(x) {
+        return x < 0.5 ? (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2 : (Math.sqrt(1 - Math.pow(-2 * x + 2, 2)) + 1) / 2;
     }
 
     function switchForm(toLeft) {
@@ -79,6 +74,19 @@ export default function App() {
             let timeFraction = (currentTime - startTime) / duration;
             if (timeFraction > 1) timeFraction = 1;
             if (timeFraction < 0) timeFraction = 0;
+            if (timeFraction > 0.1) {
+                if (toLeft) {
+                    registerForm.current.style.visibility = "hidden";
+                    registerForm.current.style.pointerEvents = "none";
+                    loginForm.current.style.visibility = "visible";
+                    loginForm.current.style.pointerEvents = "all";
+                } else {
+                    registerForm.current.style.visibility = "visible";
+                    registerForm.current.style.pointerEvents = "all";
+                    loginForm.current.style.visibility = "hidden";
+                    loginForm.current.style.pointerEvents = "none";
+                }
+            }
 
             let progress = easeOutExpo(timeFraction);
             animateImageBlock(progress, toLeft);
@@ -94,22 +102,22 @@ export default function App() {
             loginForm.current.style.left = `${-100 + progress * 100}px`;
             registerForm.current.style.right = `-${progress * 100}px`;
 
-            signInButton.current.style.right = `-${progress * 75}px`;
-            signUpButton.current.style.left = `${-75 + progress * 75}px`;
+            signInButton.current.style.right = `-${progress * 80}px`;
+            signUpButton.current.style.left = `${-80 + progress * 80}px`;
 
             footageRef.current.style.left = `${-40 + progress * 40}px`;
-            // footageRef.current.style.left = `-${progress * 20}px`;
+            // footageRef.current.style.left = `${80 - progress * 80}px`;
         } else {
             imageBlock.current.style.clipPath = `xywh(${progress * 50}% 0% 51% 100%)`;
 
             registerForm.current.style.right = `${-100 + progress * 100}px`;
             loginForm.current.style.left = `-${progress * 100}px`;
 
-            signUpButton.current.style.left = `-${progress * 75}px`;
-            signInButton.current.style.right = `${-75 + progress * 75}px`;
+            signUpButton.current.style.left = `-${progress * 80}px`;
+            signInButton.current.style.right = `${-80 + progress * 80}px`;
 
             footageRef.current.style.left = `-${progress * 40}px`;
-            // footageRef.current.style.left = `${-20 + progress * 20}px`;
+            // footageRef.current.style.left = `${progress * 80}px`;
         }
     }
 
@@ -119,7 +127,7 @@ export default function App() {
 
     async function handleSignUp(event) {
         event.preventDefault();
-        loginMessageRef.current.innerHTML = '';
+        setPulse([false, false])
 
         const user = {
             username: event.target.username.value,
@@ -129,15 +137,17 @@ export default function App() {
 
         try {
             await grpc.auth.register(user);
-            registerMessageRef.current.innerHTML = "successful registration";
+            setSignUpMessage("successful registration");
+            setPulse([false, true]);
         } catch (error) {
-            registerMessageRef.current.innerHTML = "error: " + error.message;
+            setSignUpMessage("error: " + error.message);
+            setPulse([true, false]);
         }
     }
 
     async function handleSignIn(event) {
         event.preventDefault();
-        loginMessageRef.current.innerHTML = '';
+        setPulse([false, false])
 
         const user = {
             email: event.target.email.value,
@@ -146,12 +156,15 @@ export default function App() {
 
         try {
             const response = await grpc.auth.login(user);
-            loginMessageRef.current.innerHTML = "successful login";
+            setSignInMessage("successful login");
+            setPulse([false, true]);
             localStorage.setItem('token', response.response.token);
             navigate('/chats');
         } catch (error) {
-            console.log(error);
-            loginMessageRef.current.innerHTML = "error: " + error.message;
+            setSignInMessage("error: " + error.message);
+            setPulse([true, false]);
+            console.log(pulse);
+            
         }
     }
 
@@ -164,24 +177,42 @@ export default function App() {
                         <input type="text" name="username" placeholder="username" />
                         <input type="text" name="email" placeholder="email" />
                         <input type="password" name="password" placeholder="password" />
-                        <p ref={registerMessageRef} className="error-message"></p>
+                        <div className="error-message-container">
+                            <p className={`error-message ${pulse[0] ? "red-pulse" : ""} ${pulse[1] ? "green-pulse" : ""}`}
+                            onAnimationEnd={() => setPulse([false, false])}>{signUpMessage}</p>
+                        </div>
                     </div>
                     <input type="submit" value="sign up" />
                 </form>
-                <form className="forms" ref={loginForm} onSubmit={handleSignIn}>
+                <form className="forms" style={{ visibility: "hidden", pointerEvents: "none" }} ref={loginForm} onSubmit={handleSignIn}>
                     <h2>sign in</h2>
                     <div className="inputs-container">
                         <input type="text" name="email" placeholder="email" />
                         <input type="password" name="password" placeholder="password" />
-                        <p ref={loginMessageRef} className="error-message"></p>
+                        <div className="error-message-container">
+                            <p className={`error-message ${pulse[0] ? "red-pulse" : ""} ${pulse[1] ? "green-pulse" : ""}`}
+                            onAnimationEnd={() => setPulse([false, false])}>{signInMessage}</p>
+                        </div>
                     </div>
                     <input type="submit" value="sign in" />
                 </form>
                 <div className="image-block" ref={imageBlock}>
-                    <video ref={footageRef} src="/vids/footage.mp4" className="footage" autoPlay loop muted playsInline></video>
-                    <h2 onClick={() => switchForm(false)} ref={signUpButton}><span ref={signUpText}>sign up</span></h2>
-                    <h2 onClick={() => switchForm(true)} ref={signInButton}><span ref={signInText}>sign in</span></h2>
-                    <div className="selection" ref={selectionRef}></div>
+                    {videoFootage && <video ref={footageRef} src="/vids/footage.mp4" className="footage" autoPlay loop muted playsInline></video>}
+                    {!videoFootage && <img src="vids/footage2.png" ref={footageRef} className="footage"/>}
+                    <div ref={signUpButton} className="switch-form-button"
+                        onClick={() => switchForm(false)}
+                        onMouseEnter={() => hoverEffect(signUpButton.current, signUpText.current, selectionSignUpRef.current)}
+                        onMouseLeave={() => hoverEffect(signUpButton.current, signUpText.current, selectionSignUpRef.current, true)}>
+                        <span ref={signUpText}>sign up</span>
+                        <div className="selection" ref={selectionSignUpRef}></div>
+                    </div>
+                    <div ref={signInButton} className="switch-form-button"
+                        onClick={() => switchForm(true)}
+                        onMouseEnter={() => hoverEffect(signInButton.current, signInText.current, selectionSignInRef.current)}
+                        onMouseLeave={() => hoverEffect(signInButton.current, signInText.current, selectionSignInRef.current, true)}>
+                        <span ref={signInText}>sign in</span>
+                        <div className="selection" ref={selectionSignInRef}></div>
+                    </div>
                 </div>
             </div>
         </div>
