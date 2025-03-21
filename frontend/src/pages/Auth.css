@@ -11,9 +11,9 @@
     height: 600px;
     display: flex;
     justify-content: space-around;
-    background-color: #242424;
-    border-radius: 5px;
-    box-shadow: 5px 5px 15px 0 rgba(0, 0, 0, 0.4);
+    background-color: #19191A;
+    border-radius: 10px;
+    /* filter: drop-shadow(0 0 10px rgb(19, 19, 19)); */
 }
 
 .forms {
@@ -31,9 +31,10 @@
     }
 
     .inputs-container {
+        position: relative;
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 10px;
     }
 
     input {
@@ -43,31 +44,97 @@
         outline: none;
 
         &::placeholder {
-            color: rgb(80, 80, 80);
+            color: #363636;
+        }
+
+        &[name="username"] {
+            background: url(images/username.svg) no-repeat left;
+            background-size: 15px;
+            background-position: 10px;
+        }
+
+        &[name="email"] {
+            background: url(images/email.svg) no-repeat left;
+            background-size: 15px;
+            background-position: 10px;
+        }
+
+        &[name="password"] {
+            background: url(images/password.svg) no-repeat left;
+            background-size: 15px;
+            background-position: 10px;
         }
     }
 
     input:not([type="submit"]) {
-        height: 25px;
-        padding: 5px 10px;
-        background-color: rgba(0, 0, 0, 0);
+        height: 35px;
+        padding: 0 32px;
+        border-radius: 5px;
+        background-color: #151516;
         color: white;
-        border-bottom: 1px solid rgb(80, 80, 80);
     }
 
     input[type="submit"] {
         font-weight: 500;
         height: 40px;
-        border-radius: 4px;
-        background-color: white;
-        color: rgb(24, 24, 24);
+        border-radius: 5px;
+        border: 1px solid #474747;
+        background: none;
+        color: rgb(216, 216, 216);
         cursor: pointer;
+        transition: 0.2s;
+
+        &:hover {
+            background: #474747;
+        }
+
+        &:active {
+            background: #666666;
+        }
+    }
+
+    .error-message-container {
+        position: absolute;
+        bottom: -20px;
+        height: 13px;
+        width: 100%;
     }
 
     .error-message {
+        position: absolute;
+        top: 0;
         font-size: 13px;
         padding: 0px 10px;
+        color: #eee;
     }
+}
+
+@keyframes red-pulse {
+    from {
+        color: #ff7878;
+    }
+
+    to {
+        color: #eee;
+    }
+}
+
+@keyframes green-pulse {
+    from {
+        color: #7dff78;
+    }
+
+    to {
+        color: #eee;
+    }
+}
+
+.red-pulse {
+    animation: red-pulse 1s ease-out;
+}
+
+.green-pulse {
+    animation: green-pulse 1s ease-out;
 }
 
 .image-block {
@@ -75,26 +142,28 @@
     width: 900px;
     height: 600px;
     background-color: #242424;
-    border-radius: 5px;
+    border-radius: 10px;
     overflow: hidden;
     display: flex;
     justify-content: space-around;
     align-items: center;
     clip-path: xywh(50% 0% 51% 100%);
 
-    h2 {
-        padding: 5px 10px;
+    .switch-form-button {
+        padding: 0px 10px 5px 10px;
         position: relative;
         font-size: 48px;
         font-weight: 900;
         cursor: pointer;
         user-select: none;
         z-index: 1;
-        clip-path: xywh(0 10% 100% 90%);
-        color: white;
-        mix-blend-mode: difference;
+        clip-path: xywh(0 0 100% 100%);
+        /* border: 2px solid white; */
+        border-radius: 5px;
 
-        &>span {
+        & > span {
+            /* clip-path: xywh(0 1% 100% 120%); */
+            mix-blend-mode: difference;
             position: relative;
             z-index: -1;
         }
@@ -109,10 +178,13 @@
 
     .selection {
         position: absolute;
+        border-radius: 1px;
         height: 0;
-        width: 0;
-        z-index: 0;
+        width: 100%;
+        z-index: -2;
+        bottom: 0;
+        left: 0;
+        mix-blend-mode: normal;
         background-color: white;
-        clip-path: xywh(0 10% 100% 90%);
     }
 }

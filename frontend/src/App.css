@@ -1,5 +1,5 @@
 :root {
-    --background-color: #141414;
+    --background-color: #0f0f0f;
     --section-color: #0E0E0E;
     --message-field-color: #0B0B0B;
 
@@ -10,7 +10,11 @@
     --dark-gray-text: #2F2F2F;
     --gray-text: #595959;
     --light-gray-text: #838383;
-    --white-text: #ffffff;
+    --white-text: #eeeeee;
 
     --direct-category: linear-gradient(90deg, #4046C9, #6445D6);
+}
+
+#app {
+    background: linear-gradient(120deg, #1A1A1A, #0A0A0A);
 }
