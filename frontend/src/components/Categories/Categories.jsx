@@ -1,5 +1,7 @@
 import { NavLink, useMatch } from "react-router-dom";
 
+import CreateChat from "../CreateChat/CreateChat";
+
 import './Categories.css';
 
 export default function Categories() {
@@ -9,11 +11,11 @@ export default function Categories() {
     return (
         <>
             <nav className="categories">
-                <NavLink className="category-button" to="/chats"><div className="radius"></div></NavLink>
-                <NavLink className="category-button" to="/groups"><div className="radius"></div></NavLink>
+                <NavLink className="category-button direct" to="/chats"></NavLink>
+                <NavLink className="category-button groups" to="/groups"></NavLink>
             </nav>
-            <div className="category">
-                {isDirect && <>direct messages</>}
+            <div className={`category-name ${isGroups ? "groups-category" : ""}`}>
+                {isDirect && <><div>direct messages</div></>}
                 {isGroups && <>groups</>}
             </div>
         </>

@@ -50,8 +50,8 @@ export default function App() {
             if (!isOut) {
                 selection.style.height = progress * (button.offsetHeight * 0.95) + 'px';
 
-                if (progress > 0.5) text.style.top = -(button.offsetHeight * 2 * progress) + (button.offsetHeight * 2) + 'px';
-                else text.style.top = -(button.offsetHeight * 2 * progress) + 'px';
+                if (progress > 0.5) text.style.top = (button.offsetHeight * 2 * progress) - (button.offsetHeight * 2) + 'px';
+                else text.style.top = (button.offsetHeight * 2 * progress) + 'px';
             } else {
                 selection.style.height = button.offsetHeight * 0.95 - (progress * button.offsetHeight * 0.95) + 'px';
 

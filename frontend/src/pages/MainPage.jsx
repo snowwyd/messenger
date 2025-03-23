@@ -11,22 +11,11 @@ import './MainPage.css';
 
 export default function MainPage({ type }) {
     const { grpc, categoryState } = useContext(AppContext);
-
     const { data: chats, isError, error, isLoading } = useQuery({ queryKey: ['chats', type], queryFn: getChats });
-    const { data: usernames } = useQuery({ queryKey: ['usernames'], queryFn: getUsernames, enabled: !!chats });
 
-    if (isError && error.message === "invalid token signature") localStorage.removeItem('token');
-
-    async function getUsernames() {
-        const userIds = chats.map(item => item.name);
-        const { response } = await grpc.auth.getUsernames({ userIds: userIds });
-        return response.usernames;
-    }
-
-    async function getChats() {
-        const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
-        const { response } = await grpc.chat.getUserChats({ type: type }, rpcOptions);
-        return response.chats;
+    if (isError) {
+        console.log(error);
+        if (error.message === "invalid token signature") localStorage.removeItem('token');
     }
 
     useEffect(() => {
@@ -34,12 +23,31 @@ export default function MainPage({ type }) {
         else if (type == "group") categoryState.setCurrentCategory("groups");
     });
 
+    async function getChats() {
+        const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
+        const { response } = await grpc.chat.getUserChats({ type: type }, rpcOptions);
+        const chats = response.chats;
+
+        if (type === "private") {
+            const usernames = await getUsernames(chats);
+            for (let i = 0; i < chats.length; i++) chats[i].name = usernames[chats[i].name];
+        }
+
+        return chats;
+    }
+
+    async function getUsernames(chats) {
+        const userIds = chats.map(item => item.name);
+        const { response } = await grpc.auth.getUsernames({ userIds: userIds });
+        return response.usernames;
+    }
+
     return (
         <div className="container">
             <div className="left-panel">
                 <Search />
                 <Categories />
-                {!isLoading && <ChatList chats={chats} usernames={usernames} />}
+                {!isLoading && !isError && <ChatList chats={chats} />}
             </div>
             <Chat />
         </div>

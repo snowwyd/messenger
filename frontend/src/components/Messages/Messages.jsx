@@ -1,7 +1,9 @@
-import { useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { AppContext } from "../../AppContext";
+import Scroll from "../Scroll/Scroll";
 
 import './Messages.css';
 
@@ -10,56 +12,50 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const [messages, setMessages] = useState([]);
     const [text, setText] = useState("");
     const textareaRef = useRef(null);
 
+    const queryClient = useQueryClient();
+    const { data: messages, isError, error, isLoading } = useQuery({
+        queryKey: ['messages', channelId],
+        queryFn: getMessages,
+        cacheTime: 60 * 60000 //minutes
+    });
+
+    if (isError) {
+        console.log(error.message);
+        if (error.message === "invalid token signature") localStorage.removeItem('token');
+    }
+
     useEffect(() => {
-        setMessages([]);
-        getMessages();
         chatStream();
-
-        return () => abortController.abort();
-    }, [location.pathname]);
-
-    useEffect(() => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = "46px";
-            const scrollHeight = textareaRef.current.scrollHeight;
-            textareaRef.current.style.height = `${scrollHeight}px`;
-        }
-    }, [text]);
+        return () => abortController.abort("switched channel");
+    }, [location.pathname, queryClient]);
 
     async function chatStream() {
         const rpcOptions = grpc.getStreamingOptions(localStorage.getItem('token'));
 
         try {
             const call = grpc.chat.chatStream({ channelId: channelId }, rpcOptions);
-            for await (const message of call.responses) getMessages();
+            for await (const response of call.responses) {
+                queryClient.setQueryData(["messages", channelId], (oldMessages = []) => {
+                    return [...oldMessages, response.payload.newMessage];
+                });
+            }
         } catch (error) {
-            console.log(error);
+            console.log(error.message);
         }
     }
 
     async function getMessages() {
         const input = {
             channelId: channelId,
-            limit: 20,
+            limit: 100,
             offset: 1
         }
-
         const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
-
-        try {
-            const { response } = await grpc.chat.getMessages(input, rpcOptions);
-            setMessages(response.messages.reverse());
-        } catch (error) {
-            console.log(error);
-            if (error.message == "invalid token signature") {
-                localStorage.removeItem('token');
-                navigate('/');
-            }
-        }
+        const { response } = await grpc.chat.getMessages(input, rpcOptions);
+        return response.messages.reverse();
     }
 
     async function sendMessage(event) {
@@ -90,11 +86,19 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
         }
     }
 
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = "46px";
+            const scrollHeight = textareaRef.current.scrollHeight;
+            textareaRef.current.style.height = `${scrollHeight}px`;
+        }
+    }, [text]);
+
     return (
         <>
-            <div className="messages-window">
+            {!isLoading && !isError && <Scroll wrapperClass={"messages-window"} isMessages={true}>
                 {messages.map((item, index) => <Message messages={messages} item={item} index={index} membersUsernames={membersUsernames} key={index} />)}
-            </div>
+            </Scroll>}
             <div className="message-field">
                 <textarea ref={textareaRef} onKeyDown={sendMessage} value={text} onChange={(event) => setText(event.target.value)} placeholder="write a message..."></textarea>
             </div>
