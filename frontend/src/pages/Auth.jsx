@@ -8,7 +8,8 @@ import './Auth.css';
 export default function App() {
     const imageBlock = useRef(null);
     const footageRef = useRef(null);
-    const [videoFootage, setVideoFootage] = useState(false);
+    const [isVideoFootage, setIsVideoFootage] = useState(false);
+    const [imageFootageNumber, setImageFootageNumber] = useState(Number(localStorage.getItem("footage") !== null ? localStorage.getItem("footage") : 0));
     const [pulse, setPulse] = useState([false, false]);
 
     const signUpButton = useRef(null);
@@ -21,8 +22,6 @@ export default function App() {
     const registerForm = useRef(null);
     const loginForm = useRef(null);
     
-    const registerMessageRef = useRef(null);
-    const loginMessageRef = useRef(null);
     const [signUpMessage, setSignUpMessage] = useState("");
     const [signInMessage, setSignInMessage] = useState("");
 
@@ -125,6 +124,17 @@ export default function App() {
         return x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
     }
 
+    useEffect(() => {
+        localStorage.setItem("footage", imageFootageNumber);
+    }, [imageFootageNumber]);
+
+    function switchFootage() {
+        setImageFootageNumber(prev => {
+            if (prev >= 1) return 0
+            return prev + 1;
+        });
+    }
+
     async function handleSignUp(event) {
         event.preventDefault();
         setPulse([false, false])
@@ -197,8 +207,8 @@ export default function App() {
                     <input type="submit" value="sign in" />
                 </form>
                 <div className="image-block" ref={imageBlock}>
-                    {videoFootage && <video ref={footageRef} src="/vids/footage.mp4" className="footage" autoPlay loop muted playsInline></video>}
-                    {!videoFootage && <img src="vids/footage2.png" ref={footageRef} className="footage"/>}
+                    {isVideoFootage && <video ref={footageRef} src="/footages/footage.mp4" className="footage" autoPlay loop muted playsInline></video>}
+                    {!isVideoFootage && <img src={`/footages/footage${imageFootageNumber}.png`} ref={footageRef} onClick={switchFootage} className="footage"/>}
                     <div ref={signUpButton} className="switch-form-button"
                         onClick={() => switchForm(false)}
                         onMouseEnter={() => hoverEffect(signUpButton.current, signUpText.current, selectionSignUpRef.current)}
