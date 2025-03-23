@@ -42,25 +42,27 @@
         font-size: 14px;
         border: none;
         outline: none;
+        color: var(--white-text);
+        border-radius: 5px;
 
         &::placeholder {
-            color: #363636;
+            color: var(--dark-gray-text);
         }
 
         &[name="username"] {
-            background: url(images/username.svg) no-repeat left;
+            background: url(/images/username.svg) no-repeat left;
             background-size: 15px;
             background-position: 10px;
         }
 
         &[name="email"] {
-            background: url(images/email.svg) no-repeat left;
+            background: url(/images/email.svg) no-repeat left;
             background-size: 15px;
             background-position: 10px;
         }
 
         &[name="password"] {
-            background: url(images/password.svg) no-repeat left;
+            background: url(/images/password.svg) no-repeat left;
             background-size: 15px;
             background-position: 10px;
         }
@@ -69,18 +71,14 @@
     input:not([type="submit"]) {
         height: 35px;
         padding: 0 32px;
-        border-radius: 5px;
         background-color: #151516;
-        color: white;
     }
 
     input[type="submit"] {
-        font-weight: 500;
         height: 40px;
-        border-radius: 5px;
-        border: 1px solid #474747;
+        font-weight: 500;
         background: none;
-        color: rgb(216, 216, 216);
+        border: 1px solid #474747;
         cursor: pointer;
         transition: 0.2s;
 

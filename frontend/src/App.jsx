@@ -11,7 +11,6 @@ export default function App() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        localStorage.removeItem('user_id');
         if (localStorage.getItem('token')) navigate('/chats');
         else navigate('/');
     }, []);

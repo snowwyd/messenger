@@ -1,69 +1,49 @@
 .categories {
-    margin-top: 15px;
     display: flex;
-    padding: 0 20px;
+    /* justify-content: center; */
+    align-items: center;
+    gap: 10px;
+    padding: 0px 10px;
+    height: 60px;
 }
 
-.category {
+.category-button {
+    position: relative;
+    height: 40px;
+    width: 40px;
+    border-radius: 5px;
+    z-index: 2;
+    filter: brightness(0.2);
+    
+    &.direct {
+        background: url(/images/direct.png) no-repeat center;
+    }
+
+    &.groups {
+        background: url(/images/groups.png) no-repeat center;
+    }
+
+    &:hover {
+        filter: brightness(0.3);
+    }
+
+    &.active {
+        background-color: rgb(37, 37, 37);
+        filter: brightness(1);
+    }
+}
+
+.category-name {
     height: 60px;
     display: flex;
     padding: 0 25px;
     align-items: center;
     background: var(--direct-category);
+    color: var(--white-text);
     font-weight: 700;
     font-size: 16px;
-    background-clip: padding-box;
-}
 
-.category-button {
-    position: relative;
-    height: 50px;
-    width: 50px;
-    border-radius: 15px 15px 0 0;
-    z-index: 2;
-
-
-    &.active {
-        background: var(--direct-category);
-        background-size: 650%;
-        background-position: -25px;
-
-        .radius {
-            position: absolute;
-            left: -25px;
-            bottom: 0;
-            height: 25px;
-            width: 100px;
-            z-index: 0;
-            pointer-events: none;
-            background: var(--direct-category);
-            background-size: 325%;
-        }
-
-        &::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -50px;
-            right: 50px;
-            bottom: 0;
-            border-radius: 15px;
-            background: var(--background-color);
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        &::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 50px;
-            right: -50px;
-            bottom: 0;
-            border-radius: 15px;
-            background: var(--background-color);
-            pointer-events: none;
-            z-index: 1;
-        }
+    &.groups-category {
+        background: var(--groups-category);
     }
 }
