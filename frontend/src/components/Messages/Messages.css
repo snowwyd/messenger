@@ -70,15 +70,65 @@
     }
 
     .message-text {
+        position: relative;
         color: #dadada;
         font-family: 'Roboto';
+        display: flex;
+        align-items: center;
 
         &:hover {
             background-color: #0c0c0c;
+
+            .time-caption {
+                visibility: visible;
+            }
         }
     }
 
-    &>.message-text {
+    & > .message-text {
         padding: 5px 0 5px 70px;
+    }
+
+    .date-caption {
+        font-size: 11px;
+        font-weight: 300;
+        color: #585858;
+        margin-left: 2px;
+    }
+
+    .time-caption {
+        font-size: 11px;
+        font-weight: 300;
+        color: #585858;
+        margin-left: 2px;
+        position: absolute;
+        left: 15px;
+        visibility: hidden;
+    }
+}
+
+.date-label {
+    margin-top: 10px;
+    position: relative;
+    text-align: center;
+    z-index: 1;
+    font-size: 12px;
+    color: #383838;
+
+    & > span {
+        padding: 0 3px;
+        background-color: var(--section-color);
+        z-index: 1;
+    }
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 15px;
+        right: 15px;
+        border-top: 1px solid #1a1a1a;
+        z-index: -1;
+        transform: translateY(-50%);
     }
 }
