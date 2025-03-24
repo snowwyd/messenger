@@ -5,6 +5,7 @@ package config
 import (
 	"flag"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -13,11 +14,11 @@ import (
 
 // Config - go структура конфига со стракт-тегами для дальнейшего парсинга
 type Config struct {
-	Env         string        `yaml:"env" env-default:"local"` // для парсинга файла через cleanenv
-	TokenTTL    time.Duration `yaml:"token_ttl" env-required:"true"`
-	GRPC        GRPCConfig    `yaml:"grpc"`
-	AppSecret   string
-	StoragePath string
+	Env              string     `yaml:"env" env-default:"local"` // для парсинга файла через cleanenv
+	GRPC             GRPCConfig `yaml:"grpc"`
+	AppSecret        string
+	StoragePath      string
+	MaxMessageLength int
 }
 
 // GRPCConfig - go структура grpc со стракт-тегами
@@ -52,6 +53,7 @@ func MustLoadByPath(configPath string) *Config {
 
 	cfg.StoragePath = os.Getenv("STORAGE_PATH")
 	cfg.AppSecret = os.Getenv("APP_SECRET")
+	cfg.MaxMessageLength, _ = strconv.Atoi(os.Getenv("MAX_MESSAGE_LENGTH"))
 
 	return &cfg
 }

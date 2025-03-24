@@ -3,4 +3,4 @@ tasks:
   run:
     desc: "Runs main.go file with correct config path in flag"
     cmds:
-      - go run cmd/auth/main.go -config="./config/local.yaml"
+      - go run cmd/main.go -config="./config/local.yaml"

@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net"
 
-	authgrpc "github.com/snowwyd/messenger/msgauth/internal/grpc/auth"
+	authgrpc "github.com/snowwyd/messenger/msgauth/internal/grpc"
 	"google.golang.org/grpc"
 )
 
@@ -16,11 +16,11 @@ type App struct {
 }
 
 // New создает новое grpc приложение
-func New(log *slog.Logger, authService authgrpc.Auth, port int) *App {
+func New(log *slog.Logger, authService authgrpc.AuthService, usersService authgrpc.UsersService, port int) *App {
 	// NewServer запускает сервер
 	gRPCServer := grpc.NewServer()
 
-	authgrpc.Register(gRPCServer, authService)
+	authgrpc.Register(gRPCServer, authService, usersService)
 
 	return &App{
 		log:        log,

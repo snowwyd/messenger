@@ -2,11 +2,10 @@ package app
 
 import (
 	"log/slog"
-	"time"
 
 	grpcapp "github.com/snowwyd/messenger/msgchat/internal/app/grpc"
-	"github.com/snowwyd/messenger/msgchat/internal/services/chat"
-	"github.com/snowwyd/messenger/msgchat/internal/storage/mongodb"
+	"github.com/snowwyd/messenger/msgchat/internal/infrastructure/mongodb"
+	"github.com/snowwyd/messenger/msgchat/internal/services"
 )
 
 type App struct {
@@ -18,8 +17,8 @@ func New(
 	grpcPort int,
 	storagePath string,
 	storageName string,
-	tokenTTL time.Duration,
 	appSecret string,
+	maxMessageLength int,
 ) *App {
 
 	storage, err := mongodb.New(storagePath, storageName)
@@ -27,9 +26,11 @@ func New(
 		panic(err)
 	}
 
-	chatService := chat.New(log, storage, storage, storage, tokenTTL, appSecret)
+	chatService := services.NewChatService(log, storage, storage)
+	channelService := services.NewChannelService(log, storage, storage, storage)
+	messageService := services.NewMessageService(log, storage, storage, storage, maxMessageLength)
 
-	grpcApp := grpcapp.New(log, chatService, grpcPort, appSecret)
+	grpcApp := grpcapp.New(log, chatService, channelService, messageService, grpcPort, appSecret)
 
 	return &App{
 		GRPCSrv: grpcApp,

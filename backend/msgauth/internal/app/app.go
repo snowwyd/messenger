@@ -5,8 +5,8 @@ import (
 	"time"
 
 	grpcapp "github.com/snowwyd/messenger/msgauth/internal/app/grpc"
-	"github.com/snowwyd/messenger/msgauth/internal/services/auth"
-	mongostorage "github.com/snowwyd/messenger/msgauth/internal/storage/mongodb"
+	"github.com/snowwyd/messenger/msgauth/internal/infrastructure/mongodb"
+	"github.com/snowwyd/messenger/msgauth/internal/services"
 )
 
 type App struct {
@@ -21,14 +21,16 @@ func New(
 	tokenTTL time.Duration,
 	appSecret string,
 ) *App {
-	storage, err := mongostorage.New(storagePath, storageName)
+
+	storage, err := mongodb.New(storagePath, storageName)
 	if err != nil {
 		panic(err)
 	}
 
-	authService := auth.New(log, storage, storage, tokenTTL, appSecret)
+	authService := services.NewAuthService(log, storage, storage, tokenTTL, appSecret)
+	usersService := services.NewUsersService(log, storage)
 
-	grpcApp := grpcapp.New(log, authService, grpcPort)
+	grpcApp := grpcapp.New(log, authService, usersService, grpcPort)
 
 	return &App{
 		GRPCSrv: grpcApp,

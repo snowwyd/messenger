@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net"
 
-	chatgrpc "github.com/snowwyd/messenger/msgchat/internal/grpc/chat"
+	chatgrpc "github.com/snowwyd/messenger/msgchat/internal/grpc"
 	"github.com/snowwyd/messenger/msgchat/internal/grpc/middleware"
 
 	"google.golang.org/grpc"
@@ -17,14 +17,14 @@ type App struct {
 	port       int
 }
 
-func New(log *slog.Logger, chatService chatgrpc.Chat, port int, appSecret string) *App {
+func New(log *slog.Logger, chatService chatgrpc.Chat, channelService chatgrpc.Channel, messageService chatgrpc.Message, port int, appSecret string) *App {
 	// NewServer запускает сервер
 	gRPCServer := grpc.NewServer(
 		grpc.UnaryInterceptor(middleware.AuthInterceptor(appSecret)),
 		grpc.StreamInterceptor(middleware.StreamAuthInterceptor(appSecret)),
 	)
 
-	chatgrpc.Register(gRPCServer, chatService)
+	chatgrpc.Register(gRPCServer, chatService, channelService, messageService)
 
 	return &App{
 		log:        log,
