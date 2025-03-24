@@ -107,21 +107,52 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
 }
 
 function Message({ messages, item, index, membersUsernames }) {
-    const isFirstInGroup = index === 0 || messages[index - 1].senderId !== item.senderId;
+    const isFirstMessage = index === 0 ? true : false;
+    const isFirstInGroup = isFirstMessage || messages[index - 1].senderId !== item.senderId;
 
+    const date = new Date(Number(item.createdAt.seconds) * 1000);
+    const formattedDate = date.toLocaleString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    const dateLabel = date.toLocaleString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+
+    const time = date.toLocaleString('en-GB', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    const prevDate = !isFirstMessage ? new Date(Number(messages[index - 1].createdAt.seconds) * 1000) : date;
+    const isAnotherDay = date.toLocaleDateString() !== prevDate.toLocaleDateString() || isFirstMessage ? true : false;
+    
     return (
-        <div className="message">
-            {isFirstInGroup ? (
-                <div className="message-user-info">
-                    <div className="avatar"></div>
-                    <div className="username-message">
-                        <span className="username">{membersUsernames[item.senderId]}</span>
-                        <pre className="message-text">{item.text}</pre>
-                    </div>
-                </div>
-            ) : (
-                <pre className="message-text">{item.text}</pre>
+        <>
+            {isAnotherDay && (
+                <div className="date-label"><span>{dateLabel}</span></div>
             )}
-        </div>
+            <div className="message">
+                {isFirstInGroup || isAnotherDay ? (
+                    <div className="message-user-info">
+                        <div className="avatar"></div>
+                        <div className="username-message">
+                            <span className="username">{membersUsernames[item.senderId]} <span className="date-caption">{formattedDate}</span></span>
+                            <pre className="message-text">{item.text}</pre>
+                        </div>
+                    </div>
+                ) : (
+                    <pre className="message-text"><span className="time-caption">{time}</span>{item.text}</pre>
+                )}
+            </div>
+        </>
     )
 }
