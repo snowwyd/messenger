@@ -5,10 +5,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AppContext } from "../../AppContext";
 import Scroll from "../Scroll/Scroll";
 
-import './Messages.css';
+import styles from './Messages.module.css';
 
 export default function MessagesWindow({ channelId, membersUsernames }) {
-    const { grpc, abortController } = useContext(AppContext);
+    const { grpc, abortController, isAuthorizedState } = useContext(AppContext);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -16,16 +16,18 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
     const textareaRef = useRef(null);
 
     const queryClient = useQueryClient();
-    const { data: messages, isError, error, isLoading } = useQuery({
-        queryKey: ['messages', channelId],
+    const messageList = useQuery({
+        queryKey: ['messageList', channelId],
         queryFn: getMessages,
-        cacheTime: 60 * 60000 //minutes
+        cacheTime: 60 * 60000
     });
 
-    if (isError) {
-        console.log(error.message);
-        if (error.message === "invalid token signature") localStorage.removeItem('token');
-    }
+    useEffect(() => {
+        if (messageList.isError) {
+            console.log(messageList.error.message);
+            if (messageList.error.message === "invalid token signature") isAuthorizedState.setIsAuthorized(false);
+        }
+    }, [messageList.isError, messageList.error]);
 
     useEffect(() => {
         chatStream();
@@ -38,12 +40,16 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
         try {
             const call = grpc.chat.chatStream({ channelId: channelId }, rpcOptions);
             for await (const response of call.responses) {
-                queryClient.setQueryData(["messages", channelId], (oldMessages = []) => {
+                queryClient.setQueryData(["messageList", channelId], (oldMessages = []) => {
                     return [...oldMessages, response.payload.newMessage];
                 });
             }
         } catch (error) {
             console.log(error.message);
+            if (error.message == "invalid token signature") {
+                localStorage.removeItem('token');
+                navigate('/');
+            }
         }
     }
 
@@ -62,8 +68,6 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
         if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
 
-            const token = localStorage.getItem('token');
-
             if (text.trim().replace(/\n/g, '') === '') return setText("");
 
             const input = {
@@ -71,13 +75,13 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
                 text: text
             }
 
-            const rpcOptions = grpc.setAuthorizationHeader(token);
+            const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
 
             try {
                 await grpc.chat.sendMessage(input, rpcOptions);
                 setText("");
             } catch (error) {
-                console.log(error);
+                console.log(error.message);
                 if (error.message == "invalid token signature") {
                     localStorage.removeItem('token');
                     navigate('/');
@@ -96,21 +100,21 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
 
     return (
         <>
-            {!isLoading && !isError && <Scroll wrapperClass={"messages-window"} isMessages={true}>
-                {messages.map((item, index) => <Message messages={messages} item={item} index={index} membersUsernames={membersUsernames} key={index} />)}
+            {!messageList.isLoading && !messageList.isError && <Scroll wrapperClass={styles.messagesWindow} isMessages={true}>
+                {messageList.data.map((item, index) => <Message messages={messageList.data} message={item} index={index} membersUsernames={membersUsernames} key={index} />)}
             </Scroll>}
-            <div className="message-field">
+            <div className={styles.messageField}>
                 <textarea ref={textareaRef} onKeyDown={sendMessage} value={text} onChange={(event) => setText(event.target.value)} placeholder="write a message..."></textarea>
             </div>
         </>
     )
 }
 
-function Message({ messages, item, index, membersUsernames }) {
+function Message({ messages, message, index, membersUsernames }) {
     const isFirstMessage = index === 0 ? true : false;
-    const isFirstInGroup = isFirstMessage || messages[index - 1].senderId !== item.senderId;
+    const isFirstInGroup = isFirstMessage || messages[index - 1].senderId !== message.senderId;
 
-    const date = new Date(Number(item.createdAt.seconds) * 1000);
+    const date = new Date(Number(message.createdAt.seconds) * 1000);
     const formattedDate = date.toLocaleString('en-GB', {
         day: 'numeric',
         month: 'short',
@@ -138,19 +142,19 @@ function Message({ messages, item, index, membersUsernames }) {
     return (
         <>
             {isAnotherDay && (
-                <div className="date-label"><span>{dateLabel}</span></div>
+                <div className={styles.dateLabel}><span>{dateLabel}</span></div>
             )}
-            <div className="message">
+            <div className={styles.message}>
                 {isFirstInGroup || isAnotherDay ? (
-                    <div className="message-user-info">
-                        <div className="avatar"></div>
-                        <div className="username-message">
-                            <span className="username">{membersUsernames[item.senderId]} <span className="date-caption">{formattedDate}</span></span>
-                            <pre className="message-text">{item.text}</pre>
+                    <div className={styles.messageUserInfo}>
+                        <div className={styles.avatar}></div>
+                        <div className={styles.usernameMessage}>
+                            <span className={styles.username}>{membersUsernames[message.senderId]} <span className={styles.dateCaption}>{formattedDate}</span></span>
+                            <pre className={styles.messageText}>{message.text}</pre>
                         </div>
                     </div>
                 ) : (
-                    <pre className="message-text"><span className="time-caption">{time}</span>{item.text}</pre>
+                    <pre className={styles.messageText}><span className={styles.timeCaption}>{time}</span>{message.text}</pre>
                 )}
             </div>
         </>

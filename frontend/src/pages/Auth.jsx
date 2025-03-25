@@ -1,17 +1,15 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { AppContext } from "../AppContext";
 
-import './Auth.css';
+import styles from './Auth.module.css';
 
 export default function App() {
     const imageBlock = useRef(null);
     const footageRef = useRef(null);
-    const [isVideoFootage, setIsVideoFootage] = useState(false);
     const [imageFootageNumber, setImageFootageNumber] = useState(Number(localStorage.getItem("footage") !== null ? localStorage.getItem("footage") : 0));
     const [pulse, setPulse] = useState([false, false]);
-
+    
     const signUpButton = useRef(null);
     const signInButton = useRef(null);
     const signUpText = useRef(null);
@@ -24,9 +22,9 @@ export default function App() {
     
     const [signUpMessage, setSignUpMessage] = useState("");
     const [signInMessage, setSignInMessage] = useState("");
-
-    const navigate = useNavigate();
+    
     const { grpc } = useContext(AppContext)
+    const { isAuthorizedState } = useContext(AppContext);
 
     function hoverEffect(button, text, selection, isOut = false) {
         const startTime = performance.now();
@@ -130,7 +128,7 @@ export default function App() {
 
     function switchFootage() {
         setImageFootageNumber(prev => {
-            if (prev >= 1) return 0
+            if (prev >= 2) return 0
             return prev + 1;
         });
     }
@@ -169,59 +167,56 @@ export default function App() {
             setSignInMessage("successful login");
             setPulse([false, true]);
             localStorage.setItem('token', response.response.token);
-            navigate('/chats');
+            isAuthorizedState.setIsAuthorized(true);
         } catch (error) {
             setSignInMessage("error: " + error.message);
             setPulse([true, false]);
-            console.log(pulse);
-            
         }
     }
 
     return (
-        <div className="auth-forms-container">
-            <div className="auth-forms">
-                <form className="forms" ref={registerForm} onSubmit={handleSignUp}>
+        <div className={styles.authFormsContainer}>
+            <div className={styles.authForms}>
+                <form className={styles.forms} ref={registerForm} onSubmit={handleSignUp}>
                     <h2>sign up</h2>
-                    <div className="inputs-container">
+                    <div className={styles.inputsContainer}>
                         <input type="text" name="username" placeholder="username" />
                         <input type="text" name="email" placeholder="email" />
                         <input type="password" name="password" placeholder="password" />
-                        <div className="error-message-container">
+                        <div className={styles.errorMessageContainer}>
                             <p className={`error-message ${pulse[0] ? "red-pulse" : ""} ${pulse[1] ? "green-pulse" : ""}`}
                             onAnimationEnd={() => setPulse([false, false])}>{signUpMessage}</p>
                         </div>
                     </div>
                     <input type="submit" value="sign up" />
                 </form>
-                <form className="forms" style={{ visibility: "hidden", pointerEvents: "none" }} ref={loginForm} onSubmit={handleSignIn}>
+                <form className={styles.forms} style={{ visibility: "hidden", pointerEvents: "none" }} ref={loginForm} onSubmit={handleSignIn}>
                     <h2>sign in</h2>
-                    <div className="inputs-container">
+                    <div className={styles.inputsContainer}>
                         <input type="text" name="email" placeholder="email" />
                         <input type="password" name="password" placeholder="password" />
-                        <div className="error-message-container">
-                            <p className={`error-message ${pulse[0] ? "red-pulse" : ""} ${pulse[1] ? "green-pulse" : ""}`}
+                        <div className={styles.errorMessageContainer}>
+                            <p className={`${styles.errorMessage} ${pulse[0] ? styles.redPulse : ""} ${pulse[1] ? styles.greenPulse : ""}`}
                             onAnimationEnd={() => setPulse([false, false])}>{signInMessage}</p>
                         </div>
                     </div>
                     <input type="submit" value="sign in" />
                 </form>
-                <div className="image-block" ref={imageBlock}>
-                    {isVideoFootage && <video ref={footageRef} src="/footages/footage.mp4" className="footage" autoPlay loop muted playsInline></video>}
-                    {!isVideoFootage && <img src={`/footages/footage${imageFootageNumber}.png`} ref={footageRef} onClick={switchFootage} className="footage"/>}
-                    <div ref={signUpButton} className="switch-form-button"
+                <div className={styles.imageBlock} ref={imageBlock}>
+                    <img src={`/footages/footage${imageFootageNumber}.png`} ref={footageRef} onClick={switchFootage} className={styles.footage}/>
+                    <div ref={signUpButton} className={styles.switchFormButton}
                         onClick={() => switchForm(false)}
                         onMouseEnter={() => hoverEffect(signUpButton.current, signUpText.current, selectionSignUpRef.current)}
                         onMouseLeave={() => hoverEffect(signUpButton.current, signUpText.current, selectionSignUpRef.current, true)}>
                         <span ref={signUpText}>sign up</span>
-                        <div className="selection" ref={selectionSignUpRef}></div>
+                        <div className={styles.selection} ref={selectionSignUpRef}></div>
                     </div>
-                    <div ref={signInButton} className="switch-form-button"
+                    <div ref={signInButton} className={styles.switchFormButton}
                         onClick={() => switchForm(true)}
                         onMouseEnter={() => hoverEffect(signInButton.current, signInText.current, selectionSignInRef.current)}
                         onMouseLeave={() => hoverEffect(signInButton.current, signInText.current, selectionSignInRef.current, true)}>
                         <span ref={signInText}>sign in</span>
-                        <div className="selection" ref={selectionSignInRef}></div>
+                        <div className={styles.selection} ref={selectionSignInRef}></div>
                     </div>
                 </div>
             </div>

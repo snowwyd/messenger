@@ -1,27 +1,32 @@
-import { useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 
-import AppProvider from "./AppContext.jsx";
+import { AppContext } from "./AppContext";
 import Auth from "./pages/Auth.jsx";
-import MainPage from "./pages/MainPage.jsx";
-
-import './App.css';
+import MainLayout from "./pages/MainLayout.jsx";
+import Chat from "./components/Chat/Chat.jsx";
 
 export default function App() {
     const navigate = useNavigate();
+    const { isAuthorizedState } = useContext(AppContext);
 
     useEffect(() => {
-        if (localStorage.getItem('token')) navigate('/chats');
-        else navigate('/');
-    }, []);
+        console.log(123);
+        
+        if (isAuthorizedState.isAuthorized === true) {
+            navigate('/chats');
+        } else {
+            localStorage.removeItem('token');
+            navigate('/');
+        }
+    }, [isAuthorizedState.isAuthorized]);
 
     return (
-        <AppProvider>
-            <Routes>
-                <Route path="/" element={<Auth />} />
-                <Route path="/chats/:chatId?/:channelId?" element={<MainPage type={"private"} />} />
-                <Route path="/groups/:chatId?/:channelId?" element={<MainPage type={"group"} />} />
-            </Routes>
-        </AppProvider>
+        <Routes>
+            <Route path="/" element={isAuthorizedState.isAuthorized ? <MainLayout /> : <Auth />}>
+                <Route path="chats/:chatId?/:channelId?" element={<Chat />} />
+                <Route path="groups/:chatId?/:channelId?" element={<Chat />} />
+            </Route>
+        </Routes>
     )
 }

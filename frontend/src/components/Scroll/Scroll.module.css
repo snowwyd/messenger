@@ -1,16 +1,16 @@
-.scrollable-content {
+.scrollableContent {
     overflow-y: scroll;
     scrollbar-width: none;
 }
 
-.custom-scrollbar {
+.customScrollbar {
     position: absolute;
     top: 0;
     right: 5px;
     width: 5px;
 }
 
-.custom-thumb {
+.customThumb {
     position: absolute;
     top: 0;
     width: 100%;

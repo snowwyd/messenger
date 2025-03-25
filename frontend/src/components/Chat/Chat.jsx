@@ -1,25 +1,30 @@
-import { useContext, useEffect, useRef, useState } from "react";
-import { useParams, NavLink, useNavigate } from "react-router-dom";
+import { useContext, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { useQuery } from '@tanstack/react-query';
 
 import { AppContext } from "../../AppContext";
 import Messages from "../Messages/Messages";
-import Scroll from "../Scroll/Scroll";
+import ChannelList from "../ChannelList/ChannelList";
 
-import './Chat.css'
+import styles from './Chat.module.css';
 
 export default function Chat() {
-    const { grpc, categoryState } = useContext(AppContext);
+    const { grpc, isAuthorizedState } = useContext(AppContext);
     const { chatId, channelId } = useParams();
 
-    const [channelName, setChannelName] = useState("");
+    const chatInfo = useQuery({
+        queryKey: ['chatInfo', chatId],
+        queryFn: getChatInfo,
+        cacheTime: 60 * 60000,
+        enabled: !!chatId
+    });
 
-    const { data: chatInfo, isError, error, isLoading } = useQuery({ queryKey: ['chatInfo', chatId], queryFn: getChatInfo });
-
-    if (isError) {
-        console.log(error.message);
-        if (error.message === "invalid token signature") localStorage.removeItem('token');
-    }
+    useEffect(() => {
+        if (chatInfo.isError) {
+            console.log(chatInfo.error.message);
+            if (chatInfo.error.message === "invalid token signature") isAuthorizedState.setIsAuthorized(false);
+        }
+    }, [chatInfo.isError, chatInfo.error]);
 
     async function getChatInfo() {
         const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
@@ -29,41 +34,15 @@ export default function Chat() {
         return response;
     }
 
-    async function createChannel() {
-        const input = {
-            chatId: chatId,
-            name: channelName,
-            type: "text"
-        }
-
-        const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
-
-        try {
-            await grpc.chat.createChannel(input, rpcOptions);
-            setChannelName("");
-            getChatInfo();
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
     return (
-        <div className="chat">
-            <div className="messages-window-container">
-                {channelId && !isLoading && !isError && <Messages channelId={channelId} membersUsernames={chatInfo.usernames} />}
+        <div className={styles.chat}>
+            <div className={styles.messagesWindowContainer}>
+                {channelId && !chatInfo.isLoading && !chatInfo.isError && <Messages channelId={channelId} membersUsernames={chatInfo.data.usernames} />}
             </div>
-            <div className="chat-details">
-                <div className="members-info"></div>
-                <div className="channels-list-container">
-                <Scroll wrapperClass={"channels-list"}>
-                    {chatId && !isLoading && !isError && (
-                        <>
-                            {chatInfo.channels.map((item, index) => <NavLink className="channel" draggable="false" to={`/${categoryState.currentCategory}/${chatId}/${item.channelId}`} key={index}># {item.name}</NavLink>)}
-                            <input value={channelName} onChange={(event) => setChannelName(event.target.value)} className="create-channel-name" placeholder="channel name" type="text" />
-                            <div onClick={createChannel} className="create-channel"></div>
-                        </>
-                    )}
-                </Scroll>
+            <div className={styles.chatSidebar}>
+                <div className={styles.chatDetailsContainer}></div>
+                <div className={styles.channelListContainer}>
+                    {chatId && !chatInfo.isLoading && !chatInfo.isError && <ChannelList chatId={chatId} channels={chatInfo.data.channels} />}
                 </div>
             </div>
         </div>

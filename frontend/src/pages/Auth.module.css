@@ -1,11 +1,12 @@
-.auth-forms-container {
+.authFormsContainer {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    background: linear-gradient(120deg, #1A1A1A, #0A0A0A);
 }
 
-.auth-forms {
+.authForms {
     position: relative;
     width: 900px;
     height: 600px;
@@ -30,7 +31,7 @@
         text-align: center;
     }
 
-    .inputs-container {
+    .inputsContainer {
         position: relative;
         display: flex;
         flex-direction: column;
@@ -91,14 +92,14 @@
         }
     }
 
-    .error-message-container {
+    .errorMessageContainer {
         position: absolute;
         bottom: -20px;
         height: 13px;
         width: 100%;
     }
 
-    .error-message {
+    .errorMessage {
         position: absolute;
         top: 0;
         font-size: 13px;
@@ -127,15 +128,15 @@
     }
 }
 
-.red-pulse {
+.redPulse {
     animation: red-pulse 1s ease-out;
 }
 
-.green-pulse {
+.greenPulse {
     animation: green-pulse 1s ease-out;
 }
 
-.image-block {
+.imageBlock {
     position: absolute;
     width: 900px;
     height: 600px;
@@ -147,7 +148,7 @@
     align-items: center;
     clip-path: xywh(50% 0% 51% 100%);
 
-    .switch-form-button {
+    .switchFormButton {
         padding: 0px 10px 5px 10px;
         position: relative;
         font-size: 48px;

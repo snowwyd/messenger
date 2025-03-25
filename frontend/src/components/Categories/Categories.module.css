@@ -7,7 +7,7 @@
     height: 60px;
 }
 
-.category-button {
+.categoryButton {
     position: relative;
     height: 40px;
     width: 40px;
@@ -27,13 +27,13 @@
         filter: brightness(0.3);
     }
 
-    &.active {
+    &.activeLink {
         background-color: rgb(37, 37, 37);
         filter: brightness(1);
     }
 }
 
-.category-name {
+.categoryName {
     height: 60px;
     display: flex;
     padding: 0 25px;
@@ -43,7 +43,7 @@
     font-weight: 700;
     font-size: 16px;
 
-    &.groups-category {
+    &.groupsCategory {
         background: var(--groups-category);
     }
 }
