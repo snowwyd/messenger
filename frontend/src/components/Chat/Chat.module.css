@@ -1,0 +1,44 @@
+.chat {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    flex-grow: 1;
+}
+
+.messagesWindowContainer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    min-width: 500px;
+    background-color: #0E0E0E;
+    border-radius: 5px;
+    flex-grow: 1;
+}
+
+.chatSidebar {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 350px;
+    gap: 10px;
+    max-height: 100vh;
+}
+
+.chatDetailsContainer {
+    width: 100%;
+    min-height: 350px;
+    background-color: var(--section-color);
+    border-radius: 5px;
+}
+
+.channelListContainer {
+    position: relative;
+    width: 100%;
+
+    min-height: 100px;
+    flex-grow: 1;
+
+    background-color: var(--section-color);
+    border-radius: 5px;
+}
