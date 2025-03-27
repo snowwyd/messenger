@@ -1,40 +1,21 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { NavLink } from "react-router-dom";
 
 import { AppContext } from "../../AppContext";
 import Scroll from "../Scroll/Scroll";
+import CreateChannel from "../CreateChannel/CreateChannel";
 
 import styles from './ChannelList.module.css';
 
 export default function ChannelList({ chatId, channels }) {
-    const { grpc, categoryState } = useContext(AppContext);
-    const [channelName, setChannelName] = useState("");
-
-    async function createChannel() {
-        const input = {
-            chatId: chatId,
-            name: channelName,
-            type: "text"
-        }
-
-        const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
-
-        try {
-            await grpc.chat.createChannel(input, rpcOptions);
-            setChannelName("");
-            getChatInfo();
-        } catch (error) {
-            console.log(error);
-        }
-    }
+    const { categoryState } = useContext(AppContext);
 
     return (
         <>
             <Scroll wrapperClass={styles.channelList}>
                 {channels.map((item, index) => <Channel category={categoryState.currentCategory} chatId={chatId} channelId={item.channelId} channelName={item.name} key={index} />)}
+                <CreateChannel />
             </Scroll>
-            <input value={channelName} onChange={(event) => setChannelName(event.target.value)} className={styles.createChannelName} placeholder="channel name" type="text" />
-            <div onClick={createChannel} className={styles.createChannel}></div>
         </>
     )
 }
@@ -46,6 +27,9 @@ function Channel({ category, chatId, channelId, channelName }) {
     }
 
     return (
-        <NavLink className={setChannelClasses} draggable="false" to={`/${category}/${chatId}/${channelId}`}># {channelName}</NavLink>
+        <NavLink className={setChannelClasses} draggable="false" to={`/${category}/${chatId}/${channelId}`}>
+            <div className={styles.channelIcon}></div>
+            {channelName}
+        </NavLink>
     )
 }

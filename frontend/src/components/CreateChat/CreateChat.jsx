@@ -1,8 +1,10 @@
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 
-import './CreateChat.css';
+import styles from './CreateChat.module.css';
+import { AppContext } from "../../AppContext";
 
-export default function CreateChat(params) {
+export default function CreateChat({ type }) {
+    const { grpc } = useContext(AppContext);
     const createChatModal = useRef(null);
 
     const [usernameInput, setUsernameInput] = useState("");
@@ -19,12 +21,14 @@ export default function CreateChat(params) {
                 setAddedUsername(usernameInput);
                 setAddedUserID(response.response.userIds[usernameInput]);
             } catch (error) {
-                console.log(error);
+                console.log(error.message);
+                setAddedUsername("");
+                setAddedUserID("");
             }
         }
     }
 
-    async function createChat(type) {
+    async function createChat() {
         const input = {
             type: type,
             userIds: [addedUserID]
@@ -42,15 +46,22 @@ export default function CreateChat(params) {
 
     return (
         <>
-            <div ref={createChatModal} className="create-chat-modal">
-                <div className="modal-content">
-                    <input onKeyDown={addUser} value={usernameInput} onChange={(event) => setUsernameInput(event.target.value)} className="username-input" placeholder="username" type="text" />
-                    {addedUsername}
-                    <input onClick={createChat} type="submit" value="create chat" />
-                    <div onClick={closeModal} className="close-modal"></div>
+            <div ref={createChatModal} className={styles.createChatModal}>
+                <div className={styles.modalContent}>
+                    <input onKeyDown={addUser} value={usernameInput} onChange={(event) => setUsernameInput(event.target.value)} placeholder="find a user" type="text" />
+                    {addedUsername ? (
+                        <div className={styles.userItem}>
+                            <div className={styles.avatarBlock}></div>
+                            <p>{addedUsername}</p>
+                            <div className={styles.createChat} onClick={createChat}></div>
+                        </div>
+                    ): (
+                        <div className={styles.userNotFound}>user not found</div>
+                    )}
+                    <div onClick={closeModal} className={styles.closeModal}></div>
                 </div>
             </div>
-            <div onClick={openModal} className="create-chat-button">create chat</div>
+            <div onClick={openModal} className={styles.createChatButton}>create chat</div>
         </>
     )
 }

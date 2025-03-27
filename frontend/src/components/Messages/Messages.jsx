@@ -9,7 +9,6 @@ import styles from './Messages.module.css';
 
 export default function MessagesWindow({ channelId, membersUsernames }) {
     const { grpc, abortController, isAuthorizedState } = useContext(AppContext);
-    const navigate = useNavigate();
     const location = useLocation();
 
     const [text, setText] = useState("");
@@ -31,7 +30,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
 
     useEffect(() => {
         chatStream();
-        return () => abortController.abort("switched channel");
+        return () => abortController.abort();
     }, [location.pathname, queryClient]);
 
     async function chatStream() {
@@ -46,9 +45,10 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
             }
         } catch (error) {
             console.log(error.message);
-            if (error.message == "invalid token signature") {
-                localStorage.removeItem('token');
-                navigate('/');
+            if (error.message === "invalid token signature") {
+                isAuthorizedState.setIsAuthorized(false);
+            } else if (error.message === "stream timeout") {
+                chatStream();
             }
         }
     }
@@ -83,8 +83,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
             } catch (error) {
                 console.log(error.message);
                 if (error.message == "invalid token signature") {
-                    localStorage.removeItem('token');
-                    navigate('/');
+                    isAuthorizedState.setIsAuthorized(false);
                 }
             }
         }
