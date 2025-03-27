@@ -18,8 +18,18 @@ export default function Categories() {
                 <NavLink className={({ isActive }) => `${styles.categoryButton} ${styles.groups} ${isActive ? styles.activeLink : ''}`} to="/groups"></NavLink>
             </nav>
             <div className={`${styles.categoryName} ${isGroups ? styles.groupsCategory : ""}`}>
-                {isDirect && <div>direct messages</div>}
-                {isGroups && <div>groups</div>}
+                {isDirect && (
+                    <>
+                        <div>direct messages</div>
+                        <CreateChat type={"private"}/>
+                    </>
+                )}
+                {isGroups && (
+                    <>
+                        <div>groups</div>
+                        <CreateChat type={"group"}/>
+                    </>
+                )}
             </div>
         </>
     )

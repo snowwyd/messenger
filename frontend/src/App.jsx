@@ -11,8 +11,6 @@ export default function App() {
     const { isAuthorizedState } = useContext(AppContext);
 
     useEffect(() => {
-        console.log(123);
-        
         if (isAuthorizedState.isAuthorized === true) {
             navigate('/chats');
         } else {

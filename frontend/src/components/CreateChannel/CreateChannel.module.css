@@ -1,21 +1,27 @@
-.create-chat-button {
-    background-color: #252525;
-    height: 50px;
-    width: 100%;
-    border-radius: 5px;
+.createChannel {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
     cursor: pointer;
-    transition: 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    
+    height: 30px;
+    width: 30px;
+    mask-image: url(/images/addChannel.png);
+    mask-size: 18px;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    background-size: 25px;
+    background-color: var(--dark-gray-text);
 
     &:hover {
-        background-color: #2e2e2e;
+        background-color: #afafaf;
     }
 }
 
-.create-chat-modal {
+.createChannelModal {
     position: fixed;
+    left: 0;
+    top: 0;
     height: 100%;
     width: 100%;
     background: rgba(0, 0, 0, 0.5);
@@ -24,10 +30,10 @@
     justify-content: center;
     z-index: 1;
 
-    .modal-content {
+    .modalContent {
         position: relative;
-        background-color: #1D1D1D;
-        height: 500px;
+        background-color: #1f1f1f;
+        height: 200px;
         width: 500px;
         border-radius: 5px;
         display: flex;
@@ -36,7 +42,7 @@
         padding: 50px;
     }
 
-    .close-modal {
+    .closeModal {
         position: absolute;
         right: 5px;
         top: 5px;
@@ -55,10 +61,10 @@
         height: 25px;
         background: transparent;
         border: none;
-        border-bottom: 1px solid rgb(59, 59, 59);
+        border-bottom: 1px solid #424242;
         font-size: 14px;
         color: white;
-        padding: 0 8px;
+        padding: 5 10px;
     }
 
     input[type="submit"] {
