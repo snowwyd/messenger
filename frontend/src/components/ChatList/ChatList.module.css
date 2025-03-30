@@ -13,7 +13,7 @@
         padding: 9px;
 
         .avatarBlock {
-            background: url(/images/user.png) center no-repeat;
+            background: url('@/assets/icons/user.png') center no-repeat;
             background-size: 100%;
             height: 46px;
             width: 46px;

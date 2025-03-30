@@ -6,7 +6,7 @@
     
     height: 30px;
     width: 30px;
-    mask-image: url(/images/addChannel.png);
+    mask-image: url('@/assets/icons/addChannel.png');
     mask-size: 18px;
     mask-position: center;
     mask-repeat: no-repeat;

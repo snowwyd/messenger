@@ -12,7 +12,7 @@
         color: var(--white-text);
         width: 100%;
         
-        background: url(/images/search.svg) no-repeat left;
+        background: url('@/assets/icons/search.svg') no-repeat left;
         background-size: 15px;
         background-position: 10px;
         border-bottom: 1px solid var(--dark-gray-text);

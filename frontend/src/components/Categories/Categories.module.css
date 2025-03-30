@@ -16,11 +16,11 @@
     filter: brightness(0.2);
     
     &.direct {
-        background: url(/images/direct.png) no-repeat center;
+        background: url('@/assets/icons/direct.png') no-repeat center;
     }
 
     &.groups {
-        background: url(/images/groups.png) no-repeat center;
+        background: url('@/assets/icons/groups.png') no-repeat center;
     }
 
     &:hover {

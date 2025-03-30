@@ -51,19 +51,19 @@
         }
 
         &[name="username"] {
-            background: url(/images/username.svg) no-repeat left;
+            background: url('@/assets/icons/username.svg') no-repeat left;
             background-size: 15px;
             background-position: 10px;
         }
 
         &[name="email"] {
-            background: url(/images/email.svg) no-repeat left;
+            background: url('@/assets/icons/email.svg') no-repeat left;
             background-size: 15px;
             background-position: 10px;
         }
 
         &[name="password"] {
-            background: url(/images/password.svg) no-repeat left;
+            background: url('@/assets/icons/password.svg') no-repeat left;
             background-size: 15px;
             background-position: 10px;
         }

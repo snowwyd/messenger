@@ -4,10 +4,16 @@ import { AppContext } from "../AppContext";
 
 import styles from './Auth.module.css';
 
+import Image0 from '@/assets/images/image0.png';
+import Image1 from '@/assets/images/image1.png';
+import Image2 from '@/assets/images/image2.png';
+
+const authImages = [Image0, Image1, Image2];
+
 export default function App() {
     const imageBlock = useRef(null);
     const footageRef = useRef(null);
-    const [imageFootageNumber, setImageFootageNumber] = useState(Number(localStorage.getItem("footage") !== null ? localStorage.getItem("footage") : 0));
+    const [currentAuthImage, setCurrentAuthImage] = useState(Number(localStorage.getItem("currentAuthImage") !== null ? localStorage.getItem("currentAuthImage") : 0));
     const [pulse, setPulse] = useState([false, false]);
     
     const signUpButton = useRef(null);
@@ -123,12 +129,12 @@ export default function App() {
     }
 
     useEffect(() => {
-        localStorage.setItem("footage", imageFootageNumber);
-    }, [imageFootageNumber]);
+        localStorage.setItem("currentAuthImage", currentAuthImage);
+    }, [currentAuthImage]);
 
     function switchFootage() {
-        setImageFootageNumber(prev => {
-            if (prev >= 2) return 0
+        setCurrentAuthImage(prev => {
+            if (prev >= authImages.length - 1) return 0
             return prev + 1;
         });
     }
@@ -184,7 +190,7 @@ export default function App() {
                         <input type="text" name="email" placeholder="email" />
                         <input type="password" name="password" placeholder="password" />
                         <div className={styles.errorMessageContainer}>
-                            <p className={`error-message ${pulse[0] ? "red-pulse" : ""} ${pulse[1] ? "green-pulse" : ""}`}
+                            <p className={`${styles.errorMessage} ${pulse[0] ? styles.redPulse : ""} ${pulse[1] ? styles.greenPulse : ""}`}
                             onAnimationEnd={() => setPulse([false, false])}>{signUpMessage}</p>
                         </div>
                     </div>
@@ -203,7 +209,7 @@ export default function App() {
                     <input type="submit" value="sign in" />
                 </form>
                 <div className={styles.imageBlock} ref={imageBlock}>
-                    <img src={`/footages/footage${imageFootageNumber}.png`} ref={footageRef} onClick={switchFootage} className={styles.footage}/>
+                    <img src={authImages[currentAuthImage]} ref={footageRef} onClick={switchFootage} className={styles.footage}/>
                     <div ref={signUpButton} className={styles.switchFormButton}
                         onClick={() => switchForm(false)}
                         onMouseEnter={() => hoverEffect(signUpButton.current, signUpText.current, selectionSignUpRef.current)}

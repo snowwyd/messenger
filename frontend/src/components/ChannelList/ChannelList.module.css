@@ -33,7 +33,7 @@
 .channelIcon {
     height: 25px;
     width: 25px;
-    mask-image: url(/images/textChannel.png);
+    mask-image: url('@/assets/icons/textChannel.png');
     background-color: var(--dark-gray-text);
 }
 
