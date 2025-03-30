@@ -2,10 +2,10 @@ import { useContext, useEffect } from "react";
 import { Outlet, useLocation, useParams } from "react-router-dom";
 import { useQuery } from '@tanstack/react-query';
 
-import { AppContext } from "../AppContext";
-import ChatList from "../components/ChatList/ChatList";
-import Categories from "../components/Categories/Categories";
-import Search from "../components/Search/Search";
+import { AppContext } from "@/AppContext";
+import ChatList from "@/components/ChatList/ChatList";
+import Categories from "@/components/Categories/Categories";
+import Search from "@/components/Search/Search";
 
 import styles from './MainLayout.module.css';
 

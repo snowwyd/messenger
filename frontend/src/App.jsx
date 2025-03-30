@@ -1,10 +1,10 @@
 import { useContext, useEffect, useState } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 
-import { AppContext } from "./AppContext";
-import Auth from "./pages/Auth.jsx";
-import MainLayout from "./pages/MainLayout.jsx";
-import Chat from "./components/Chat/Chat.jsx";
+import { AppContext } from "@/AppContext";
+import Auth from "@/pages/Auth/Auth.jsx";
+import MainLayout from "@/pages/MainLayout/MainLayout.jsx";
+import Chat from "@/components/Chat/Chat.jsx";
 
 export default function App() {
     const navigate = useNavigate();

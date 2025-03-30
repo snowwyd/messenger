@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "react";
 
-import { AppContext } from "../AppContext";
+import { AppContext } from "../../AppContext";
 
 import styles from './Auth.module.css';
 
