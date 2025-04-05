@@ -1,10 +1,10 @@
 import { useContext, useRef, useState } from "react";
+import { useGrpc } from "@/GrpcContext.jsx";
 
 import styles from './CreateChat.module.css';
-import { AppContext } from "../../AppContext";
 
 export default function CreateChat({ type }) {
-    const { grpc } = useContext(AppContext);
+    const grpc = useGrpc();
     const createChatModal = useRef(null);
 
     const [usernameInput, setUsernameInput] = useState("");

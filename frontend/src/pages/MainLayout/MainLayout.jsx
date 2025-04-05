@@ -1,8 +1,9 @@
 import { useContext, useEffect } from "react";
 import { Outlet, useLocation, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { useQuery } from '@tanstack/react-query';
+import { useGrpc } from "@/GrpcContext.jsx";
 
-import { AppContext } from "@/AppContext";
 import ChatList from "@/components/ChatList/ChatList";
 import Categories from "@/components/Categories/Categories";
 import Search from "@/components/Search/Search";
@@ -10,27 +11,30 @@ import Search from "@/components/Search/Search";
 import styles from './MainLayout.module.css';
 
 export default function MainLayout() {
-    const { grpc, categoryState, isAuthorizedState } = useContext(AppContext);
+    const dispatch = useDispatch();
+    const categoryState = useSelector((state) => state.category.currentCategory);
+
+    const grpc = useGrpc();
     
     const chatList = useQuery({
-        queryKey: ['chatList', categoryState.currentCategory],
+        queryKey: ['chatList', categoryState],
         queryFn: getChatList,
-        enabled: !!categoryState.currentCategory,
+        enabled: !!categoryState,
         cacheTime: 60 * 60000
     });
 
     useEffect(() => {
         if (chatList.isError) {
             console.log(chatList.error.message);
-            if (chatList.error.message === "invalid token signature") isAuthorizedState.setIsAuthorized(false);
+            if (chatList.error.message === "invalid token signature") dispatch({ type: 'deauthorize' });
         }
     }, [chatList.isError, chatList.error]);
 
     function getChatList() {
-        if (categoryState.currentCategory === 'chats') {
+        if (categoryState === 'direct') {
             const response = getChats('private');
             return response;
-        } else if (categoryState.currentCategory === 'groups') {
+        } else if (categoryState === 'groups') {
             const response = getChats('group');
             return response;
         }

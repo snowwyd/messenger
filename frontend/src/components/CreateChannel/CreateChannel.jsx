@@ -1,11 +1,11 @@
 import { useContext, useRef, useState } from "react";
+import { useGrpc } from "@/GrpcContext.jsx";
 
-import { AppContext } from "../../AppContext";
 import styles from './CreateChannel.module.css';
 import { useParams } from "react-router-dom";
 
 export default function CreateChannel() {
-    const { grpc } = useContext(AppContext);
+    const grpc = useGrpc();
     const [channelName, setChannelName] = useState("");
     const { chatId } = useParams();
 

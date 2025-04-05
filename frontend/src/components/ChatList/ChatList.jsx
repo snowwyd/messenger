@@ -1,9 +1,8 @@
 import { useContext } from "react";
 import { NavLink } from "react-router-dom";
 
-import { AppContext } from "../../AppContext";
-
 import styles from './ChatList.module.css';
+import { useSelector } from "react-redux";
 
 export default function ChatList({ chats }) {
     return (
@@ -14,14 +13,14 @@ export default function ChatList({ chats }) {
 }
 
 function ChatButton({ chatId, name }) {
-    const { categoryState } = useContext(AppContext);
+    const categoryState = useSelector((state) => state.category.currentCategory);
 
     function setChatButtonClasses({ isActive }) {
         return `${styles.chatButton} ${isActive ? styles.activeChat : ''}`;
     }
 
     return (
-        <NavLink className={setChatButtonClasses} draggable="false" to={`/${categoryState.currentCategory}/${chatId}`}>
+        <NavLink className={setChatButtonClasses} draggable="false" to={`/${categoryState}/${chatId}`}>
             <div className={styles.avatarBlock}></div>
             <p>{name}</p>
         </NavLink>

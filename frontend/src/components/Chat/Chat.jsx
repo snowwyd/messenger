@@ -1,16 +1,18 @@
 import { useContext, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from '@tanstack/react-query';
+import { useGrpc } from "@/GrpcContext.jsx";
 
-import { AppContext } from "../../AppContext";
 import Messages from "../Messages/Messages";
 import ChannelList from "../ChannelList/ChannelList";
 
 import styles from './Chat.module.css';
+import { useDispatch } from "react-redux";
 
 export default function Chat() {
-    const { grpc, isAuthorizedState } = useContext(AppContext);
     const { chatId, channelId } = useParams();
+    const grpc = useGrpc();
+    const dispatch = useDispatch();
 
     const chatInfo = useQuery({
         queryKey: ['chatInfo', chatId],
@@ -22,7 +24,7 @@ export default function Chat() {
     useEffect(() => {
         if (chatInfo.isError) {
             console.log(chatInfo.error.message);
-            if (chatInfo.error.message === "invalid token signature") isAuthorizedState.setIsAuthorized(false);
+            if (chatInfo.error.message === "invalid token signature") dispatch({ type: 'deauthorize' });
         }
     }, [chatInfo.isError, chatInfo.error]);
 

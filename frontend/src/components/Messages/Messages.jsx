@@ -1,15 +1,17 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useGrpc } from "@/GrpcContext.jsx";
 
-import { AppContext } from "../../AppContext";
 import Scroll from "../Scroll/Scroll";
 
 import styles from './Messages.module.css';
+import { useDispatch } from "react-redux";
 
 export default function MessagesWindow({ channelId, membersUsernames }) {
-    const { grpc, abortController, isAuthorizedState } = useContext(AppContext);
     const location = useLocation();
+    const dispatch = useDispatch();
+    const grpc = useGrpc();
 
     const [text, setText] = useState("");
     const textareaRef = useRef(null);
@@ -24,13 +26,13 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
     useEffect(() => {
         if (messageList.isError) {
             console.log(messageList.error.message);
-            if (messageList.error.message === "invalid token signature") isAuthorizedState.setIsAuthorized(false);
+            if (messageList.error.message === "invalid token signature") dispatch({ type: 'deauthorize' });
         }
     }, [messageList.isError, messageList.error]);
 
     useEffect(() => {
         chatStream();
-        return () => abortController.abort();
+        return () => grpc.abortController.abort();
     }, [location.pathname, queryClient]);
 
     async function chatStream() {
@@ -46,7 +48,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
         } catch (error) {
             console.log(error.message);
             if (error.message === "invalid token signature") {
-                isAuthorizedState.setIsAuthorized(false);
+                dispatch({ type: 'deauthorize' })
             } else if (error.message === "stream timeout") {
                 chatStream();
             }
@@ -83,7 +85,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
             } catch (error) {
                 console.log(error.message);
                 if (error.message == "invalid token signature") {
-                    isAuthorizedState.setIsAuthorized(false);
+                    dispatch({ type: 'deauthorize' })
                 }
             }
         }

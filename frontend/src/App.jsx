@@ -1,28 +1,38 @@
 import { useContext, useEffect, useState } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 
-import { AppContext } from "@/AppContext";
 import Auth from "@/pages/Auth/Auth.jsx";
 import MainLayout from "@/pages/MainLayout/MainLayout.jsx";
 import Chat from "@/components/Chat/Chat.jsx";
 
 export default function App() {
     const navigate = useNavigate();
-    const { isAuthorizedState } = useContext(AppContext);
+    const dispatch = useDispatch();
+    const authState = useSelector((state) => state.auth.isAuth);
+    const categoryState = useSelector((state) => state.category.currentCategory);
+    const location = useLocation();
 
     useEffect(() => {
-        if (isAuthorizedState.isAuthorized === true) {
-            navigate('/chats');
+        console.log(authState);
+        
+        if (authState === true) {
+            navigate('/direct');
         } else {
             localStorage.removeItem('token');
             navigate('/');
         }
-    }, [isAuthorizedState.isAuthorized]);
+    }, [authState]);
+
+    useEffect(() => {
+        console.log(categoryState);
+        dispatch({ type: location.pathname.split('/')[1] });
+    }, [location.pathname.split('/')[1]]);
 
     return (
         <Routes>
-            <Route path="/" element={isAuthorizedState.isAuthorized ? <MainLayout /> : <Auth />}>
-                <Route path="chats/:chatId?/:channelId?" element={<Chat />} />
+            <Route path="/" element={authState ? <MainLayout /> : <Auth />}>
+                <Route path="direct/:chatId?/:channelId?" element={<Chat />} />
                 <Route path="groups/:chatId?/:channelId?" element={<Chat />} />
             </Route>
         </Routes>

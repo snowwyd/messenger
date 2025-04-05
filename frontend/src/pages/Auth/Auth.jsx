@@ -1,6 +1,6 @@
-import { useContext, useEffect, useRef, useState } from "react";
-
-import { AppContext } from "../../AppContext";
+import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { useGrpc } from "@/GrpcContext.jsx";
 
 import styles from './Auth.module.css';
 
@@ -15,22 +15,22 @@ export default function App() {
     const footageRef = useRef(null);
     const [currentAuthImage, setCurrentAuthImage] = useState(Number(localStorage.getItem("currentAuthImage") !== null ? localStorage.getItem("currentAuthImage") : 0));
     const [pulse, setPulse] = useState([false, false]);
-    
+
+    const dispatch = useDispatch();
+    const grpc = useGrpc();
+
     const signUpButton = useRef(null);
     const signInButton = useRef(null);
     const signUpText = useRef(null);
     const signInText = useRef(null);
     const selectionSignUpRef = useRef(null);
     const selectionSignInRef = useRef(null);
-    
+
     const registerForm = useRef(null);
     const loginForm = useRef(null);
-    
+
     const [signUpMessage, setSignUpMessage] = useState("");
     const [signInMessage, setSignInMessage] = useState("");
-    
-    const { grpc } = useContext(AppContext)
-    const { isAuthorizedState } = useContext(AppContext);
 
     function hoverEffect(button, text, selection, isOut = false) {
         const startTime = performance.now();
@@ -173,7 +173,7 @@ export default function App() {
             setSignInMessage("successful login");
             setPulse([false, true]);
             localStorage.setItem('token', response.response.token);
-            isAuthorizedState.setIsAuthorized(true);
+            dispatch({ type: 'authorize' });
         } catch (error) {
             setSignInMessage("error: " + error.message);
             setPulse([true, false]);
@@ -184,14 +184,14 @@ export default function App() {
         <div className={styles.authFormsContainer}>
             <div className={styles.authForms}>
                 <form className={styles.forms} ref={registerForm} onSubmit={handleSignUp}>
-                    <h2>sign up</h2>
+                    <h2 onClick={() => dispatch({ type: 'increment' })}>sign up</h2>
                     <div className={styles.inputsContainer}>
                         <input type="text" name="username" placeholder="username" />
                         <input type="text" name="email" placeholder="email" />
                         <input type="password" name="password" placeholder="password" />
                         <div className={styles.errorMessageContainer}>
                             <p className={`${styles.errorMessage} ${pulse[0] ? styles.redPulse : ""} ${pulse[1] ? styles.greenPulse : ""}`}
-                            onAnimationEnd={() => setPulse([false, false])}>{signUpMessage}</p>
+                                onAnimationEnd={() => setPulse([false, false])}>{signUpMessage}</p>
                         </div>
                     </div>
                     <input type="submit" value="sign up" />
@@ -203,13 +203,13 @@ export default function App() {
                         <input type="password" name="password" placeholder="password" />
                         <div className={styles.errorMessageContainer}>
                             <p className={`${styles.errorMessage} ${pulse[0] ? styles.redPulse : ""} ${pulse[1] ? styles.greenPulse : ""}`}
-                            onAnimationEnd={() => setPulse([false, false])}>{signInMessage}</p>
+                                onAnimationEnd={() => setPulse([false, false])}>{signInMessage}</p>
                         </div>
                     </div>
                     <input type="submit" value="sign in" />
                 </form>
                 <div className={styles.imageBlock} ref={imageBlock}>
-                    <img src={authImages[currentAuthImage]} ref={footageRef} onClick={switchFootage} className={styles.footage}/>
+                    <img src={authImages[currentAuthImage]} ref={footageRef} onClick={switchFootage} className={styles.footage} />
                     <div ref={signUpButton} className={styles.switchFormButton}
                         onClick={() => switchForm(false)}
                         onMouseEnter={() => hoverEffect(signUpButton.current, signUpText.current, selectionSignUpRef.current)}
