@@ -2,7 +2,6 @@ package mongodb
 
 import (
 	"context"
-	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -15,13 +14,11 @@ type MongoDB struct {
 	usersCol *mongo.Collection
 }
 
-func New(storagePath string, dbName string) (*MongoDB, error) {
-	uri := (storagePath)
-
-	clientOpts := options.Client().ApplyURI(uri)
+func New(storagePath string, dbName string, usersColName string) *MongoDB {
+	clientOpts := options.Client().ApplyURI(storagePath)
 	client, err := mongo.Connect(context.Background(), clientOpts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
+		panic(err)
 	}
 
 	db := client.Database(dbName)
@@ -29,8 +26,8 @@ func New(storagePath string, dbName string) (*MongoDB, error) {
 	return &MongoDB{
 		client:   client,
 		database: db,
-		usersCol: db.Collection("users"),
-	}, nil
+		usersCol: db.Collection(usersColName),
+	}
 }
 
 func (m *MongoDB) Close() error {

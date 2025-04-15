@@ -16,18 +16,14 @@ func main() {
 	cfg := config.MustLoad()
 
 	log := logger.SetupLogger(cfg.Yaml.Env)
-	log.Info("starting application",
+	log.Info(
+		"starting application",
 		slog.String("env", cfg.Yaml.Env),
 		slog.Any("tokenTTL", cfg.Yaml.TokenTTL),
-		slog.Any("GRPC", cfg.Yaml.GRPC))
-
-	application := app.New(log,
-		cfg.Yaml.GRPC.Port,
-		cfg.DotEnv.Storage.StoragePath,
-		cfg.Yaml.Storage.StorageName,
-		cfg.Yaml.TokenTTL,
-		cfg.DotEnv.Secrets.AppSecret,
+		slog.Any("GRPC", cfg.Yaml.GRPC),
 	)
+
+	application := app.New(log, cfg)
 
 	go application.GRPCSrv.MustRun()
 

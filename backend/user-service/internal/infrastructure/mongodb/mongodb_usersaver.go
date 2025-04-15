@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"user-service/internal/domain"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -19,7 +20,7 @@ func (m *MongoDB) SaveUser(ctx context.Context, email string, passHash []byte, u
 
 	objectID, ok := res.InsertedID.(primitive.ObjectID)
 	if !ok {
-		return "", fmt.Errorf("%s : internal error", op)
+		return "", fmt.Errorf("%s : %w", op, domain.ErrInternal)
 	}
 
 	return objectID.Hex(), nil

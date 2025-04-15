@@ -11,9 +11,7 @@ type UserSaver interface {
 }
 
 type UserProvider interface {
-	UserEmail(ctx context.Context, email string) (user domain.User, err error)
-	UserUsername(ctx context.Context, username string) (user domain.User, err error)
+	GetUserByField(ctx context.Context, email, field string) (user domain.User, err error)
 
-	Usernames(ctx context.Context, userIDs []string) (usernames map[string]string, err error)
-	UserIDs(ctx context.Context, usernames []string) (userIDs map[string]string, err error)
+	GetStringsByField(ctx context.Context, fieldStrings []string, field string) (strings map[string]string, err error)
 }

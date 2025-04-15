@@ -2,9 +2,9 @@ package app
 
 import (
 	"log/slog"
-	"time"
 
 	appgrpc "user-service/internal/app/app-grpc"
+	"user-service/internal/config"
 
 	"user-service/internal/infrastructure/mongodb"
 	"user-service/internal/services"
@@ -16,22 +16,29 @@ type App struct {
 
 func New(
 	log *slog.Logger,
-	grpcPort int,
-	storagePath string,
-	storageName string,
-	tokenTTL time.Duration,
-	appSecret string,
+	cfg *config.Config,
 ) *App {
+	storage := mongodb.New(
+		cfg.DotEnv.Storage.StoragePath,
+		cfg.Yaml.Storage.StorageName,
+		cfg.Yaml.Storage.UsersColName,
+	)
 
-	storage, err := mongodb.New(storagePath, storageName)
-	if err != nil {
-		panic(err)
-	}
-
-	authService := services.NewAuthService(log, storage, storage, tokenTTL, appSecret)
+	authService := services.NewAuthService(
+		log,
+		storage,
+		storage,
+		cfg.Yaml.TokenTTL,
+		cfg.DotEnv.Secrets.AppSecret,
+	)
 	usersService := services.NewUsersService(log, storage)
 
-	grpcApp := appgrpc.New(log, authService, usersService, grpcPort)
+	grpcApp := appgrpc.New(
+		log,
+		authService,
+		usersService,
+		cfg.Yaml.GRPC.Port,
+	)
 
 	return &App{
 		GRPCSrv: grpcApp,

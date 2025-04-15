@@ -2,6 +2,8 @@ package domain
 
 import "errors"
 
+var ErrInternal = errors.New("internal error")
+
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 
@@ -13,4 +15,13 @@ var (
 	ErrUserExists       = errors.New("user already exists")
 	ErrUsernameNotFound = errors.New("username not found")
 	ErrMissingUsernames = errors.New("missing usernames")
+)
+
+var (
+	ErrRequireEmail    = errors.New("email is required")
+	ErrRequireUsername = errors.New("username is required")
+	ErrRequirePassword = errors.New("password is required")
+
+	ErrRequireUsernames = errors.New("usernames are required")
+	ErrRequireUserIDs   = errors.New("user_ids are required")
 )

@@ -43,7 +43,8 @@ type GRPCConfig struct {
 }
 
 type YamlStorage struct {
-	StorageName string `yaml:"storage_name"`
+	StorageName  string `yaml:"storage_name"`
+	UsersColName string `yaml:"users_collection"`
 }
 
 func MustLoad() *Config {

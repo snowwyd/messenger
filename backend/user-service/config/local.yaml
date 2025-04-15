@@ -6,3 +6,4 @@ config:
         timeout: 10h #5s для prod
     storage:
         storage_name: "user-service"
+        users_collection: "users"
