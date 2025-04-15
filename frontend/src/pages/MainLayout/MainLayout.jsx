@@ -1,9 +1,10 @@
-import { useContext, useEffect } from "react";
-import { Outlet, useLocation, useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useQuery } from '@tanstack/react-query';
 import { useGrpc } from "@/GrpcContext.jsx";
 
+import { authActions } from "@/store";
 import ChatList from "@/components/ChatList/ChatList";
 import Categories from "@/components/Categories/Categories";
 import Search from "@/components/Search/Search";
@@ -13,7 +14,6 @@ import styles from './MainLayout.module.css';
 export default function MainLayout() {
     const dispatch = useDispatch();
     const categoryState = useSelector((state) => state.category.currentCategory);
-
     const grpc = useGrpc();
     
     const chatList = useQuery({
@@ -26,7 +26,7 @@ export default function MainLayout() {
     useEffect(() => {
         if (chatList.isError) {
             console.log(chatList.error.message);
-            if (chatList.error.message === "invalid token signature") dispatch({ type: 'deauthorize' });
+            if (chatList.error.message === "invalid token signature") dispatch(authActions.deauthorize());
         }
     }, [chatList.isError, chatList.error]);
 

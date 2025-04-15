@@ -1,38 +1,57 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { createSlice, configureStore } from "@reduxjs/toolkit";
 
-const initialAuthState = {
-    isAuth: localStorage.getItem('token') ? true : false
-}
-
-const initialCategoryState = {
-    currentCategory: null
-}
-
-function authReducer(state = initialAuthState, action) {
-    switch (action.type) {
-        case 'authorize':
-            return { ...state, isAuth: true };
-        case 'deauthorize':
-            return { ...state, isAuth: false };
-        default:
-            return state;
+const authSlice = createSlice({
+    name: 'auth',
+    initialState: {
+        isAuth: !!localStorage.getItem('token'),
+        token: localStorage.getItem('token') || null
+    },
+    reducers: {
+        authorize: function (state, action) {
+            return { isAuth: true, token: action.payload };
+        },
+        deauthorize: function (state) {
+            return { isAuth: false, token: null };
+        }
     }
-}
+});
 
-function categoryReducer(state = initialCategoryState, action) {
-    switch (action.type) {
-        case 'direct':
-            return { ...state, currentCategory: 'direct' };
-        case 'groups':
-            return { ...state, currentCategory: 'groups' };
-        default:
-            return state;
+const categorySlice = createSlice({
+    name: 'category',
+    initialState: {
+        currentCategory: null
+    },
+    reducers: {
+        direct: function (state) {
+            return { currentCategory: 'direct' };
+        },
+        groups: function (state) {
+            return { currentCategory: 'groups' };
+        }
     }
-}
+});
+
+const tokenMiddleware = store => next => action => {
+    const result = next(action);
+
+    const state = store.getState();
+    const token = state.auth.token;
+
+    if (token) localStorage.setItem('token', token)
+    else localStorage.removeItem('token');
+
+    return result;
+};
 
 export const store = configureStore({
     reducer: {
-        auth: authReducer,
-        category: categoryReducer
+        auth: authSlice.reducer,
+        category: categorySlice.reducer
+    },
+    middleware: function (getDefaultMiddleware) {
+        return getDefaultMiddleware().concat(tokenMiddleware)
     }
 });
+
+export const authActions = authSlice.actions;
+export const categoryActions = categorySlice.actions;

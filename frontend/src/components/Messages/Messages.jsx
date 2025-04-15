@@ -6,12 +6,14 @@ import { useGrpc } from "@/GrpcContext.jsx";
 import Scroll from "../Scroll/Scroll";
 
 import styles from './Messages.module.css';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { authActions } from "@/store";
 
 export default function MessagesWindow({ channelId, membersUsernames }) {
     const location = useLocation();
     const dispatch = useDispatch();
     const grpc = useGrpc();
+    const token = useSelector(state => state.auth.token);
 
     const [text, setText] = useState("");
     const textareaRef = useRef(null);
@@ -26,7 +28,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
     useEffect(() => {
         if (messageList.isError) {
             console.log(messageList.error.message);
-            if (messageList.error.message === "invalid token signature") dispatch({ type: 'deauthorize' });
+            if (messageList.error.message === "invalid token signature") dispatch(authActions.deauthorize());
         }
     }, [messageList.isError, messageList.error]);
 
@@ -36,7 +38,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
     }, [location.pathname, queryClient]);
 
     async function chatStream() {
-        const rpcOptions = grpc.getStreamingOptions(localStorage.getItem('token'));
+        const rpcOptions = grpc.getStreamingOptions(token);
 
         try {
             const call = grpc.chat.chatStream({ channelId: channelId }, rpcOptions);
@@ -48,7 +50,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
         } catch (error) {
             console.log(error.message);
             if (error.message === "invalid token signature") {
-                dispatch({ type: 'deauthorize' })
+                dispatch(authActions.deauthorize());
             } else if (error.message === "stream timeout") {
                 chatStream();
             }
@@ -61,7 +63,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
             limit: 100,
             offset: 1
         }
-        const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
+        const rpcOptions = grpc.setAuthorizationHeader(token);
         const { response } = await grpc.chat.getMessages(input, rpcOptions);
         return response.messages.reverse();
     }
@@ -77,7 +79,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
                 text: text
             }
 
-            const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
+            const rpcOptions = grpc.setAuthorizationHeader(token);
 
             try {
                 await grpc.chat.sendMessage(input, rpcOptions);
@@ -85,7 +87,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
             } catch (error) {
                 console.log(error.message);
                 if (error.message == "invalid token signature") {
-                    dispatch({ type: 'deauthorize' })
+                    dispatch(authActions.deauthorize());
                 }
             }
         }

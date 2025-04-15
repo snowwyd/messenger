@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { useGrpc } from "@/GrpcContext.jsx";
 
+import { authActions } from "@/store";
+
 import styles from './Auth.module.css';
 
 import Image0 from '@/assets/images/image0.png';
@@ -172,8 +174,7 @@ export default function App() {
             const response = await grpc.auth.login(user);
             setSignInMessage("successful login");
             setPulse([false, true]);
-            localStorage.setItem('token', response.response.token);
-            dispatch({ type: 'authorize' });
+            dispatch(authActions.authorize(response.response.token));
         } catch (error) {
             setSignInMessage("error: " + error.message);
             setPulse([true, false]);
@@ -183,8 +184,9 @@ export default function App() {
     return (
         <div className={styles.authFormsContainer}>
             <div className={styles.authForms}>
-                <form className={styles.forms} ref={registerForm} onSubmit={handleSignUp}>
-                    <h2 onClick={() => dispatch({ type: 'increment' })}>sign up</h2>
+                <form className={styles.forms}
+                    ref={registerForm} onSubmit={handleSignUp}>
+                    <h2>sign up</h2>
                     <div className={styles.inputsContainer}>
                         <input type="text" name="username" placeholder="username" />
                         <input type="text" name="email" placeholder="email" />
@@ -196,7 +198,9 @@ export default function App() {
                     </div>
                     <input type="submit" value="sign up" />
                 </form>
-                <form className={styles.forms} style={{ visibility: "hidden", pointerEvents: "none" }} ref={loginForm} onSubmit={handleSignIn}>
+                <form className={styles.forms}
+                    style={{ visibility: "hidden", pointerEvents: "none" }}
+                    ref={loginForm} onSubmit={handleSignIn}>
                     <h2>sign in</h2>
                     <div className={styles.inputsContainer}>
                         <input type="text" name="email" placeholder="email" />

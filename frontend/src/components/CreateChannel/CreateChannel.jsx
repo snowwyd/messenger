@@ -3,11 +3,13 @@ import { useGrpc } from "@/GrpcContext.jsx";
 
 import styles from './CreateChannel.module.css';
 import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function CreateChannel() {
     const grpc = useGrpc();
     const [channelName, setChannelName] = useState("");
     const { chatId } = useParams();
+    const token = useSelector(state => state.auth.token);
 
     const createChannelModal = useRef(null);
 
@@ -21,7 +23,7 @@ export default function CreateChannel() {
             type: "text"
         }
 
-        const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
+        const rpcOptions = grpc.setAuthorizationHeader(token);
 
         try {
             await grpc.chat.createChannel(input, rpcOptions);

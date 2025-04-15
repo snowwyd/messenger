@@ -7,12 +7,14 @@ import Messages from "../Messages/Messages";
 import ChannelList from "../ChannelList/ChannelList";
 
 import styles from './Chat.module.css';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { authActions } from "@/store";
 
 export default function Chat() {
     const { chatId, channelId } = useParams();
     const grpc = useGrpc();
     const dispatch = useDispatch();
+    const token = useSelector(state => state.auth.token);
 
     const chatInfo = useQuery({
         queryKey: ['chatInfo', chatId],
@@ -24,12 +26,12 @@ export default function Chat() {
     useEffect(() => {
         if (chatInfo.isError) {
             console.log(chatInfo.error.message);
-            if (chatInfo.error.message === "invalid token signature") dispatch({ type: 'deauthorize' });
+            if (chatInfo.error.message === "invalid token signature") dispatch(authActions.deauthorize());
         }
     }, [chatInfo.isError, chatInfo.error]);
 
     async function getChatInfo() {
-        const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
+        const rpcOptions = grpc.setAuthorizationHeader(token);
         const { response } = await grpc.chat.getChatInfo({ chatId: chatId }, rpcOptions);
         const call = await grpc.auth.getUsernames({ userIds: response.memberIds });
         response.usernames = call.response.usernames;

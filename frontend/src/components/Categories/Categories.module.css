@@ -37,7 +37,7 @@
     height: 60px;
     display: flex;
     justify-content: space-between;
-    padding: 0 25px;
+    padding-left: 25px;
     align-items: center;
     background: var(--direct-category);
     color: var(--white-text);

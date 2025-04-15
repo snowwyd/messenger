@@ -1,7 +1,8 @@
-import { useContext, useEffect, useState } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
+import { categoryActions, authActions } from "@/store";
 import Auth from "@/pages/Auth/Auth.jsx";
 import MainLayout from "@/pages/MainLayout/MainLayout.jsx";
 import Chat from "@/components/Chat/Chat.jsx";
@@ -9,25 +10,24 @@ import Chat from "@/components/Chat/Chat.jsx";
 export default function App() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const authState = useSelector((state) => state.auth.isAuth);
-    const categoryState = useSelector((state) => state.category.currentCategory);
-    const location = useLocation();
+    const urlCategory = useLocation().pathname.split('/')[1];
+    const authState = useSelector(state => state.auth.isAuth);
 
     useEffect(() => {
-        console.log(authState);
-        
-        if (authState === true) {
+        if (authState) {
             navigate('/direct');
         } else {
-            localStorage.removeItem('token');
             navigate('/');
         }
     }, [authState]);
 
     useEffect(() => {
-        console.log(categoryState);
-        dispatch({ type: location.pathname.split('/')[1] });
-    }, [location.pathname.split('/')[1]]);
+        if (urlCategory === 'direct') {
+            dispatch(categoryActions.direct());
+        } else if (urlCategory === 'groups') {
+            dispatch(categoryActions.groups());
+        }
+    }, [urlCategory]);
 
     return (
         <Routes>
@@ -35,6 +35,7 @@ export default function App() {
                 <Route path="direct/:chatId?/:channelId?" element={<Chat />} />
                 <Route path="groups/:chatId?/:channelId?" element={<Chat />} />
             </Route>
+            <Route path="*" element={<Navigate to="/"/>}/>
         </Routes>
     )
 }
