@@ -1,5 +1,0 @@
-env: "local"
-token_ttl: 1h
-grpc:
-    port: 810
-    timeout: 10h #5s для prod

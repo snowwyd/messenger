@@ -1,0 +1,8 @@
+config:
+    env: "local"
+    token_ttl: 1h
+    grpc:
+        port: 809
+        timeout: 10h #5s для prod
+    storage:
+        storage_name: "user-service"
