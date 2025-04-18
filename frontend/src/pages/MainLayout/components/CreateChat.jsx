@@ -1,8 +1,9 @@
-import { useContext, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useSelector } from "react-redux";
+
 import { useGrpc } from "@/GrpcContext.jsx";
 
 import styles from './CreateChat.module.css';
-import { useSelector } from "react-redux";
 
 export default function CreateChat({ type }) {
     const grpc = useGrpc();
@@ -50,7 +51,7 @@ export default function CreateChat({ type }) {
             name: groupName
         }
 
-        const rpcOptions = grpc.setAuthorizationHeader(token);
+        const rpcOptions = grpc.getUnaryOptions(token);
 
         try {
             await grpc.chat.createChat(input, rpcOptions);

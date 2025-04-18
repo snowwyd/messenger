@@ -2,10 +2,10 @@ import { useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
-import { categoryActions, authActions } from "@/store";
+import { categoryActions } from "@/store.js";
 import Auth from "@/pages/Auth/Auth.jsx";
 import MainLayout from "@/pages/MainLayout/MainLayout.jsx";
-import Chat from "@/components/Chat/Chat.jsx";
+import Chat from "@/pages/Chat/Chat.jsx";
 
 export default function App() {
     const navigate = useNavigate();
@@ -14,19 +14,13 @@ export default function App() {
     const authState = useSelector(state => state.auth.isAuth);
 
     useEffect(() => {
-        if (authState) {
-            navigate('/direct');
-        } else {
-            navigate('/');
-        }
+        if (authState) navigate('/direct');
+        else navigate('/');
     }, [authState]);
 
     useEffect(() => {
-        if (urlCategory === 'direct') {
-            dispatch(categoryActions.direct());
-        } else if (urlCategory === 'groups') {
-            dispatch(categoryActions.groups());
-        }
+        if (urlCategory === 'direct') dispatch(categoryActions.direct());
+        else if (urlCategory === 'groups') dispatch(categoryActions.groups());
     }, [urlCategory]);
 
     return (
@@ -35,7 +29,7 @@ export default function App() {
                 <Route path="direct/:chatId?/:channelId?" element={<Chat />} />
                 <Route path="groups/:chatId?/:channelId?" element={<Chat />} />
             </Route>
-            <Route path="*" element={<Navigate to="/"/>}/>
+            <Route path="*" element={<Navigate to="/" />} />
         </Routes>
     )
 }

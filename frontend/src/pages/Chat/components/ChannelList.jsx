@@ -1,11 +1,10 @@
-import { useContext } from "react";
 import { NavLink } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-import Scroll from "../Scroll/Scroll";
-import CreateChannel from "../CreateChannel/CreateChannel";
+import Scroll from "@/components/Scroll/Scroll";
+import CreateChannel from "./CreateChannel";
 
 import styles from './ChannelList.module.css';
-import { useSelector } from "react-redux";
 
 export default function ChannelList({ chatId, channels }) {
     const categoryState = useSelector((state) => state.category.currentCategory);

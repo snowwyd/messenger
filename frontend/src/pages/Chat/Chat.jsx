@@ -1,14 +1,15 @@
-import { useContext, useEffect } from "react";
+import { useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { useQuery } from '@tanstack/react-query';
+
+import { authActions } from "@/store";
 import { useGrpc } from "@/GrpcContext.jsx";
 
-import Messages from "../Messages/Messages";
-import ChannelList from "../ChannelList/ChannelList";
+import Messages from "./components/Messages";
+import ChannelList from "./components/ChannelList";
 
 import styles from './Chat.module.css';
-import { useDispatch, useSelector } from "react-redux";
-import { authActions } from "@/store";
 
 export default function Chat() {
     const { chatId, channelId } = useParams();
@@ -31,7 +32,7 @@ export default function Chat() {
     }, [chatInfo.isError, chatInfo.error]);
 
     async function getChatInfo() {
-        const rpcOptions = grpc.setAuthorizationHeader(token);
+        const rpcOptions = grpc.getUnaryOptions(token);
         const { response } = await grpc.chat.getChatInfo({ chatId: chatId }, rpcOptions);
         const call = await grpc.auth.getUsernames({ userIds: response.memberIds });
         response.usernames = call.response.usernames;

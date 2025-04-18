@@ -1,13 +1,14 @@
-import { useContext, useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useGrpc } from "@/GrpcContext.jsx";
+import { useDispatch, useSelector } from "react-redux";
 
-import Scroll from "../Scroll/Scroll";
+import { useGrpc } from "@/GrpcContext.jsx";
+import { authActions } from "@/store";
+
+import Scroll from "@/components/Scroll/Scroll";
 
 import styles from './Messages.module.css';
-import { useDispatch, useSelector } from "react-redux";
-import { authActions } from "@/store";
 
 export default function MessagesWindow({ channelId, membersUsernames }) {
     const location = useLocation();
@@ -63,7 +64,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
             limit: 100,
             offset: 1
         }
-        const rpcOptions = grpc.setAuthorizationHeader(token);
+        const rpcOptions = grpc.getUnaryOptions(token);
         const { response } = await grpc.chat.getMessages(input, rpcOptions);
         return response.messages.reverse();
     }
@@ -79,7 +80,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
                 text: text
             }
 
-            const rpcOptions = grpc.setAuthorizationHeader(token);
+            const rpcOptions = grpc.getUnaryOptions(token);
 
             try {
                 await grpc.chat.sendMessage(input, rpcOptions);

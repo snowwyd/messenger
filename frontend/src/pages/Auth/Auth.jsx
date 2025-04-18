@@ -1,191 +1,143 @@
 import { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from 'react-redux';
-import { useGrpc } from "@/GrpcContext.jsx";
+import { useDispatch } from 'react-redux';
+import { useMutation } from '@tanstack/react-query';
 
 import { authActions } from "@/store";
+import { startAnimation, curves } from "@/utils/animation";
+import { userService } from "@/api/userService";
 
 import styles from './Auth.module.css';
 
 import Image0 from '@/assets/images/image0.png';
 import Image1 from '@/assets/images/image1.png';
 import Image2 from '@/assets/images/image2.png';
+import Image3 from '@/assets/images/image3.png';
 
-const authImages = [Image0, Image1, Image2];
+const authImages = [Image0, Image1, Image2, Image3];
+const currentImageNumber = Number(localStorage.getItem("currentAuthImage") || 0);
 
 export default function App() {
-    const imageBlock = useRef(null);
-    const footageRef = useRef(null);
-    const [currentAuthImage, setCurrentAuthImage] = useState(Number(localStorage.getItem("currentAuthImage") !== null ? localStorage.getItem("currentAuthImage") : 0));
-    const [pulse, setPulse] = useState([false, false]);
+    const imageContainerRef = useRef(null);
+    const imageRef = useRef(null);
+    const [currentImage, setCurrentImage] = useState(currentImageNumber);
 
-    const dispatch = useDispatch();
-    const grpc = useGrpc();
-
-    const signUpButton = useRef(null);
-    const signInButton = useRef(null);
-    const signUpText = useRef(null);
-    const signInText = useRef(null);
+    const signUpButtonRef = useRef(null);
+    const signInButtonRef = useRef(null);
+    const signUpTextRef = useRef(null);
+    const signInTextRef = useRef(null);
     const selectionSignUpRef = useRef(null);
     const selectionSignInRef = useRef(null);
 
-    const registerForm = useRef(null);
-    const loginForm = useRef(null);
+    const registerFormRef = useRef(null);
+    const loginFormRef = useRef(null);
 
-    const [signUpMessage, setSignUpMessage] = useState("");
-    const [signInMessage, setSignInMessage] = useState("");
+    const [registerMessage, setRegisterMessage] = useState("");
+    const [loginMessage, setLoginMessage] = useState("");
+    const [pulse, setPulse] = useState([false, false]);
 
-    function hoverEffect(button, text, selection, isOut = false) {
-        const startTime = performance.now();
+    const dispatch = useDispatch();
+
+    const switchImage = () => setCurrentImage(prev => prev >= authImages.length - 1 ? 0 : prev + 1);
+    useEffect(() => localStorage.setItem("currentAuthImage", currentImage), [currentImage]);
+
+    function hoverEffect(button, text, selection, isOut) {
         const duration = 400;
+        const animateHover = progress => {
+            const height = button.offsetHeight * 0.95;
+            const textOffset = button.offsetHeight * 2;
+            const textTop = progress > 0.5 ? textOffset * progress - textOffset : textOffset * progress;
 
-        requestAnimationFrame(animate);
-
-        function animate(currentTime) {
-            let timeFraction = (currentTime - startTime) / duration;
-            if (timeFraction > 1) timeFraction = 1;
-            if (timeFraction < 0) timeFraction = 0;
-
-            let progress = easeInOutCirc(timeFraction);
-            animateHover(progress);
-
-            if (timeFraction < 1) requestAnimationFrame(animate);
+            selection.style.height = (isOut ? height - progress * height : progress * height) + 'px';
+            text.style.top = textTop + 'px';
         }
 
-        function animateHover(progress) {
-            if (!isOut) {
-                selection.style.height = progress * (button.offsetHeight * 0.95) + 'px';
-
-                if (progress > 0.5) text.style.top = (button.offsetHeight * 2 * progress) - (button.offsetHeight * 2) + 'px';
-                else text.style.top = (button.offsetHeight * 2 * progress) + 'px';
-            } else {
-                selection.style.height = button.offsetHeight * 0.95 - (progress * button.offsetHeight * 0.95) + 'px';
-
-                if (progress > 0.5) text.style.top = (button.offsetHeight * 2 * progress) - (button.offsetHeight * 2) + 'px';
-                else text.style.top = (button.offsetHeight * 2 * progress) + 'px';
-            }
-        }
-    }
-
-    function easeInOutCirc(x) {
-        return x < 0.5 ? (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2 : (Math.sqrt(1 - Math.pow(-2 * x + 2, 2)) + 1) / 2;
+        startAnimation(curves.easeInOutCirc, animateHover, duration);
     }
 
     function switchForm(toLeft) {
-        requestAnimationFrame(animate);
-        const startTime = performance.now();
         const duration = 1000;
+        const animateImageBlock = progress => {
+            const showRegister = (progress < 0.6 && toLeft) || (progress > 0.4 && !toLeft);
+            const showLogin = (progress > 0.4 && toLeft) || (progress < 0.6 && !toLeft);
 
-        function animate(currentTime) {
-            let timeFraction = (currentTime - startTime) / duration;
-            if (timeFraction > 1) timeFraction = 1;
-            if (timeFraction < 0) timeFraction = 0;
-            if (timeFraction > 0.1) {
-                if (toLeft) {
-                    registerForm.current.style.visibility = "hidden";
-                    registerForm.current.style.pointerEvents = "none";
-                    loginForm.current.style.visibility = "visible";
-                    loginForm.current.style.pointerEvents = "all";
-                } else {
-                    registerForm.current.style.visibility = "visible";
-                    registerForm.current.style.pointerEvents = "all";
-                    loginForm.current.style.visibility = "hidden";
-                    loginForm.current.style.pointerEvents = "none";
-                }
-            }
+            registerFormRef.current.style.visibility = showRegister ? "visible" : "hidden";
+            registerFormRef.current.style.pointerEvents = showRegister ? "all" : "none";
 
-            let progress = easeOutExpo(timeFraction);
-            animateImageBlock(progress, toLeft);
+            loginFormRef.current.style.visibility = showLogin ? "visible" : "hidden";
+            loginFormRef.current.style.pointerEvents = showLogin ? "all" : "none";
 
-            if (timeFraction < 1) requestAnimationFrame(animate);
+            const bgInterval = 40;
+            const btnsInterval = 80;
+            const formsInterval = 100;
+
+            imageContainerRef.current.style.clipPath = `xywh(${toLeft ? 49 - progress * 50 : progress * 50}% 0% 51% 100%)`;
+            imageRef.current.style.left = toLeft ? (-bgInterval + progress * bgInterval) + 'px' : (progress * -bgInterval) + 'px';
+
+            signInButtonRef.current.style.right = toLeft ? (progress * -btnsInterval) + 'px' : (-btnsInterval + progress * btnsInterval) + 'px';
+            signUpButtonRef.current.style.left = toLeft ? (-btnsInterval + progress * btnsInterval) + 'px' : (progress * -btnsInterval) + 'px';
+
+            loginFormRef.current.style.left = toLeft ? (-formsInterval + progress * formsInterval) + 'px' : (progress * -formsInterval) + 'px';
+            registerFormRef.current.style.right = toLeft ? (progress * -formsInterval) + 'px' : (-formsInterval + progress * formsInterval) + 'px';
         }
+
+        startAnimation(curves.easeOutExpo, animateImageBlock, duration);
     }
 
-    function animateImageBlock(progress, toLeft) {
-        if (toLeft) {
-            imageBlock.current.style.clipPath = `xywh(${49 - progress * 50}% 0% 51% 100%)`;
-
-            loginForm.current.style.left = `${-100 + progress * 100}px`;
-            registerForm.current.style.right = `-${progress * 100}px`;
-
-            signInButton.current.style.right = `-${progress * 80}px`;
-            signUpButton.current.style.left = `${-80 + progress * 80}px`;
-
-            footageRef.current.style.left = `${-40 + progress * 40}px`;
-            // footageRef.current.style.left = `${80 - progress * 80}px`;
-        } else {
-            imageBlock.current.style.clipPath = `xywh(${progress * 50}% 0% 51% 100%)`;
-
-            registerForm.current.style.right = `${-100 + progress * 100}px`;
-            loginForm.current.style.left = `-${progress * 100}px`;
-
-            signUpButton.current.style.left = `-${progress * 80}px`;
-            signInButton.current.style.right = `${-80 + progress * 80}px`;
-
-            footageRef.current.style.left = `-${progress * 40}px`;
-            // footageRef.current.style.left = `${progress * 80}px`;
+    const loginMutation = useMutation({
+        mutationFn: user => userService.login(user.email, user.password),
+        onSuccess: data => {
+            setLoginMessage("successful login");
+            setPulse([false, true]);
+            dispatch(authActions.authorize(data.token));
+        },
+        onError: error => {
+            setLoginMessage("error: " + error.message);
+            setPulse([true, false]);
         }
-    }
+    });
 
-    function easeOutExpo(x) {
-        return x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
-    }
+    const registerMutation = useMutation({
+        mutationFn: user => userService.register(user.username, user.email, user.password),
+        onSuccess: data => {
+            setRegisterMessage("successful registration");
+            setPulse([false, true]);
+        },
+        onError: error => {
+            setRegisterMessage("error: " + error.message);
+            setPulse([true, false]);
+        }
+    });
 
-    useEffect(() => {
-        localStorage.setItem("currentAuthImage", currentAuthImage);
-    }, [currentAuthImage]);
-
-    function switchFootage() {
-        setCurrentAuthImage(prev => {
-            if (prev >= authImages.length - 1) return 0
-            return prev + 1;
-        });
-    }
-
-    async function handleSignUp(event) {
+    async function handleRegister(event) {
         event.preventDefault();
-        setPulse([false, false])
+        setPulse([false, false]);
 
         const user = {
             username: event.target.username.value,
             email: event.target.email.value,
             password: event.target.password.value
-        };
-
-        try {
-            await grpc.auth.register(user);
-            setSignUpMessage("successful registration");
-            setPulse([false, true]);
-        } catch (error) {
-            setSignUpMessage("error: " + error.message);
-            setPulse([true, false]);
         }
+
+        registerMutation.mutate(user);
     }
 
-    async function handleSignIn(event) {
+    async function handleLogin(event) {
         event.preventDefault();
-        setPulse([false, false])
+        setPulse([false, false]);
 
         const user = {
             email: event.target.email.value,
             password: event.target.password.value
-        };
-
-        try {
-            const response = await grpc.auth.login(user);
-            setSignInMessage("successful login");
-            setPulse([false, true]);
-            dispatch(authActions.authorize(response.response.token));
-        } catch (error) {
-            setSignInMessage("error: " + error.message);
-            setPulse([true, false]);
         }
+
+        loginMutation.mutate(user);
     }
 
     return (
         <div className={styles.authFormsContainer}>
             <div className={styles.authForms}>
                 <form className={styles.forms}
-                    ref={registerForm} onSubmit={handleSignUp}>
+                    ref={registerFormRef} onSubmit={handleRegister}>
                     <h2>sign up</h2>
                     <div className={styles.inputsContainer}>
                         <input type="text" name="username" placeholder="username" />
@@ -193,39 +145,39 @@ export default function App() {
                         <input type="password" name="password" placeholder="password" />
                         <div className={styles.errorMessageContainer}>
                             <p className={`${styles.errorMessage} ${pulse[0] ? styles.redPulse : ""} ${pulse[1] ? styles.greenPulse : ""}`}
-                                onAnimationEnd={() => setPulse([false, false])}>{signUpMessage}</p>
+                                onAnimationEnd={() => setPulse([false, false])}>{registerMessage}</p>
                         </div>
                     </div>
                     <input type="submit" value="sign up" />
                 </form>
                 <form className={styles.forms}
                     style={{ visibility: "hidden", pointerEvents: "none" }}
-                    ref={loginForm} onSubmit={handleSignIn}>
+                    ref={loginFormRef} onSubmit={handleLogin}>
                     <h2>sign in</h2>
                     <div className={styles.inputsContainer}>
                         <input type="text" name="email" placeholder="email" />
                         <input type="password" name="password" placeholder="password" />
                         <div className={styles.errorMessageContainer}>
                             <p className={`${styles.errorMessage} ${pulse[0] ? styles.redPulse : ""} ${pulse[1] ? styles.greenPulse : ""}`}
-                                onAnimationEnd={() => setPulse([false, false])}>{signInMessage}</p>
+                                onAnimationEnd={() => setPulse([false, false])}>{loginMessage}</p>
                         </div>
                     </div>
                     <input type="submit" value="sign in" />
                 </form>
-                <div className={styles.imageBlock} ref={imageBlock}>
-                    <img src={authImages[currentAuthImage]} ref={footageRef} onClick={switchFootage} className={styles.footage} />
-                    <div ref={signUpButton} className={styles.switchFormButton}
+                <div className={styles.imageBlock} ref={imageContainerRef}>
+                    <img src={authImages[currentImage]} ref={imageRef} onClick={switchImage} className={styles.footage} />
+                    <div ref={signUpButtonRef} className={styles.switchFormButton}
                         onClick={() => switchForm(false)}
-                        onMouseEnter={() => hoverEffect(signUpButton.current, signUpText.current, selectionSignUpRef.current)}
-                        onMouseLeave={() => hoverEffect(signUpButton.current, signUpText.current, selectionSignUpRef.current, true)}>
-                        <span ref={signUpText}>sign up</span>
+                        onMouseEnter={() => hoverEffect(signUpButtonRef.current, signUpTextRef.current, selectionSignUpRef.current, false)}
+                        onMouseLeave={() => hoverEffect(signUpButtonRef.current, signUpTextRef.current, selectionSignUpRef.current, true)}>
+                        <span ref={signUpTextRef}>sign up</span>
                         <div className={styles.selection} ref={selectionSignUpRef}></div>
                     </div>
-                    <div ref={signInButton} className={styles.switchFormButton}
+                    <div ref={signInButtonRef} className={styles.switchFormButton}
                         onClick={() => switchForm(true)}
-                        onMouseEnter={() => hoverEffect(signInButton.current, signInText.current, selectionSignInRef.current)}
-                        onMouseLeave={() => hoverEffect(signInButton.current, signInText.current, selectionSignInRef.current, true)}>
-                        <span ref={signInText}>sign in</span>
+                        onMouseEnter={() => hoverEffect(signInButtonRef.current, signInTextRef.current, selectionSignInRef.current, false)}
+                        onMouseLeave={() => hoverEffect(signInButtonRef.current, signInTextRef.current, selectionSignInRef.current, true)}>
+                        <span ref={signInTextRef}>sign in</span>
                         <div className={styles.selection} ref={selectionSignInRef}></div>
                     </div>
                 </div>

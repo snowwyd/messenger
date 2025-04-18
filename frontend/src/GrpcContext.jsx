@@ -1,14 +1,14 @@
 import { createContext, useContext } from "react"
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
-import { AuthClient } from "./proto/gen/msgauth.client";
-import { ConversationClient } from "./proto/gen/msgchat.client";
+import { AuthClient } from "@/proto/gen/msgauth.client";
+import { ConversationClient } from "@/proto/gen/msgchat.client";
 
 const GrpcContext = createContext();
 
 export const useGrpc = () => useContext(GrpcContext);
 
 export default function GrpcProvider({ children }) {
-    const transport = new GrpcWebFetchTransport({ baseUrl: "http://localhost:808" });
+    const transport = new GrpcWebFetchTransport({ baseUrl: import.meta.env.VITE_BASE_URL });
     const authClient = new AuthClient(transport);
     const conversationClient = new ConversationClient(transport);
     const abortController = new AbortController();
@@ -16,7 +16,7 @@ export default function GrpcProvider({ children }) {
     const grpc = {
         auth: authClient,
         chat: conversationClient,
-        setAuthorizationHeader: function (token) {
+        getUnaryOptions: function (token) {
             const rpcOptions = {
                 interceptors: [
                     {

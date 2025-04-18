@@ -2,19 +2,20 @@ import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useQuery } from '@tanstack/react-query';
-import { useGrpc } from "@/GrpcContext.jsx";
 
 import { authActions } from "@/store";
-import ChatList from "@/components/ChatList/ChatList";
-import Categories from "@/components/Categories/Categories";
-import Search from "@/components/Search/Search";
+import { chatService } from "@/api/chatService";
+
+import ChatList from "./components/ChatList";
+import Categories from "./components/Categories";
+import Search from "./components/Search";
 
 import styles from './MainLayout.module.css';
 
 export default function MainLayout() {
     const dispatch = useDispatch();
-    const categoryState = useSelector((state) => state.category.currentCategory);
-    const grpc = useGrpc();
+    const token = useSelector(state => state.auth.token);
+    const categoryState = useSelector(state => state.category.currentCategory);
     
     const chatList = useQuery({
         queryKey: ['chatList', categoryState],
@@ -31,34 +32,9 @@ export default function MainLayout() {
     }, [chatList.isError, chatList.error]);
 
     function getChatList() {
-        if (categoryState === 'direct') {
-            const response = getChats('private');
-            return response;
-        } else if (categoryState === 'groups') {
-            const response = getChats('group');
-            return response;
-        }
-
+        if (categoryState === 'direct') return chatService.getUserChats(token, 'private');
+        else if (categoryState === 'groups') return chatService.getUserChats(token, 'group');
         return null;
-    }
-
-    async function getChats(type) {
-        const rpcOptions = grpc.setAuthorizationHeader(localStorage.getItem('token'));
-        const { response } = await grpc.chat.getUserChats({ type: type }, rpcOptions);
-        const chats = response.chats;
-
-        if (type === "private") {
-            const usernames = await getUsernames(chats);
-            for (let i = 0; i < chats.length; i++) chats[i].name = usernames[chats[i].name];
-        }
-
-        return chats;
-    }
-
-    async function getUsernames(chats) {
-        const userIds = chats.map(item => item.name);
-        const { response } = await grpc.auth.getUsernames({ userIds: userIds });
-        return response.usernames;
     }
 
     return (
@@ -66,7 +42,7 @@ export default function MainLayout() {
             <div className={styles.leftPanel}>
                 <Search />
                 <Categories />
-                {chatList.data && !chatList.isLoading && !chatList.isError && <ChatList chats={chatList.data} />}
+                {chatList.data && <ChatList chats={chatList.data} />}
             </div>
             <Outlet />
         </div>
