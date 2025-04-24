@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// TODO: move to domain
 type Channel interface {
 	CreateChannel(ctx context.Context, chatID string, name string, chanType string) (channelID string, err error)
 	SubscribeToChannelEvents(ctx context.Context, channelID string, userID string, sendEvent func(*chatpb.ChatStreamResponse)) error
@@ -23,7 +24,8 @@ func (s *serverAPI) CreateChannel(ctx context.Context, req *chatpb.CreateChannel
 		return nil, err
 	}
 
-	channelID, err := s.channel.CreateChannel(ctx, req.GetChatId(), req.GetName(), req.GetType())
+	// TODO: implement error handler
+	channelID, err := s.managerService.CreateChannel(ctx, req.GetChatId(), req.GetName(), req.GetType())
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrChatNotFound):
@@ -50,7 +52,9 @@ func (s *serverAPI) ChatStream(req *chatpb.ChatStreamRequest, stream chatpb.Conv
 		return status.Error(codes.Unauthenticated, "failed to get user_id from context")
 	}
 
-	err = s.channel.SubscribeToChannelEvents(stream.Context(), req.GetChannelId(), userID, func(event *chatpb.ChatStreamResponse) {
+	// TODO: implement error handler
+	// FIXME: fix streaming
+	err = s.conversationService.SubscribeToChannelEvents(stream.Context(), req.GetChannelId(), userID, func(event *chatpb.ChatStreamResponse) {
 		if err := stream.Send(event); err != nil {
 			logger.Err(err)
 		}
@@ -71,6 +75,7 @@ func (s *serverAPI) ChatStream(req *chatpb.ChatStreamRequest, stream chatpb.Conv
 	return nil
 }
 
+// TODO: implement error handler
 func validateCreateChannel(req *chatpb.CreateChannelRequest) error {
 	if req.GetChatId() == "" {
 		return status.Error(codes.InvalidArgument, "chat_id is required")

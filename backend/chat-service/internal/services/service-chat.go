@@ -2,12 +2,10 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"chat-service/internal/domain"
 	"chat-service/internal/domain/interfaces"
-	"chat-service/internal/lib/logger"
 	"chat-service/internal/lib/mapper"
 	"chat-service/internal/lib/utils"
 
@@ -41,29 +39,25 @@ func (c *Chat) CreateChat(ctx context.Context, chatType string, name string, use
 	log.Debug("getting user_id from context")
 	userID, err := utils.GetUserIDFromContext(ctx)
 	if err != nil {
-		log.Error("failed to get user_id from context", logger.Err(err))
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", handleServiceError(err, op, "get user_id from context", log)
 	}
 
 	log.Debug("checking request body")
 	if !utils.Contains(allowedChatTypes, chatType) {
-		log.Error("invalid chat type", logger.Err(domain.ErrInvalidChatType))
-		return "", fmt.Errorf("%s: %w", op, domain.ErrInvalidChatType)
+		return "", handleServiceError(domain.ErrInvalidChatType, op, "check request body", log)
 	}
 
 	// TODO: улучшить проверку
 	if chatType == "private" {
 		if len(user_ids) != 1 {
-			log.Error("invalid input: private chat must contain only 1 user_id", logger.Err(domain.ErrInvalidUserCount))
-			return "", fmt.Errorf("%s: %w", op, domain.ErrInvalidUserCount)
+			return "", handleServiceError(domain.ErrInvalidUserCountPrivateChat, op, "check private chat input", log)
 		}
 		if user_ids[0] == userID {
-			log.Error("invalid input: private chat can be created only with another person", logger.Err(domain.ErrSameUser))
-			return "", fmt.Errorf("%s: %w", op, domain.ErrSameUser)
+			return "", handleServiceError(domain.ErrSameUser, op, "check private chat input", log)
 		}
 	} else if name == "" {
-		log.Error("invalid input: group name must be not empty", logger.Err(domain.ErrEmptyGroupName))
-		return "", fmt.Errorf("%s: %w", op, domain.ErrEmptyGroupName)
+		return "", handleServiceError(domain.ErrEmptyGroupName, op, "check group chat input", log)
+
 	}
 
 	user_ids = append(user_ids, userID)
@@ -71,8 +65,7 @@ func (c *Chat) CreateChat(ctx context.Context, chatType string, name string, use
 
 	log.Debug("checking if chat already exists")
 	if existingChat, _ := c.chatProvider.FindChat(ctx, user_ids); existingChat != nil && chatType == "private" {
-		log.Warn("chat already exists!", logger.Err(domain.ErrChatExists))
-		return "", fmt.Errorf("%s: %w", op, domain.ErrChatExists)
+		return "", handleServiceError(domain.ErrChatExists, op, "check chat existence", log)
 	}
 
 	newChat := domain.Chat{
@@ -88,8 +81,8 @@ func (c *Chat) CreateChat(ctx context.Context, chatType string, name string, use
 	log.Debug("saving chat")
 	chatID, err := c.chatProvider.SaveChat(ctx, newChat)
 	if err != nil {
-		log.Error("failed to save chat", logger.Err(err))
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", handleServiceError(err, op, "save chat", log)
+
 	}
 
 	mainCh := domain.Channel{
@@ -101,8 +94,7 @@ func (c *Chat) CreateChat(ctx context.Context, chatType string, name string, use
 
 	log.Debug("saving main channel")
 	if _, err = c.channelProvider.SaveChannel(ctx, mainCh); err != nil {
-		log.Error("failed to save chat", logger.Err(err))
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", handleServiceError(err, op, "save main channel", log)
 	}
 
 	log.Info("chat created successfully")
@@ -118,22 +110,20 @@ func (c *Chat) GetUserChats(ctx context.Context, chatType string) ([]*chatpb.Cha
 	log.Debug("getting user_id from context")
 	userID, err := utils.GetUserIDFromContext(ctx)
 	if err != nil {
-		log.Error("failed to get user_id from context", logger.Err(err))
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, handleServiceError(err, op, "get user_id from context", log)
 	}
 
 	log.Debug("checking request body")
 	if !utils.Contains(allowedChatTypes, chatType) {
-		log.Error("invalid chat type", logger.Err(domain.ErrInvalidChatType))
-		return nil, fmt.Errorf("%s: %w", op, domain.ErrInvalidChatType)
+		return nil, handleServiceError(domain.ErrInvalidChatType, op, "check request body", log)
 	}
 
 	// TODO: add main channel id here
 	log.Debug("getting users chats")
 	chatPreviews, err := c.chatProvider.FindUserChats(ctx, userID, chatType)
 	if err != nil {
-		log.Error("faild to get chats", logger.Err(err))
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, handleServiceError(err, op, "get user chats", log)
+
 	}
 
 	protoChatPreviews := mapper.ConvertChatPreviewsToProto(chatPreviews)
@@ -151,28 +141,26 @@ func (c *Chat) GetChatInfo(ctx context.Context, chatID string) (chatInfo domain.
 	log.Debug("getting user_id from context")
 	userID, err := utils.GetUserIDFromContext(ctx)
 	if err != nil {
-		log.Error("failed to get user_id from context", logger.Err(err))
-		return domain.ChatInfo{}, fmt.Errorf("%s: %w", op, err)
+		return domain.ChatInfo{}, handleServiceError(err, op, "get user_id from context", log)
+
 	}
 
 	log.Debug("finding chat by id")
 	chat, err := c.chatProvider.FindChatByID(ctx, chatID, userID)
 	if err != nil {
-		log.Error("failed to get chat by id", logger.Err(err))
-		return domain.ChatInfo{}, fmt.Errorf("%s: %w", op, err)
+		return domain.ChatInfo{}, handleServiceError(err, op, "get chat by id", log)
 	}
 
 	log.Debug("checking if user in this chat")
 	if !utils.Contains(chat.MemberIDs, userID) {
-		log.Error("user is not in this chat", logger.Err(domain.ErrAccessDenied))
-		return domain.ChatInfo{}, fmt.Errorf("%s: %w", op, domain.ErrAccessDenied)
+		return domain.ChatInfo{}, handleServiceError(domain.ErrAccessDenied, op, "check if user in this chat", log)
 	}
 
 	log.Debug("getting channels info")
 	channels, err := c.channelProvider.FindChannelsByIDs(ctx, chat.ChannelIDs)
 	if err != nil {
-		log.Error("failed to get channels", logger.Err(err))
-		return domain.ChatInfo{}, fmt.Errorf("%s: %w", op, err)
+		return domain.ChatInfo{}, handleServiceError(err, op, "get channels info", log)
+
 	}
 	protoChannels := mapper.ConvertChannelsToProto(channels)
 
