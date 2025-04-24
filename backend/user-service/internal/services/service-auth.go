@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"regexp"
 	"time"
@@ -85,7 +86,7 @@ func (authService *Auth) RegisterNewUser(ctx context.Context, email string, pass
 	if user.ID != "" {
 		return "", handleServiceError(domain.ErrUserExists, op, "get user by email", log)
 	}
-	if err != nil {
+	if err != nil && !errors.Is(err, domain.ErrUserNotFound) {
 		return "", handleServiceError(err, op, "get user by email", log)
 	}
 

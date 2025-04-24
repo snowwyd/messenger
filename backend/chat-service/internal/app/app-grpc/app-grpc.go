@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net"
 
+	"chat-service/internal/domain/interfaces"
 	chatgrpc "chat-service/internal/grpc"
 	"chat-service/internal/grpc/middleware"
 
@@ -18,9 +19,12 @@ type App struct {
 }
 
 func New(log *slog.Logger,
-	chatService chatgrpc.Chat,
-	channelService chatgrpc.Channel,
-	messageService chatgrpc.Message,
+	// chatService chatgrpc.Chat,
+	// channelService chatgrpc.Channel,
+	// messageService chatgrpc.Message,
+	conversationService interfaces.ConversationService,
+	viewService interfaces.ViewService,
+	managerService interfaces.ManagerService,
 	port int,
 	appSecret string,
 ) *App {
@@ -29,7 +33,7 @@ func New(log *slog.Logger,
 		grpc.StreamInterceptor(middleware.StreamAuthInterceptor(appSecret)),
 	)
 
-	chatgrpc.Register(gRPCServer, chatService, channelService, messageService)
+	chatgrpc.Register(gRPCServer, conversationService, viewService, managerService)
 
 	return &App{
 		log:        log,

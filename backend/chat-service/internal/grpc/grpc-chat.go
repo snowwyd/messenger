@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// TODO: move to domain
 type Chat interface {
 	CreateChat(ctx context.Context, chatType string, name string, user_ids []string) (chatID string, err error)
 	GetUserChats(ctx context.Context, chatType string) (chatPreviews []*chatpb.ChatPreview, err error)
@@ -22,12 +23,13 @@ func (s *serverAPI) CreateChat(ctx context.Context, req *chatpb.CreateChatReques
 		return nil, err
 	}
 
-	ChatID, err := s.chat.CreateChat(ctx, req.GetType(), req.GetName(), req.GetUserIds())
+	// TODO: implement error handler
+	ChatID, err := s.managerService.CreateChat(ctx, req.GetType(), req.GetName(), req.GetUserIds())
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrInvalidChatType):
 			return nil, status.Error(codes.InvalidArgument, "chat type must be only private or group")
-		case errors.Is(err, domain.ErrInvalidUserCount):
+		case errors.Is(err, domain.ErrInvalidUserCountPrivateChat):
 			return nil, status.Error(codes.InvalidArgument, "private chat must contain only 2 users")
 		case errors.Is(err, domain.ErrSameUser):
 			return nil, status.Error(codes.InvalidArgument, "cannot create private chat with yourself")
@@ -50,7 +52,8 @@ func (s *serverAPI) GetUserChats(ctx context.Context, req *chatpb.GetUserChatsRe
 		return nil, err
 	}
 
-	ChatPrews, err := s.chat.GetUserChats(ctx, req.GetType())
+	// TODO: implement error handler
+	ChatPrews, err := s.viewService.GetUserChats(ctx, req.GetType())
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrInvalidChatType):
@@ -70,7 +73,8 @@ func (s *serverAPI) GetChatInfo(ctx context.Context, req *chatpb.GetChatInfoRequ
 		return nil, err
 	}
 
-	chatInfo, err := s.chat.GetChatInfo(ctx, req.GetChatId())
+	// TODO: implement error handler
+	chatInfo, err := s.viewService.GetChatInfo(ctx, req.GetChatId())
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrAccessDenied):
@@ -89,6 +93,7 @@ func (s *serverAPI) GetChatInfo(ctx context.Context, req *chatpb.GetChatInfoRequ
 	}, nil
 }
 
+// TODO: implement error handler
 func validateCreateChat(req *chatpb.CreateChatRequest) error {
 	if req.GetType() == "" {
 		return status.Error(codes.InvalidArgument, "chat_type is required")

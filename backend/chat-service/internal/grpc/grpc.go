@@ -2,17 +2,18 @@ package grpccontroller
 
 import (
 	chatpb "chat-service/gen"
+	"chat-service/internal/domain/interfaces"
 
 	"google.golang.org/grpc"
 )
 
 type serverAPI struct {
 	chatpb.UnimplementedConversationServer
-	chat    Chat
-	channel Channel
-	message Message
+	conversationService interfaces.ConversationService
+	viewService         interfaces.ViewService
+	managerService      interfaces.ManagerService
 }
 
-func Register(gRPC *grpc.Server, chat Chat, channel Channel, message Message) {
-	chatpb.RegisterConversationServer(gRPC, &serverAPI{chat: chat, channel: channel, message: message})
+func Register(gRPC *grpc.Server, conversationService interfaces.ConversationService, viewService interfaces.ViewService, managerService interfaces.ManagerService) {
+	chatpb.RegisterConversationServer(gRPC, &serverAPI{conversationService: conversationService, viewService: viewService, managerService: managerService})
 }

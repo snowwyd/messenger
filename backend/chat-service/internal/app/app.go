@@ -4,6 +4,7 @@ import (
 	"log/slog"
 
 	appgrpc "chat-service/internal/app/app-grpc"
+	"chat-service/internal/config"
 	"chat-service/internal/infrastructure/mongodb"
 	"chat-service/internal/services"
 )
@@ -14,23 +15,39 @@ type App struct {
 
 func New(
 	log *slog.Logger,
-	grpcPort int,
-	storagePath string,
-	storageName string,
-	appSecret string,
-	maxMessageLength int,
+	cfg *config.Config,
 ) *App {
 
-	storage, err := mongodb.New(storagePath, storageName)
-	if err != nil {
-		panic(err)
-	}
+	storage := mongodb.New(
+		cfg.DotEnv.Storage.StoragePath,
+		cfg.Yaml.Storage.StorageName,
+		cfg.Yaml.Storage.ChatsColName,
+		cfg.Yaml.Storage.ChannelsColName,
+		cfg.Yaml.Storage.MessagesColName,
+	)
 
-	chatService := services.NewChatService(log, storage, storage)
-	channelService := services.NewChannelService(log, storage, storage, storage)
-	messageService := services.NewMessageService(log, storage, storage, storage, maxMessageLength)
+	// chatService := services.NewChatService(log, storage, storage)
+	// channelService := services.NewChannelService(log, storage, storage, storage)
+	// messageService := services.NewMessageService(
+	// 	log,
+	// 	storage,
+	// 	storage,
+	// 	storage,
+	// 	cfg.Yaml.App.MaxMessageLength,
+	// )
 
-	appgrpc := appgrpc.New(log, chatService, channelService, messageService, grpcPort, appSecret)
+	conversationService := services.NewConversationService(log, storage, storage, storage, cfg.Yaml.App.MaxMessageLength)
+	viewService := services.NewViewService(log, storage, storage, storage)
+	managerService := services.NewManagerService(log, storage, storage, storage)
+
+	appgrpc := appgrpc.New(
+		log,
+		conversationService,
+		viewService,
+		managerService,
+		cfg.Yaml.GRPC.Port,
+		cfg.DotEnv.Secrets.AppSecret,
+	)
 
 	return &App{
 		GRPCSrv: appgrpc,

@@ -2,7 +2,6 @@ package mongodb
 
 import (
 	"context"
-	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -12,17 +11,21 @@ type MongoDB struct {
 	client      *mongo.Client
 	database    *mongo.Database
 	chatsCol    *mongo.Collection
-	messagesCol *mongo.Collection
 	channelsCol *mongo.Collection
+	messagesCol *mongo.Collection
 }
 
-func New(storagePath string, dbName string) (*MongoDB, error) {
-	uri := (storagePath)
-
-	clientOpts := options.Client().ApplyURI(uri)
+func New(
+	storagePath string,
+	dbName string,
+	chatsColName string,
+	channelsColName string,
+	messagesColName string,
+) *MongoDB {
+	clientOpts := options.Client().ApplyURI(storagePath)
 	client, err := mongo.Connect(context.Background(), clientOpts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
+		panic(err)
 	}
 
 	db := client.Database(dbName)
@@ -30,10 +33,10 @@ func New(storagePath string, dbName string) (*MongoDB, error) {
 	return &MongoDB{
 		client:      client,
 		database:    db,
-		chatsCol:    db.Collection("chats"),
-		messagesCol: db.Collection("messages"),
-		channelsCol: db.Collection("channels"),
-	}, nil
+		chatsCol:    db.Collection(chatsColName),
+		channelsCol: db.Collection(channelsColName),
+		messagesCol: db.Collection(messagesColName),
+	}
 }
 
 func (m *MongoDB) Close() error {
