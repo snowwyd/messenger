@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -10,7 +9,6 @@ import (
 	chatpb "chat-service/gen"
 	"chat-service/internal/domain"
 	"chat-service/internal/domain/interfaces"
-	"chat-service/internal/lib/logger"
 	"chat-service/internal/lib/utils"
 )
 
@@ -39,14 +37,14 @@ var (
 	allowedChannelTypes = []string{"voice", "text"}
 )
 
+// FIXME: not working!
 func (c *Channel) SubscribeToChannelEvents(ctx context.Context, channelID string, userID string, sendEvent func(*chatpb.ChatStreamResponse)) error {
-	const op = "services.chat.SubscribeToChannelEvents"
+	const op = "services.channel.SubscribeToChannelEvents"
 
 	log := c.log.With(slog.String("op", op), slog.String("channel_id", channelID), slog.String("user_id", userID))
 	log.Info("subscribing to channel events")
 
 	if err := c.channelValidation(ctx, log, channelID, userID); err != nil {
-		log.Error("failed channel validation", logger.Err(err))
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -86,7 +84,7 @@ func (c *Channel) SubscribeToChannelEvents(ctx context.Context, channelID string
 }
 
 func (c *Channel) CreateChannel(ctx context.Context, chatID string, name string, chanType string) (string, error) {
-	const op = "services.chat.CreateChannel"
+	const op = "services.channel.CreateChannel"
 
 	log := c.log.With(slog.String("op", op))
 	log.Info("creating channel")
@@ -94,32 +92,25 @@ func (c *Channel) CreateChannel(ctx context.Context, chatID string, name string,
 	log.Debug("getting user_id from context")
 	userID, err := utils.GetUserIDFromContext(ctx)
 	if err != nil {
-		log.Error("failed to get user_id from context", logger.Err(err))
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", handleServiceError(err, op, "get user_id from context", log)
+
 	}
 
 	log.Debug("finding chat by id")
 	chat, err := c.chatProvider.FindChatByID(ctx, chatID, userID)
 	if err != nil {
-		if errors.Is(err, domain.ErrChatNotFound) {
-			log.Error("chat not found", logger.Err(domain.ErrChatNotFound))
-			return "", fmt.Errorf("%s: %w", op, domain.ErrChatNotFound)
-		}
-		log.Error("failed to get chat by id", logger.Err(err))
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", handleServiceError(err, op, "find chat by id", log)
 	}
 
 	// TODO: логика для voice и для text
 	log.Debug("checking request body")
 	if !utils.Contains(allowedChannelTypes, chanType) {
-		log.Error("invalid channel type", logger.Err(domain.ErrInvalidChannelType))
-		return "", fmt.Errorf("%s: %w", op, domain.ErrInvalidChannelType)
+		return "", handleServiceError(domain.ErrInvalidChannelType, op, "check request body", log)
 	}
 
 	log.Debug("checking if user in this chat")
 	if !utils.Contains(chat.MemberIDs, userID) {
-		log.Error("user is not in this chat", logger.Err(domain.ErrAccessDenied))
-		return "", fmt.Errorf("%s: %w", op, domain.ErrAccessDenied)
+		return "", handleServiceError(domain.ErrAccessDenied, op, "check if user in this chat", log)
 	}
 
 	newCh := domain.Channel{
@@ -132,8 +123,7 @@ func (c *Channel) CreateChannel(ctx context.Context, chatID string, name string,
 	log.Debug("saving channel")
 	channelID, err := c.channelProvider.SaveChannel(ctx, newCh)
 	if err != nil {
-		log.Error("failed to save channel", logger.Err(err))
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", handleServiceError(err, op, "save channel", log)
 	}
 
 	log.Info("channel created successfully")
@@ -141,32 +131,23 @@ func (c *Channel) CreateChannel(ctx context.Context, chatID string, name string,
 }
 
 func (c *Channel) channelValidation(ctx context.Context, log *slog.Logger, channelID string, userID string) error {
+	const op = "services.channel.channelValidation"
+
 	log.Debug("checking if channel exists")
 	existingChannel, err := c.channelProvider.FindChannelByID(ctx, channelID)
 	if err != nil {
-		if errors.Is(err, domain.ErrChannelNotFound) {
-			log.Error("channel not found", logger.Err(domain.ErrChannelNotFound))
-			return domain.ErrChannelNotFound
-		}
-		log.Error("failed to get channel by id", logger.Err(err))
-		return err
+		return handleServiceError(err, op, "check channel existence", log)
 	}
 
 	log.Debug("checking if chat exists")
 	existingChat, err := c.chatProvider.FindChatByID(ctx, existingChannel.ChatID, userID)
 	if err != nil {
-		if errors.Is(err, domain.ErrChatNotFound) {
-			log.Error("chat not found", logger.Err(domain.ErrChatNotFound))
-			return domain.ErrChatNotFound
-		}
-		log.Error("failed to get chat by id", logger.Err(err))
-		return err
+		return handleServiceError(err, op, "check chat existence", log)
 	}
 
 	log.Debug("checking if user in this chat")
 	if !utils.Contains(existingChat.MemberIDs, userID) {
-		log.Error("user is not in this chat", logger.Err(domain.ErrAccessDenied))
-		return domain.ErrAccessDenied
+		return handleServiceError(domain.ErrAccessDenied, op, "check if user in this chat", log)
 	}
 
 	return nil

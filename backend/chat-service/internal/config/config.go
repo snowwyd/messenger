@@ -48,7 +48,10 @@ type GRPCConfig struct {
 }
 
 type YamlStorage struct {
-	StorageName string `yaml:"storage_name"`
+	StorageName     string `yaml:"storage_name"`
+	ChatsColName    string `yaml:"chats_collection"`
+	ChannelsColName string `yaml:"channels_collection"`
+	MessagesColName string `yaml:"messages_collection"`
 }
 
 func MustLoad() *Config {

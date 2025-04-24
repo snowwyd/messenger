@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// TODO: rename
 func (m *MongoDB) FindChat(ctx context.Context, userIDs []string) (*domain.Chat, error) {
 	const op = "infrastructure.mongodb.chat.FindChat"
 

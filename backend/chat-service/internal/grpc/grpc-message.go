@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// TODO: move to domain
 type Message interface {
 	GetMessages(ctx context.Context, channelID string, limit int32, offset int32) (messages []*chatpb.Message, err error)
 	SendMessage(ctx context.Context, channelID string, text string) (messageID string, err error)
@@ -21,7 +22,8 @@ func (s *serverAPI) SendMessage(ctx context.Context, req *chatpb.SendMessageRequ
 		return nil, err
 	}
 
-	messageID, err := s.message.SendMessage(ctx, req.GetChannelId(), req.GetText())
+	// TODO: implement error handler
+	messageID, err := s.conversationService.SendMessage(ctx, req.GetChannelId(), req.GetText())
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrChannelNotFound):
@@ -47,7 +49,8 @@ func (s *serverAPI) GetMessages(ctx context.Context, req *chatpb.GetMessagesRequ
 		return nil, err
 	}
 
-	messages, err := s.message.GetMessages(ctx, req.GetChannelId(), req.GetLimit(), req.GetOffset())
+	// TODO: implement error handler
+	messages, err := s.viewService.GetMessages(ctx, req.GetChannelId(), req.GetLimit(), req.GetOffset())
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrChannelNotFound):
@@ -66,6 +69,7 @@ func (s *serverAPI) GetMessages(ctx context.Context, req *chatpb.GetMessagesRequ
 	}, nil
 }
 
+// TODO: implement error handler
 func validateSendMessage(req *chatpb.SendMessageRequest) error {
 	if req.GetChannelId() == "" {
 		return status.Error(codes.InvalidArgument, "channel_id is required")
@@ -77,6 +81,7 @@ func validateSendMessage(req *chatpb.SendMessageRequest) error {
 	return nil
 }
 
+// TODO: implement error handler
 func validateGetMessages(req *chatpb.GetMessagesRequest) error {
 	if req.GetChannelId() == "" {
 		return status.Error(codes.InvalidArgument, "channel_id is required")

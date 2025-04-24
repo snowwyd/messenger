@@ -1,6 +1,7 @@
 config:
     env: "local"
     token_ttl: 1h
+    
     app:
         max_message_length: 4000
     grpc:
@@ -8,3 +9,6 @@ config:
         timeout: 10h #5s для prod
     storage:
         storage_name: "user-service"
+        chats_collection: "chats"
+        channels_collection: "channels"
+        messages_collection: "messages"

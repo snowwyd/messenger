@@ -20,13 +20,7 @@ func main() {
 		slog.String("env", cfg.Yaml.Env),
 		slog.Any("GRPC", cfg.Yaml.GRPC))
 
-	application := app.New(log,
-		cfg.Yaml.GRPC.Port,
-		cfg.DotEnv.Storage.StoragePath,
-		cfg.Yaml.Storage.StorageName,
-		cfg.DotEnv.Secrets.AppSecret,
-		cfg.Yaml.App.MaxMessageLength,
-	)
+	application := app.New(log, cfg)
 
 	go application.GRPCSrv.MustRun()
 
