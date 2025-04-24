@@ -16,9 +16,9 @@ static_resources:
                   - name: local_service
                     domains: ["*"]
                     routes:
-                      - match: { prefix: "/auth" }
+                      - match: { prefix: "/user" }
                         route:
-                          cluster: grpc_auth
+                          cluster: grpc_user
                           max_stream_duration:
                             grpc_timeout_header_max: 0s
                       - match: { prefix: "/conversation" }
@@ -44,19 +44,19 @@ static_resources:
                   typed_config:
                     "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
   clusters:
-    - name: grpc_auth
+    - name: grpc_user
       connect_timeout: 0.25s
       type: logical_dns
       http2_protocol_options: {}
       lb_policy: round_robin
       load_assignment:
-        cluster_name: grpc_auth
+        cluster_name: grpc_user
         endpoints:
           - lb_endpoints:
             - endpoint:
                 address:
                   socket_address:
-                    address: msgauth
+                    address: user-service
                     port_value: 809
     - name: grpc_chat
       connect_timeout: 0.25s
@@ -70,5 +70,5 @@ static_resources:
             - endpoint:
                 address:
                   socket_address:
-                    address: msgchat
+                    address: chat-service
                     port_value: 810

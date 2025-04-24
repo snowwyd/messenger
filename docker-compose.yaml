@@ -1,0 +1,32 @@
+networks:
+  dev:
+
+services:
+  envoy:
+    container_name: envoy
+    build:
+      context: ./envoy
+    networks:
+      - dev
+    ports:
+      - 808:808
+  user-service:
+    container_name: user-service
+    build:
+      context: ./backend/user-service
+    networks:
+      - dev
+    ports:
+      - 809:809
+    env_file:
+      - backend/user-service/.env
+  chat-service:
+    container_name: chat-service
+    build:
+      context: ./backend/chat-service
+    networks:
+      - dev
+    ports:
+      - 810:810
+    env_file:
+      - backend/chat-service/.env
