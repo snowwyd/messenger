@@ -1,0 +1,31 @@
+.chatList {
+    display: flex;
+    flex-direction: column;
+
+    .chatButton {
+        height: 64px;
+        color: var(--white-text);
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        user-select: none;
+        cursor: pointer;
+        padding: 9px;
+
+        .avatarBlock {
+            background: url('@/assets/icons/user.png') center no-repeat;
+            background-size: 100%;
+            height: 46px;
+            width: 46px;
+            border-radius: 25px;
+        }
+
+        &:hover {
+            background-color: var(--light-gray-selection);
+        }
+    }
+
+    .chatButton.activeChat {
+        background-color: var(--light-gray-selection);
+    }
+}

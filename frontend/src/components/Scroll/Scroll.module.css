@@ -1,0 +1,24 @@
+.scrollableContent {
+    overflow-y: scroll;
+    scrollbar-width: none;
+}
+
+.customScrollbar {
+    position: absolute;
+    top: 0;
+    right: 5px;
+    width: 5px;
+}
+
+.customThumb {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    background-color: #222222;
+    border-radius: 3px;
+    cursor: pointer;
+
+    &:active {
+        background-color: var(--purple-selection);
+    }
+}

@@ -1,0 +1,10 @@
+.container {
+    height: 100vh;
+    display: flex;
+    padding: 10px 10px 10px 0;
+    background: var(--background-color);
+}
+
+.leftPanel {
+    min-width: 325px;
+}

@@ -1,0 +1,50 @@
+.categories {
+    display: flex;
+    /* justify-content: center; */
+    align-items: center;
+    gap: 10px;
+    padding: 0px 10px;
+    height: 60px;
+}
+
+.categoryButton {
+    position: relative;
+    height: 40px;
+    width: 40px;
+    border-radius: 5px;
+    z-index: 2;
+    filter: brightness(0.2);
+    
+    &.direct {
+        background: url('@/assets/icons/direct.png') no-repeat center;
+    }
+
+    &.groups {
+        background: url('@/assets/icons/groups.png') no-repeat center;
+    }
+
+    &:hover {
+        filter: brightness(0.3);
+    }
+
+    &.activeLink {
+        background-color: rgb(37, 37, 37);
+        filter: brightness(1);
+    }
+}
+
+.categoryName {
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    padding-left: 25px;
+    align-items: center;
+    background: var(--direct-category);
+    color: var(--white-text);
+    font-weight: 700;
+    font-size: 16px;
+
+    &.groupsCategory {
+        background: var(--groups-category);
+    }
+}

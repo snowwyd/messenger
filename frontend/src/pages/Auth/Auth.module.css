@@ -1,0 +1,70 @@
+.authFormsContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(120deg, #1A1A1A, #0A0A0A);
+}
+
+.authForms {
+    position: relative;
+    width: 900px;
+    height: 600px;
+    display: flex;
+    justify-content: space-around;
+    background-color: #19191A;
+    border-radius: 10px;
+    /* filter: drop-shadow(0 0 10px rgb(19, 19, 19)); */
+}
+
+.imageBlock {
+    position: absolute;
+    width: 900px;
+    height: 600px;
+    background-color: #242424;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    clip-path: xywh(50% 0% 51% 100%);
+
+    .switchFormButton {
+        padding: 0px 10px 5px 10px;
+        position: relative;
+        font-size: 48px;
+        font-weight: 900;
+        cursor: pointer;
+        user-select: none;
+        z-index: 1;
+        clip-path: xywh(0 0 100% 100%);
+        /* border: 2px solid white; */
+        border-radius: 5px;
+
+        & > span {
+            /* clip-path: xywh(0 1% 100% 120%); */
+            mix-blend-mode: difference;
+            position: relative;
+            z-index: -1;
+        }
+    }
+
+    .footage {
+        position: absolute;
+        height: 100%;
+        filter: brightness(0.5);
+        left: -40px;
+    }
+
+    .selection {
+        position: absolute;
+        border-radius: 1px;
+        height: 0;
+        width: 100%;
+        z-index: -2;
+        bottom: 0;
+        left: 0;
+        mix-blend-mode: normal;
+        background-color: white;
+    }
+}

@@ -1,0 +1,88 @@
+.createChannel {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    cursor: pointer;
+    
+    height: 30px;
+    width: 30px;
+    mask-image: url('@/assets/icons/addChannel.png');
+    mask-size: 18px;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    background-size: 25px;
+    background-color: var(--dark-gray-text);
+
+    &:hover {
+        background-color: #afafaf;
+    }
+}
+
+.createChannelModal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+
+    .modalContent {
+        position: relative;
+        background-color: #1f1f1f;
+        height: 200px;
+        width: 500px;
+        border-radius: 5px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 50px;
+    }
+
+    .closeModal {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        height: 30px;
+        width: 30px;
+        background-color: rgb(43, 43, 43);
+        border-radius: 5px;
+        cursor: pointer;
+
+        &:hover {
+            background-color: rgb(53, 53, 53);
+        }
+    }
+
+    input[type="text"] {
+        height: 25px;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid #424242;
+        font-size: 14px;
+        color: white;
+        padding: 5 10px;
+    }
+
+    input[type="submit"] {
+        height: 40px;
+        background-color: #141414;
+        border: none;
+        border-radius: 5px;
+        padding: 0 20px;
+        position: absolute;
+        bottom: 5px;
+        left: 5px;
+        right: 5px;
+        color: #adadad;
+        cursor: pointer;
+
+        &:hover {
+            background-color: #0f0f0f;
+            color: white;
+        }
+    }
+}
