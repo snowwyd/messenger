@@ -1,43 +1,51 @@
-import { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSelector } from "react-redux";
+import { useSelector } from 'react-redux';
 
-import { useStream } from "@/hooks/useStream";
-import { chatService } from "@/api/chatService";
+import { useStream } from '@/hooks/useStream';
+import { chatService } from '@/api/chatService';
 
-import Scroll from "@/components/Scroll/Scroll";
+import Scroll from '@/components/Scroll/Scroll';
+import EmojiBlock from './EmojiBlock';
 
 import styles from './Messages.module.css';
 
 export default function MessagesWindow({ channelId, membersUsernames }) {
     const location = useLocation();
     const queryClient = useQueryClient();
-    const token = useSelector(state => state.auth.token);
-    
-    const [text, setText] = useState("");
+    const token = useSelector((state) => state.auth.token);
+
+    const [text, setText] = useState('');
     const textareaRef = useRef(null);
-    
+
+    const [scrollToBottomTrigger, setScrollToBottomTrigger] = useState(false);
+
+    const [isEmojiBlock, setIsEmojiBlock] = useState(false);
+
     const messageList = useQuery({
         queryKey: ['messageList', channelId],
         queryFn: () => chatService.getMessages(token, channelId, 100, 1),
-        cacheTime: 60 * 60000
+        cacheTime: 60 * 60000,
     });
-    
+
     const sendMessageMutation = useMutation({
-        mutationFn: message => chatService.sendMessage(token, message.channelId, message.text),
-        onSuccess: data => setText("")
+        mutationFn: (message) => chatService.sendMessage(token, message.channelId, message.text),
+        onSuccess: (data) => {
+            setScrollToBottomTrigger((prev) => !prev);
+            setText('');
+        },
     });
 
     const messageStream = useStream({
         streamKey: 'messages',
         streamFn: (channelId, key) => chatService.messageStream(token, key, channelId),
-        onResponse: newMessage => {
-            queryClient.setQueryData(["messageList", channelId], (oldMessages = []) => {
+        onResponse: (newMessage) => {
+            queryClient.setQueryData(['messageList', channelId], (oldMessages = []) => {
                 return [...oldMessages, newMessage];
             });
         },
-        onError: error => console.log(error.message)
+        onError: (error) => console.log(error.message),
     });
 
     useEffect(() => {
@@ -46,14 +54,14 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
     }, [location.pathname, queryClient]);
 
     async function sendMessage(event) {
-        if (event.key === "Enter" && !event.shiftKey) {
+        if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-            if (text.trim().replace(/\n/g, '') === '') return setText("");
+            if (text.trim().replace(/\n/g, '') === '') return setText('');
 
             const message = {
                 channelId: channelId,
-                text: text
-            }
+                text: text,
+            };
 
             sendMessageMutation.mutate(message);
         }
@@ -61,22 +69,51 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
 
     useEffect(() => {
         if (textareaRef.current) {
-            textareaRef.current.style.height = "46px";
-            const scrollHeight = textareaRef.current.scrollHeight;
-            textareaRef.current.style.height = `${scrollHeight}px`;
+            textareaRef.current.style.height = '50px';
+            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
         }
     }, [text]);
 
+    function showHideEmojiBlock() {
+        if (isEmojiBlock) {
+            setIsEmojiBlock(false);
+        } else {
+            setIsEmojiBlock(true);
+        }
+    }
+
     return (
         <>
-            {!messageList.isLoading && !messageList.isError && <Scroll wrapperClass={styles.messagesWindow} isMessages={true}>
-                {messageList.data.map((item, index) => <Message messages={messageList.data} message={item} index={index} membersUsernames={membersUsernames} key={index} />)}
-            </Scroll>}
-            <div className={styles.messageField}>
-                <textarea ref={textareaRef} onKeyDown={sendMessage} value={text} onChange={(event) => setText(event.target.value)} placeholder="write a message..."></textarea>
+            {!messageList.isLoading && !messageList.isError && (
+                <Scroll wrapperClass={styles.messagesWindow} messageTrigger={scrollToBottomTrigger}>
+                    {messageList.data.map((item, index) => (
+                        <Message
+                            messages={messageList.data}
+                            message={item}
+                            index={index}
+                            membersUsernames={membersUsernames}
+                            key={index}
+                        />
+                    ))}
+                </Scroll>
+            )}
+            <div className={styles.messageFieldContainer}>
+                <div className={styles.messageField}>
+                    <textarea
+                        ref={textareaRef}
+                        onKeyDown={sendMessage}
+                        value={text}
+                        onChange={(event) => setText(event.target.value)}
+                        placeholder="write a message..."
+                    />
+                    <div className={styles.emojiButton} onClick={showHideEmojiBlock}>
+                        🤔
+                    </div>
+                </div>
             </div>
+            {isEmojiBlock && <EmojiBlock setText={setText} />}
         </>
-    )
+    );
 }
 
 function Message({ messages, message, index, membersUsernames }) {
@@ -90,42 +127,50 @@ function Message({ messages, message, index, membersUsernames }) {
         year: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
-        hour12: true
+        hour12: true,
     });
 
     const dateLabel = date.toLocaleString('en-GB', {
         day: 'numeric',
         month: 'short',
-        year: 'numeric'
+        year: 'numeric',
     });
 
     const time = date.toLocaleString('en-GB', {
         hour: 'numeric',
         minute: '2-digit',
-        hour12: true
+        hour12: true,
     });
 
     const prevDate = !isFirstMessage ? new Date(Number(messages[index - 1].createdAt.seconds) * 1000) : date;
     const isAnotherDay = date.toLocaleDateString() !== prevDate.toLocaleDateString() || isFirstMessage ? true : false;
-    
+
     return (
         <>
             {isAnotherDay && (
-                <div className={styles.dateLabel}><span>{dateLabel}</span></div>
+                <div className={styles.dateLabel}>
+                    <span>{dateLabel}</span>
+                </div>
             )}
             <div className={styles.message}>
                 {isFirstInGroup || isAnotherDay ? (
                     <div className={styles.messageUserInfo}>
                         <div className={styles.avatar}></div>
                         <div className={styles.usernameMessage}>
-                            <span className={styles.username}>{membersUsernames[message.senderId]} <span className={styles.dateCaption}>{formattedDate}</span></span>
+                            <span className={styles.username}>
+                                {membersUsernames[message.senderId]}{' '}
+                                <span className={styles.dateCaption}>{formattedDate}</span>
+                            </span>
                             <pre className={styles.messageText}>{message.text}</pre>
                         </div>
                     </div>
                 ) : (
-                    <pre className={styles.messageText}><span className={styles.timeCaption}>{time}</span>{message.text}</pre>
+                    <pre className={styles.messageText}>
+                        <span className={styles.timeCaption}>{time}</span>
+                        {message.text}
+                    </pre>
                 )}
             </div>
         </>
-    )
+    );
 }

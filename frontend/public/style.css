@@ -8,6 +8,11 @@
     src: url(fonts/Inter-VariableFont.ttf);
 }
 
+@font-face {
+    font-family: 'Emoji';
+    src: url(fonts/NotoColorEmoji.ttf);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -15,20 +20,21 @@
 }
 
 :root {
-    --background-color: #141414;
-    --section-color: #0E0E0E;
-    --message-field-color: #0B0B0B;
+    --background-color: #121214;
+    --section-color: #0e0e10;
+    --message-field-color: #0c0b0d;
 
     --dark-gray-selection: #171717;
-    --light-gray-selection: #1D1D1D;
-    --purple-selection: #4144FF;
+    --light-gray-selection: #1d1d1d;
+    --purple-selection: #4144ff;
 
-    --dark-gray-text: #2F2F2F;
+    --dark-gray-text: #2f2f2f;
     --gray-text: #595959;
     --light-gray-text: #838383;
     --white-text: #eeeeee;
 
-    --direct-category: linear-gradient(120deg, #485563, #29323c);
+    /* --direct-category: linear-gradient(120deg, #485563, #29323c); */
+    --direct-category: linear-gradient(120deg, #4046c9, #6445d6);
     --groups-category: linear-gradient(120deg, #834d9b, #d04ed6);
 }
 
@@ -43,7 +49,9 @@ a {
     text-decoration: none;
 }
 
-textarea, input, button {
+textarea,
+input,
+button {
     font-family: 'Inter';
     outline: none;
 }
