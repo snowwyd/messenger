@@ -1,30 +1,30 @@
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 
-import { authActions } from "@/store/store";
-import { userService } from "@/api/userService";
+import { authActions } from '@/store/store';
+import { userService } from '@/api/userService';
 
 import styles from './AuthForm.module.css';
 
 export default function LoginForm({ formRef }) {
-    const [loginMessage, setLoginMessage] = useState("");
+    const [loginMessage, setLoginMessage] = useState('');
     const [pulse, setPulse] = useState([false, false]);
     const resetPulse = () => setPulse([false, false]);
 
     const dispatch = useDispatch();
 
     const loginMutation = useMutation({
-        mutationFn: user => userService.login(user.email, user.password),
-        onSuccess: data => {
-            setLoginMessage("successful login");
+        mutationFn: (user) => userService.login(user.email, user.password),
+        onSuccess: (data) => {
+            setLoginMessage('successful login');
             setPulse([false, true]);
             dispatch(authActions.authorize(data.token));
         },
-        onError: error => {
-            setLoginMessage("error: " + error.message);
+        onError: (error) => {
+            setLoginMessage('error: ' + error.message);
             setPulse([true, false]);
-        }
+        },
     });
 
     async function handleLogin(event) {
@@ -33,14 +33,16 @@ export default function LoginForm({ formRef }) {
 
         const user = {
             email: event.target.email.value,
-            password: event.target.password.value
-        }
+            password: event.target.password.value,
+        };
 
         loginMutation.mutate(user);
     }
 
-    const errorMessageClasses = [styles.errorMessage, pulse[0] && styles.redPulse, pulse[1] && styles.greenPulse].filter(Boolean).join(' ');
-    const initialFormSyle = { visibility: "hidden", pointerEvents: "none" };
+    const errorMessageClasses = [styles.errorMessage, pulse[0] && styles.redPulse, pulse[1] && styles.greenPulse]
+        .filter(Boolean)
+        .join(' ');
+    const initialFormSyle = { visibility: 'hidden', pointerEvents: 'none' };
 
     return (
         <form ref={formRef} onSubmit={handleLogin} className={styles.forms} style={initialFormSyle}>
@@ -49,10 +51,12 @@ export default function LoginForm({ formRef }) {
                 <input type="text" name="email" placeholder="email" />
                 <input type="password" name="password" placeholder="password" />
                 <div className={styles.errorMessageContainer}>
-                    <p className={errorMessageClasses} onAnimationEnd={resetPulse}>{loginMessage}</p>
+                    <p className={errorMessageClasses} onAnimationEnd={resetPulse}>
+                        {loginMessage}
+                    </p>
                 </div>
             </div>
             <input type="submit" value="sign in" />
         </form>
-    )
+    );
 }

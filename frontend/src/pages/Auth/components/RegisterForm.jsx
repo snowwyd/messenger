@@ -1,25 +1,25 @@
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
 
-import { userService } from "@/api/userService";
+import { userService } from '@/api/userService';
 
 import styles from './AuthForm.module.css';
 
 export default function RegisterForm({ formRef }) {
-    const [registerMessage, setRegisterMessage] = useState("");
+    const [registerMessage, setRegisterMessage] = useState('');
     const [pulse, setPulse] = useState([false, false]);
     const resetPulse = () => setPulse([false, false]);
 
     const registerMutation = useMutation({
-        mutationFn: user => userService.register(user.username, user.email, user.password),
-        onSuccess: data => {
-            setRegisterMessage("successful registration");
+        mutationFn: (user) => userService.register(user.username, user.email, user.password),
+        onSuccess: (data) => {
+            setRegisterMessage('successful registration');
             setPulse([false, true]);
         },
-        onError: error => {
-            setRegisterMessage("error: " + error.message);
+        onError: (error) => {
+            setRegisterMessage('error: ' + error.message);
             setPulse([true, false]);
-        }
+        },
     });
 
     async function handleRegister(event) {
@@ -29,13 +29,15 @@ export default function RegisterForm({ formRef }) {
         const user = {
             username: event.target.username.value,
             email: event.target.email.value,
-            password: event.target.password.value
-        }
+            password: event.target.password.value,
+        };
 
         registerMutation.mutate(user);
     }
 
-    const errorMessageClasses = [styles.errorMessage, pulse[0] && styles.redPulse, pulse[1] && styles.greenPulse].filter(Boolean).join(' ');
+    const errorMessageClasses = [styles.errorMessage, pulse[0] && styles.redPulse, pulse[1] && styles.greenPulse]
+        .filter(Boolean)
+        .join(' ');
 
     return (
         <form className={styles.forms} ref={formRef} onSubmit={handleRegister}>
@@ -45,10 +47,12 @@ export default function RegisterForm({ formRef }) {
                 <input type="text" name="email" placeholder="email" />
                 <input type="password" name="password" placeholder="password" />
                 <div className={styles.errorMessageContainer}>
-                    <p className={errorMessageClasses} onAnimationEnd={resetPulse}>{registerMessage}</p>
+                    <p className={errorMessageClasses} onAnimationEnd={resetPulse}>
+                        {registerMessage}
+                    </p>
                 </div>
             </div>
             <input type="submit" value="sign up" />
         </form>
-    )
+    );
 }

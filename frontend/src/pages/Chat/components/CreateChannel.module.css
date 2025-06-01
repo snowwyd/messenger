@@ -3,7 +3,7 @@
     right: 10px;
     bottom: 10px;
     cursor: pointer;
-    
+
     height: 30px;
     width: 30px;
     mask-image: url('@/assets/icons/addChannel.png');
@@ -57,7 +57,7 @@
         }
     }
 
-    input[type="text"] {
+    input[type='text'] {
         height: 25px;
         background: transparent;
         border: none;
@@ -67,7 +67,7 @@
         padding: 5 10px;
     }
 
-    input[type="submit"] {
+    input[type='submit'] {
         height: 40px;
         background-color: #141414;
         border: none;

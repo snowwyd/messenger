@@ -1,6 +1,6 @@
-import { NavLink, useMatch } from "react-router-dom";
+import { NavLink, useMatch } from 'react-router-dom';
 
-import CreateChat from "./CreateChat";
+import CreateChat from './CreateChat';
 
 import styles from './Categories.module.css';
 
@@ -22,20 +22,20 @@ export default function Categories() {
                 <NavLink className={setDirectLinkClasses} to="/direct"></NavLink>
                 <NavLink className={setGroupsLinkClasses} to="/groups"></NavLink>
             </nav>
-            <div className={`${styles.categoryName} ${isGroups ? styles.groupsCategory : ""}`}>
+            <div className={`${styles.categoryName} ${isGroups ? styles.groupsCategory : ''}`}>
                 {isDirect && (
                     <>
                         <div>direct messages</div>
-                        <CreateChat type={"private"}/>
+                        <CreateChat type={'private'} />
                     </>
                 )}
                 {isGroups && (
                     <>
                         <div>groups</div>
-                        <CreateChat type={"group"}/>
+                        <CreateChat type={'group'} />
                     </>
                 )}
             </div>
         </>
-    )
+    );
 }

@@ -1,5 +1,5 @@
-import { store, authActions } from "@/store/store";
-import { grpc } from "@/api/grpc";
+import { store, authActions } from '@/store/store';
+import { grpc } from '@/api/grpc';
 
 export function useStream(streamOptions) {
     const stream = {
@@ -11,15 +11,15 @@ export function useStream(streamOptions) {
                 }
             } catch (error) {
                 streamOptions.onError(error);
-                if (error.message === "invalid token signature") {
+                if (error.message === 'invalid token signature') {
                     store.dispatch(authActions.deauthorize());
-                } else if (error.message === "stream timeout") {
+                } else if (error.message === 'stream timeout') {
                     this.stream(data);
                 }
             }
         },
-        abortStream: () => grpc.abortStream(streamOptions.streamKey)
-    }
+        abortStream: () => grpc.abortStream(streamOptions.streamKey),
+    };
 
     return stream;
 }

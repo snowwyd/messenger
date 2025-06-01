@@ -7,7 +7,7 @@
     height: 600px;
 
     h2 {
-        color: #BFBFBF;
+        color: #bfbfbf;
         font-size: 24px;
         text-align: center;
     }
@@ -31,32 +31,32 @@
             color: var(--dark-gray-text);
         }
 
-        &[name="username"] {
+        &[name='username'] {
             background: url('@/assets/icons/username.svg') no-repeat left;
             background-size: 15px;
             background-position: 10px;
         }
 
-        &[name="email"] {
+        &[name='email'] {
             background: url('@/assets/icons/email.svg') no-repeat left;
             background-size: 15px;
             background-position: 10px;
         }
 
-        &[name="password"] {
+        &[name='password'] {
             background: url('@/assets/icons/password.svg') no-repeat left;
             background-size: 15px;
             background-position: 10px;
         }
     }
 
-    input:not([type="submit"]) {
+    input:not([type='submit']) {
         height: 35px;
         padding: 0 32px;
         background-color: #151516;
     }
 
-    input[type="submit"] {
+    input[type='submit'] {
         height: 40px;
         font-weight: 500;
         background: none;

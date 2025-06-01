@@ -31,7 +31,7 @@
 
     .modalContent {
         position: relative;
-        background-color: #1D1D1D;
+        background-color: #1d1d1d;
         /* height: 200px; */
         width: 500px;
         border-radius: 5px;
@@ -56,7 +56,7 @@
         }
     }
 
-    input[type="text"] {
+    input[type='text'] {
         font-family: 'Roboto';
         font-size: 14px;
         border: none;
@@ -66,7 +66,7 @@
         background-color: transparent;
         width: 100%;
         border-bottom: 1px solid var(--dark-gray-text);
-        
+
         &::placeholder {
             color: var(--dark-gray-text);
         }
@@ -147,7 +147,7 @@
     padding-left: 15px;
     padding-right: 10px;
     border-radius: 5px;
-    
+
     .removeAddedUser {
         height: 25px;
         width: 25px;
