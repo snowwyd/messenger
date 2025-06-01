@@ -1,17 +1,17 @@
-import { useEffect } from "react";
-import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { categoryActions } from "@/store/store.js";
-import Auth from "@/pages/Auth/Auth.jsx";
-import MainLayout from "@/pages/MainLayout/MainLayout.jsx";
-import Chat from "@/pages/Chat/Chat.jsx";
+import { categoryActions } from '@/store/store.js';
+import Auth from '@/pages/Auth/Auth.jsx';
+import MainLayout from '@/pages/MainLayout/MainLayout.jsx';
+import Chat from '@/pages/Chat/Chat.jsx';
 
 export default function App() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const urlCategory = useLocation().pathname.split('/')[1];
-    const authState = useSelector(state => state.auth.isAuth);
+    const authState = useSelector((state) => state.auth.isAuth);
 
     useEffect(() => {
         if (authState) navigate('/direct');
@@ -31,5 +31,5 @@ export default function App() {
             </Route>
             <Route path="*" element={<Navigate to="/" />} />
         </Routes>
-    )
+    );
 }

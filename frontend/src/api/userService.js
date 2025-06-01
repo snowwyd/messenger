@@ -1,4 +1,4 @@
-import { grpc } from "@/api/grpc";
+import { grpc } from '@/api/grpc';
 
 export const userService = {
     login: async function (email, password) {
@@ -10,13 +10,13 @@ export const userService = {
         return call.response;
     },
     getUsernames: async function (userIds) {
-        const input = { userIds: userIds }
+        const input = { userIds: userIds };
         const call = await grpc.userClient.getUsernames(input);
         return call.response.usernames;
     },
     getUserIds: async function (usernames) {
-        const input = { usernames: usernames }
+        const input = { usernames: usernames };
         const call = await grpc.userClient.getUserIDs(input);
         return call.response.userIds;
-    }
-}
+    },
+};

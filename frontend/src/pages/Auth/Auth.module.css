@@ -3,7 +3,7 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background: linear-gradient(120deg, #1A1A1A, #0A0A0A);
+    background: linear-gradient(120deg, #1a1a1a, #0a0a0a);
 }
 
 .authForms {
@@ -12,7 +12,7 @@
     height: 600px;
     display: flex;
     justify-content: space-around;
-    background-color: #19191A;
+    background-color: #19191a;
     border-radius: 10px;
     /* filter: drop-shadow(0 0 10px rgb(19, 19, 19)); */
 }

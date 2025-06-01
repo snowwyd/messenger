@@ -1,24 +1,24 @@
-import { Outlet } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { Outlet } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 
-import { chatService } from "@/api/chatService";
+import { chatService } from '@/api/chatService';
 
-import ChatList from "./components/ChatList";
-import Categories from "./components/Categories";
-import Search from "./components/Search";
+import ChatList from './components/ChatList';
+import Categories from './components/Categories';
+import Search from './components/Search';
 
 import styles from './MainLayout.module.css';
 
 export default function MainLayout() {
-    const token = useSelector(state => state.auth.token);
-    const categoryState = useSelector(state => state.category.currentCategory);
-    
+    const token = useSelector((state) => state.auth.token);
+    const categoryState = useSelector((state) => state.category.currentCategory);
+
     const chatList = useQuery({
         queryKey: ['chatList', categoryState],
         queryFn: getChatList,
         enabled: !!categoryState,
-        cacheTime: 60 * 60000
+        cacheTime: 60 * 60000,
     });
 
     function getChatList() {
@@ -36,5 +36,5 @@ export default function MainLayout() {
             </div>
             <Outlet />
         </div>
-    )
+    );
 }

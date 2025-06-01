@@ -1,5 +1,5 @@
-import { grpc } from "@/api/grpc";
-import { userService } from "./userService";
+import { grpc } from '@/api/grpc';
+import { userService } from './userService';
 
 export const chatService = {
     getUserChats: async function (token, type) {
@@ -8,8 +8,8 @@ export const chatService = {
         const call = await grpc.chatClient.getUserChats(input, rpcOptions);
         const chats = call.response.chats;
 
-        if (type === "private") {
-            const usernames = await userService.getUsernames(chats.map(item => item.name));
+        if (type === 'private') {
+            const usernames = await userService.getUsernames(chats.map((item) => item.name));
             for (let i = 0; i < chats.length; i++) chats[i].name = usernames[chats[i].name];
         }
 
@@ -28,8 +28,8 @@ export const chatService = {
         const input = {
             channelId: channelId,
             limit: limit,
-            offset: offset
-        }
+            offset: offset,
+        };
         const call = await grpc.chatClient.getMessages(input, rpcOptions);
         return call.response.messages.reverse();
     },
@@ -38,8 +38,8 @@ export const chatService = {
         const input = {
             type: type,
             userIds: userIds,
-            name: name
-        }
+            name: name,
+        };
         const call = await grpc.chatClient.createChat(input, rpcOptions);
         return call.response;
     },
@@ -48,8 +48,8 @@ export const chatService = {
         const input = {
             type: type,
             chatId: chatId,
-            name: name
-        }
+            name: name,
+        };
         const call = await grpc.chatClient.createChannel(input, rpcOptions);
         return call.response;
     },
@@ -57,8 +57,8 @@ export const chatService = {
         const rpcOptions = grpc.getUnaryOptions(token);
         const input = {
             channelId: channelId,
-            text: text
-        }
+            text: text,
+        };
         const call = await grpc.chatClient.sendMessage(input, rpcOptions);
         return call.response;
     },
@@ -69,5 +69,5 @@ export const chatService = {
         for await (const response of call.responses) {
             yield response.payload.newMessage;
         }
-    }
-}
+    },
+};

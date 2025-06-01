@@ -1,6 +1,6 @@
-import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
-import { AuthClient } from "@/proto/gen/user.client";
-import { ConversationClient } from "@/proto/gen/chat.client";
+import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
+import { AuthClient } from '@/proto/gen/user.client';
+import { ConversationClient } from '@/proto/gen/chat.client';
 
 const transport = new GrpcWebFetchTransport({ baseUrl: import.meta.env.VITE_BASE_URL });
 const userClient = new AuthClient(transport);
@@ -18,10 +18,10 @@ export const grpc = {
                         if (!options.meta) options.meta = {};
                         options.meta['Authorization'] = `Bearer ${token}`;
                         return next(method, input, options);
-                    }
-                }
-            ]
-        }
+                    },
+                },
+            ],
+        };
         return rpcOptions;
     },
     getStreamingOptions: function (token, key) {
@@ -35,11 +35,11 @@ export const grpc = {
                         if (!options.meta) options.meta = {};
                         options.meta['Authorization'] = `Bearer ${token}`;
                         return next(method, input, options);
-                    }
-                }
+                    },
+                },
             ],
-            abort: controller.signal
-        }
+            abort: controller.signal,
+        };
         return rpcOptions;
     },
     abortStream: function (key) {
@@ -48,5 +48,5 @@ export const grpc = {
             controller.abort();
             abortControllers.delete(key);
         }
-    }
-}
+    },
+};

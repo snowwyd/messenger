@@ -11,7 +11,7 @@
     flex-direction: column;
     justify-content: end;
     min-width: 500px;
-    background-color: #0E0E0E;
+    background-color: var(--section-color);
     border-radius: 5px;
     flex-grow: 1;
 }
@@ -29,7 +29,9 @@
     width: 100%;
     min-height: 350px;
     background-color: var(--section-color);
+    background-size: cover;
     border-radius: 5px;
+    /* filter: brightness(0.9); */
 }
 
 .channelListContainer {
