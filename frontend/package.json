@@ -3,27 +3,35 @@
     "version": "1.0.0",
     "type": "module",
     "scripts": {
-        "dev": "vite --host",
-        "build": "vite build",
-        "preview": "vite preview",
+        "dev": "vite --mode development",
+        "build": "vite build --mode production",
+        "preview": "vite preview --host",
+        "prod": "npm run build && npm run preview",
         "genproto": "mkdirp src/proto/gen && npx protoc --proto_path=../protos/proto/ --ts_out=src/proto/gen/ ../protos/proto/*.proto"
     },
     "author": "deoxce",
     "license": "ISC",
     "description": "",
     "dependencies": {
-        "@reduxjs/toolkit": "^2.6.1",
-        "@tanstack/react-query": "^5.67.3",
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0",
+        "@protobuf-ts/grpcweb-transport": "^2.11.0",
+        "@reduxjs/toolkit": "^2.8.2",
+        "@tanstack/react-query": "^5.79.0",
+        "emoji.json": "^15.1.0",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0",
         "react-redux": "^9.2.0",
-        "react-router-dom": "^7.1.5"
+        "react-router-dom": "^7.6.1"
     },
     "devDependencies": {
-        "@protobuf-ts/grpcweb-transport": "^2.9.4",
-        "@protobuf-ts/plugin": "^2.9.4",
-        "@vitejs/plugin-react": "^4.3.4",
+        "@protobuf-ts/plugin": "^2.11.0",
+        "@vitejs/plugin-react": "^4.5.0",
         "mkdirp": "^3.0.1",
-        "vite": "^6.1.0"
+        "vite": "^6.3.5"
+    },
+    "prettier": {
+        "singleQuote": true,
+        "jsxSingleQuote": false,
+        "tabWidth": 4,
+        "printWidth": 120
     }
 }
