@@ -1,0 +1,36 @@
+networks:
+  prod:
+
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+    ports:
+      - 3000:4173
+    env_file:
+      - frontend/.env.production
+  envoy:
+    container_name: envoy
+    build:
+      context: ./envoy
+    networks:
+      - prod
+    ports:
+      - 808:808
+  user-service:
+    container_name: user-service
+    build:
+      context: ./backend/user-service
+    networks:
+      - prod
+    env_file:
+      - backend/user-service/.env
+  chat-service:
+    container_name: chat-service
+    build:
+      context: ./backend/chat-service
+    networks:
+      - prod
+    env_file:
+      - backend/chat-service/.env

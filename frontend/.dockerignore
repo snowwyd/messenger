@@ -1,0 +1,5 @@
+Dockerfile
+.env*
+eslint.config.js
+dist/
+node_modules/
