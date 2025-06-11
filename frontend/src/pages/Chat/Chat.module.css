@@ -20,7 +20,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    width: 350px;
+    min-width: 350px;
     gap: 10px;
     max-height: 100vh;
 }

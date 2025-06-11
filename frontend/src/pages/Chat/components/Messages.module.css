@@ -61,7 +61,7 @@
         margin-top: 10px;
         display: flex;
         gap: 15px;
-        padding: 5px 0 5px 0;
+        padding: 5px 15px 5px 0;
 
         .avatar {
             background: url('@/assets/icons/user.png') center no-repeat;
@@ -94,6 +94,9 @@
         display: flex;
         align-items: center;
 
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+
         &:hover {
             background-color: #0c0c0c;
 
@@ -104,7 +107,7 @@
     }
 
     & > .messageText {
-        padding: 5px 0 5px 70px;
+        padding: 5px 15px 5px 70px;
     }
 
     .dateCaption {

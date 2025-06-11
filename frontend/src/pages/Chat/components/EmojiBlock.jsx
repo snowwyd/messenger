@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import Scroll from '@/components/Scroll/Scroll';
 
 import emoji from 'emoji.json';
 import styles from './EmojiBlock.module.css';
 
-export default function EmojiBlock({ setText }) {
+const EmojiBlock = memo(function EmojiBlock({ setText }) {
     const [visibleCount, setVisibleCount] = useState(200);
 
     const loadMore = () => {
@@ -20,7 +20,7 @@ export default function EmojiBlock({ setText }) {
             </Scroll>
         </div>
     );
-}
+});
 
 function Emoji({ emoji, setText }) {
     const pasteEmoji = () => setText((prev) => prev + emoji.char);
@@ -31,3 +31,5 @@ function Emoji({ emoji, setText }) {
         </div>
     );
 }
+
+export default EmojiBlock;

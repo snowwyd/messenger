@@ -3,6 +3,12 @@ import { useLocation } from 'react-router-dom';
 
 import styles from './Scroll.module.css';
 
+const MIN_THUMB_HEIGHT = 40;
+const THUMB_VERTICAL_PADDING = 10;
+const THUMB_TOP_OFFSET = 5;
+const SCROLL_BOTTOM_THRESHOLD = 100;
+const LOAD_EMOJI_THRESHOLD = 20;
+
 export default function Scroll({ wrapperClass, messageTrigger = null, loadEmoji = null, children }) {
     const contentRef = useRef(null);
     const thumbRef = useRef(null);
@@ -12,34 +18,11 @@ export default function Scroll({ wrapperClass, messageTrigger = null, loadEmoji 
     const startY = useRef(0);
     const startScrollTop = useRef(0);
 
-    const lastScrollHeight = useRef(0);
+    const prevContentHeight = useRef(0);
+
+    const scrollToBottom = () => (contentRef.current.scrollTop = contentRef.current.scrollHeight);
 
     useEffect(() => {
-        if (messageTrigger !== null) {
-            contentRef.current.scrollTop = contentRef.current.scrollHeight;
-        }
-    }, [location.pathname, messageTrigger]);
-
-    useEffect(() => {
-        const contentHeight = contentRef.current.scrollHeight;
-        if (!contentHeight) return;
-        if (messageTrigger == null) return;
-        const contentScrollTop = contentRef.current.scrollTop;
-        const containerHeight = contentRef.current.clientHeight;
-
-        const isAtBottom = contentHeight - contentScrollTop - containerHeight < 50;
-
-        if (contentHeight > lastScrollHeight.current && isAtBottom) {
-            contentRef.current.scrollTop = contentRef.current.scrollHeight;
-        }
-
-        lastScrollHeight.current = contentHeight;
-    });
-
-    useEffect(() => {
-        updateThumbHeight();
-        updateThumbPosition();
-
         document.addEventListener('mousemove', onDrag);
         document.addEventListener('mouseup', stopDragging);
 
@@ -47,6 +30,11 @@ export default function Scroll({ wrapperClass, messageTrigger = null, loadEmoji 
             document.removeEventListener('mousemove', onDrag);
             document.removeEventListener('mouseup', stopDragging);
         };
+    }, []);
+
+    useEffect(() => {
+        updateThumbHeight();
+        updateThumbPosition();
     });
 
     function startDragging(event) {
@@ -73,8 +61,8 @@ export default function Scroll({ wrapperClass, messageTrigger = null, loadEmoji 
     function updateThumbHeight() {
         const contentHeight = contentRef.current.scrollHeight;
         const containerHeight = contentRef.current.clientHeight;
-        const thumbHeight = Math.max((containerHeight / contentHeight) * containerHeight, 40);
-        thumbRef.current.style.height = `${thumbHeight - 10}px`;
+        const thumbHeight = Math.max((containerHeight / contentHeight) * containerHeight, MIN_THUMB_HEIGHT);
+        thumbRef.current.style.height = `${thumbHeight - THUMB_VERTICAL_PADDING}px`;
 
         if (thumbHeight >= containerHeight) {
             thumbRef.current.style.height = `0px`;
@@ -85,11 +73,29 @@ export default function Scroll({ wrapperClass, messageTrigger = null, loadEmoji 
         const contentScrollTop = contentRef.current.scrollTop;
         const contentHeight = contentRef.current.scrollHeight;
         const containerHeight = contentRef.current.clientHeight;
-        if (loadEmoji !== null && contentScrollTop >= contentHeight - containerHeight - 20) loadEmoji();
+        if (loadEmoji !== null && contentScrollTop + containerHeight >= contentHeight - LOAD_EMOJI_THRESHOLD) {
+            loadEmoji();
+        }
         const scrollRatio = contentScrollTop / (contentHeight - containerHeight);
-        const thumbTop = scrollRatio * (containerHeight - thumbRef.current.clientHeight - 10);
-        thumbRef.current.style.top = `${thumbTop + 5}px`;
+        const thumbTop = scrollRatio * (containerHeight - thumbRef.current.clientHeight - THUMB_VERTICAL_PADDING);
+        thumbRef.current.style.top = `${thumbTop + THUMB_TOP_OFFSET}px`;
     }
+
+    useEffect(() => {
+        if (messageTrigger == null) return;
+        scrollToBottom();
+    }, [location.pathname, messageTrigger]);
+
+    useEffect(() => {
+        if (messageTrigger == null) return;
+        const contentHeight = contentRef.current.scrollHeight;
+        const contentScrollTop = contentRef.current.scrollTop;
+        const containerHeight = contentRef.current.clientHeight;
+
+        const isAtBottom = contentHeight - (contentScrollTop + containerHeight) < SCROLL_BOTTOM_THRESHOLD;
+        if (contentHeight > prevContentHeight.current && isAtBottom) scrollToBottom();
+        prevContentHeight.current = contentHeight;
+    });
 
     return (
         <>

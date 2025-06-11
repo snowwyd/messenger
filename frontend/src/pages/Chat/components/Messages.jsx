@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
@@ -16,12 +16,9 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
     const queryClient = useQueryClient();
     const token = useSelector((state) => state.auth.token);
 
-    const [text, setText] = useState('');
-    const textareaRef = useRef(null);
+    const scrollToBottomTrigger = useRef(false);
 
-    const [scrollToBottomTrigger, setScrollToBottomTrigger] = useState(false);
-
-    const [isEmojiBlock, setIsEmojiBlock] = useState(false);
+    const messageListCopy = useRef([]);
 
     const messageList = useQuery({
         queryKey: ['messageList', channelId],
@@ -29,13 +26,7 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
         cacheTime: 60 * 60000,
     });
 
-    const sendMessageMutation = useMutation({
-        mutationFn: (message) => chatService.sendMessage(token, message.channelId, message.text),
-        onSuccess: (data) => {
-            setScrollToBottomTrigger((prev) => !prev);
-            setText('');
-        },
-    });
+    if (messageList.data) messageListCopy.current = [...messageList.data];
 
     const messageStream = useStream({
         streamKey: 'messages',
@@ -52,6 +43,40 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
         messageStream.stream(channelId);
         return () => messageStream.abortStream();
     }, [location.pathname, queryClient]);
+
+    return (
+        <>
+            {!messageList.isLoading && !messageList.isError && (
+                <Scroll wrapperClass={styles.messagesWindow} messageTrigger={scrollToBottomTrigger.current}>
+                    {messageList.data.map((item, index) => (
+                        <Message
+                            messages={messageListCopy}
+                            message={item}
+                            index={index}
+                            membersUsernames={membersUsernames}
+                            key={item.messageId}
+                        />
+                    ))}
+                </Scroll>
+            )}
+            <Textarea channelId={channelId} scrollToBottomTrigger={scrollToBottomTrigger} />
+        </>
+    );
+}
+
+function Textarea({ channelId, scrollToBottomTrigger }) {
+    const [text, setText] = useState('');
+    const textareaRef = useRef(null);
+    const [isEmojiBlock, setIsEmojiBlock] = useState(false);
+    const token = useSelector((state) => state.auth.token);
+
+    const sendMessageMutation = useMutation({
+        mutationFn: (message) => chatService.sendMessage(token, message.channelId, message.text),
+        onSuccess: () => {
+            scrollToBottomTrigger.current = !scrollToBottomTrigger.current;
+            setText('');
+        },
+    });
 
     async function sendMessage(event) {
         if (event.key === 'Enter' && !event.shiftKey) {
@@ -84,19 +109,6 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
 
     return (
         <>
-            {!messageList.isLoading && !messageList.isError && (
-                <Scroll wrapperClass={styles.messagesWindow} messageTrigger={scrollToBottomTrigger}>
-                    {messageList.data.map((item, index) => (
-                        <Message
-                            messages={messageList.data}
-                            message={item}
-                            index={index}
-                            membersUsernames={membersUsernames}
-                            key={index}
-                        />
-                    ))}
-                </Scroll>
-            )}
             <div className={styles.messageFieldContainer}>
                 <div className={styles.messageField}>
                     <textarea
@@ -116,9 +128,9 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
     );
 }
 
-function Message({ messages, message, index, membersUsernames }) {
+const Message = memo(function Message({ messages, message, index, membersUsernames }) {
     const isFirstMessage = index === 0 ? true : false;
-    const isFirstInGroup = isFirstMessage || messages[index - 1].senderId !== message.senderId;
+    const isFirstInGroup = isFirstMessage || messages.current[index - 1].senderId !== message.senderId;
 
     const date = new Date(Number(message.createdAt.seconds) * 1000);
     const formattedDate = date.toLocaleString('en-GB', {
@@ -142,7 +154,7 @@ function Message({ messages, message, index, membersUsernames }) {
         hour12: true,
     });
 
-    const prevDate = !isFirstMessage ? new Date(Number(messages[index - 1].createdAt.seconds) * 1000) : date;
+    const prevDate = !isFirstMessage ? new Date(Number(messages.current[index - 1].createdAt.seconds) * 1000) : date;
     const isAnotherDay = date.toLocaleDateString() !== prevDate.toLocaleDateString() || isFirstMessage ? true : false;
 
     return (
@@ -173,4 +185,4 @@ function Message({ messages, message, index, membersUsernames }) {
             </div>
         </>
     );
-}
+});
