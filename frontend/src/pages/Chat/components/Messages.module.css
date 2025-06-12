@@ -94,8 +94,8 @@
         display: flex;
         align-items: center;
 
-        white-space: pre-wrap;
         overflow-wrap: anywhere;
+        text-wrap: pretty;
 
         &:hover {
             background-color: #0c0c0c;

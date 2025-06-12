@@ -12,21 +12,59 @@ import EmojiBlock from './EmojiBlock';
 import styles from './Messages.module.css';
 
 export default function MessagesWindow({ channelId, membersUsernames }) {
+    const scrollToBottomTrigger = useRef(false);
+
+    return (
+        <>
+            <MessageList
+                channelId={channelId}
+                membersUsernames={membersUsernames}
+                scrollToBottomTrigger={scrollToBottomTrigger}
+            />
+            <Textarea channelId={channelId} scrollToBottomTrigger={scrollToBottomTrigger} />
+        </>
+    );
+}
+
+function MessageList({ channelId, membersUsernames, scrollToBottomTrigger }) {
     const location = useLocation();
     const queryClient = useQueryClient();
     const token = useSelector((state) => state.auth.token);
 
-    const scrollToBottomTrigger = useRef(false);
-
-    const messageListCopy = useRef([]);
+    const isMessagesLoadingState = useState(false);
+    const [isAllMessagesLoaded, setIsAllMessagesLoaded] = useState(false);
 
     const messageList = useQuery({
         queryKey: ['messageList', channelId],
         queryFn: () => chatService.getMessages(token, channelId, 100, 1),
-        cacheTime: 60 * 60000,
+        cacheTime: 30 * 60 * 1000,
+        staleTime: 5 * 60 * 1000,
     });
 
-    if (messageList.data) messageListCopy.current = [...messageList.data];
+    const messageListMutation = useMutation({
+        mutationFn: (data) => chatService.getMessages(token, channelId, data.count, data.offset),
+        onSuccess: (prevMessages) => {
+            queryClient.setQueryData(['messageList', channelId], (oldMessages = []) => {
+                if (prevMessages.length === 0) {
+                    setIsAllMessagesLoaded(true);
+                    return oldMessages;
+                }
+
+                return [...prevMessages, ...oldMessages];
+            });
+            isMessagesLoadingState[1](false);
+        },
+    });
+
+    const loadMoreMessages = () => {
+        if (isAllMessagesLoaded) return;
+
+        const data = {
+            count: 100,
+            offset: messageList.data.length + 1,
+        };
+        messageListMutation.mutate(data);
+    };
 
     const messageStream = useStream({
         streamKey: 'messages',
@@ -44,23 +82,26 @@ export default function MessagesWindow({ channelId, membersUsernames }) {
         return () => messageStream.abortStream();
     }, [location.pathname, queryClient]);
 
+    if (messageList.isLoading) return <div>Загрузка</div>;
+    if (messageList.error) return <div>Ошибка: {messageList.error.message}</div>;
+
     return (
-        <>
-            {!messageList.isLoading && !messageList.isError && (
-                <Scroll wrapperClass={styles.messagesWindow} messageTrigger={scrollToBottomTrigger.current}>
-                    {messageList.data.map((item, index) => (
-                        <Message
-                            messages={messageListCopy}
-                            message={item}
-                            index={index}
-                            membersUsernames={membersUsernames}
-                            key={item.messageId}
-                        />
-                    ))}
-                </Scroll>
-            )}
-            <Textarea channelId={channelId} scrollToBottomTrigger={scrollToBottomTrigger} />
-        </>
+        <Scroll
+            wrapperClass={styles.messagesWindow}
+            messageTrigger={scrollToBottomTrigger.current}
+            loadMessages={loadMoreMessages}
+            isMessagesLoadingState={isMessagesLoadingState}
+        >
+            {messageList.data.map((item, index) => (
+                <Message
+                    prevMessage={messageList.data[index - 1]}
+                    message={item}
+                    index={index}
+                    membersUsernames={membersUsernames}
+                    key={item.messageId}
+                />
+            ))}
+        </Scroll>
     );
 }
 
@@ -128,9 +169,9 @@ function Textarea({ channelId, scrollToBottomTrigger }) {
     );
 }
 
-const Message = memo(function Message({ messages, message, index, membersUsernames }) {
+const Message = memo(function Message({ prevMessage, message, index, membersUsernames }) {
     const isFirstMessage = index === 0 ? true : false;
-    const isFirstInGroup = isFirstMessage || messages.current[index - 1].senderId !== message.senderId;
+    const isFirstInGroup = isFirstMessage || prevMessage.senderId !== message.senderId;
 
     const date = new Date(Number(message.createdAt.seconds) * 1000);
     const formattedDate = date.toLocaleString('en-GB', {
@@ -154,7 +195,7 @@ const Message = memo(function Message({ messages, message, index, membersUsernam
         hour12: true,
     });
 
-    const prevDate = !isFirstMessage ? new Date(Number(messages.current[index - 1].createdAt.seconds) * 1000) : date;
+    const prevDate = !isFirstMessage ? new Date(Number(prevMessage.createdAt.seconds) * 1000) : date;
     const isAnotherDay = date.toLocaleDateString() !== prevDate.toLocaleDateString() || isFirstMessage ? true : false;
 
     return (

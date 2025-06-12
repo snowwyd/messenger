@@ -9,7 +9,14 @@ const THUMB_TOP_OFFSET = 5;
 const SCROLL_BOTTOM_THRESHOLD = 100;
 const LOAD_EMOJI_THRESHOLD = 20;
 
-export default function Scroll({ wrapperClass, messageTrigger = null, loadEmoji = null, children }) {
+export default function Scroll({
+    wrapperClass,
+    messageTrigger = null,
+    loadEmoji = null,
+    loadMessages = null,
+    isMessagesLoadingState = null,
+    children,
+}) {
     const contentRef = useRef(null);
     const thumbRef = useRef(null);
     const location = useLocation();
@@ -21,6 +28,22 @@ export default function Scroll({ wrapperClass, messageTrigger = null, loadEmoji 
     const prevContentHeight = useRef(0);
 
     const scrollToBottom = () => (contentRef.current.scrollTop = contentRef.current.scrollHeight);
+
+    useEffect(() => {
+        if (messageTrigger == null) return;
+        scrollToBottom();
+    }, [location.pathname, messageTrigger]);
+
+    useEffect(() => {
+        if (messageTrigger == null) return;
+        const contentHeight = contentRef.current.scrollHeight;
+        const contentScrollTop = contentRef.current.scrollTop;
+        const containerHeight = contentRef.current.clientHeight;
+
+        const isAtBottom = contentHeight - (contentScrollTop + containerHeight) < SCROLL_BOTTOM_THRESHOLD;
+        if (contentHeight > prevContentHeight.current && isAtBottom) scrollToBottom();
+        prevContentHeight.current = contentHeight;
+    });
 
     useEffect(() => {
         document.addEventListener('mousemove', onDrag);
@@ -73,29 +96,20 @@ export default function Scroll({ wrapperClass, messageTrigger = null, loadEmoji 
         const contentScrollTop = contentRef.current.scrollTop;
         const contentHeight = contentRef.current.scrollHeight;
         const containerHeight = contentRef.current.clientHeight;
+
         if (loadEmoji !== null && contentScrollTop + containerHeight >= contentHeight - LOAD_EMOJI_THRESHOLD) {
             loadEmoji();
         }
+
+        if (loadMessages !== null && contentScrollTop <= 1000 && !isMessagesLoadingState[0]) {
+            isMessagesLoadingState[1](true);
+            loadMessages();
+        }
+
         const scrollRatio = contentScrollTop / (contentHeight - containerHeight);
         const thumbTop = scrollRatio * (containerHeight - thumbRef.current.clientHeight - THUMB_VERTICAL_PADDING);
         thumbRef.current.style.top = `${thumbTop + THUMB_TOP_OFFSET}px`;
     }
-
-    useEffect(() => {
-        if (messageTrigger == null) return;
-        scrollToBottom();
-    }, [location.pathname, messageTrigger]);
-
-    useEffect(() => {
-        if (messageTrigger == null) return;
-        const contentHeight = contentRef.current.scrollHeight;
-        const contentScrollTop = contentRef.current.scrollTop;
-        const containerHeight = contentRef.current.clientHeight;
-
-        const isAtBottom = contentHeight - (contentScrollTop + containerHeight) < SCROLL_BOTTOM_THRESHOLD;
-        if (contentHeight > prevContentHeight.current && isAtBottom) scrollToBottom();
-        prevContentHeight.current = contentHeight;
-    });
 
     return (
         <>
