@@ -116,3 +116,11 @@
 .greenPulse {
     animation: green-pulse 1s ease-out;
 }
+
+@media (max-width: 900px) {
+    .forms {
+        position: absolute;
+        right: unset !important;
+        left: unset !important;
+    }
+}

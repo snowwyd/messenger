@@ -29,6 +29,8 @@ export default function App() {
     const registerFormRef = useRef(null);
     const loginFormRef = useRef(null);
 
+    const [isSignUpFormActive, setIsSignUpFormActive] = useState(true);
+
     const switchImage = () => setCurrentImage((prev) => (prev >= authImages.length - 1 ? 0 : prev + 1));
     useEffect(() => localStorage.setItem('currentAuthImage', currentImage), [currentImage]);
 
@@ -60,6 +62,8 @@ export default function App() {
     function switchForm(toLeft) {
         const duration = 1000;
         const animateImageBlock = (progress) => {
+            setIsSignUpFormActive(!toLeft);
+
             const showRegister = (progress < 0.6 && toLeft) || (progress > 0.4 && !toLeft);
             const showLogin = (progress > 0.4 && toLeft) || (progress < 0.6 && !toLeft);
 
@@ -74,8 +78,8 @@ export default function App() {
             const formsInterval = 100;
 
             imageContainerRef.current.style.clipPath = `xywh(${
-                toLeft ? 49 - progress * 50 : progress * 50
-            }% 0% 51% 100%)`;
+                toLeft ? 50 - progress * 50 : progress * 50
+            }% 0% 50% 100%)`;
             imageRef.current.style.left = toLeft
                 ? -bgInterval + progress * bgInterval + 'px'
                 : progress * -bgInterval + 'px';
@@ -130,6 +134,10 @@ export default function App() {
                         <span ref={signInTextRef}>sign in</span>
                         <div className={styles.selection} ref={selectionSignInRef}></div>
                     </div>
+                </div>
+                <div className={styles.switchFormMobileButton}>
+                    {isSignUpFormActive && <span onClick={switchFormToSignIn}>sign in form</span>}
+                    {!isSignUpFormActive && <span onClick={switchFormToSignUp}>sign up form</span>}
                 </div>
             </div>
         </div>
