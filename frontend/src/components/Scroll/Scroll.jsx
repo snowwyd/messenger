@@ -1,49 +1,18 @@
 import { useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 
 import styles from './Scroll.module.css';
 
 const MIN_THUMB_HEIGHT = 40;
 const THUMB_VERTICAL_PADDING = 10;
 const THUMB_TOP_OFFSET = 5;
-const SCROLL_BOTTOM_THRESHOLD = 100;
-const LOAD_EMOJI_THRESHOLD = 20;
 
-export default function Scroll({
-    wrapperClass,
-    messageTrigger = null,
-    loadEmoji = null,
-    loadMessages = null,
-    isMessagesLoadingState = null,
-    children,
-}) {
+export default function Scroll({ wrapperClass, isReversedRender = false, callback = null, children }) {
     const contentRef = useRef(null);
     const thumbRef = useRef(null);
-    const location = useLocation();
 
     const isDragging = useRef(false);
     const startY = useRef(0);
     const startScrollTop = useRef(0);
-
-    const prevContentHeight = useRef(0);
-
-    const scrollToBottom = () => (contentRef.current.scrollTop = contentRef.current.scrollHeight);
-
-    useEffect(() => {
-        if (messageTrigger == null) return;
-        scrollToBottom();
-    }, [location.pathname, messageTrigger]);
-
-    useEffect(() => {
-        if (messageTrigger == null) return;
-        const contentHeight = contentRef.current.scrollHeight;
-        const contentScrollTop = contentRef.current.scrollTop;
-        const containerHeight = contentRef.current.clientHeight;
-
-        const isAtBottom = contentHeight - (contentScrollTop + containerHeight) < SCROLL_BOTTOM_THRESHOLD;
-        if (contentHeight > prevContentHeight.current && isAtBottom) scrollToBottom();
-        prevContentHeight.current = contentHeight;
-    });
 
     useEffect(() => {
         document.addEventListener('mousemove', onDrag);
@@ -86,25 +55,17 @@ export default function Scroll({
         const containerHeight = contentRef.current.clientHeight;
         const thumbHeight = Math.max((containerHeight / contentHeight) * containerHeight, MIN_THUMB_HEIGHT);
         thumbRef.current.style.height = `${thumbHeight - THUMB_VERTICAL_PADDING}px`;
-
-        if (thumbHeight >= containerHeight) {
-            thumbRef.current.style.height = `0px`;
-        }
+        if (thumbHeight >= containerHeight) thumbRef.current.style.height = `0px`;
     }
 
     function updateThumbPosition() {
-        const contentScrollTop = contentRef.current.scrollTop;
         const contentHeight = contentRef.current.scrollHeight;
         const containerHeight = contentRef.current.clientHeight;
+        const contentScrollTop = isReversedRender
+            ? contentHeight - containerHeight + contentRef.current.scrollTop
+            : contentRef.current.scrollTop;
 
-        if (loadEmoji !== null && contentScrollTop + containerHeight >= contentHeight - LOAD_EMOJI_THRESHOLD) {
-            loadEmoji();
-        }
-
-        if (loadMessages !== null && contentScrollTop <= 1000 && !isMessagesLoadingState[0]) {
-            isMessagesLoadingState[1](true);
-            loadMessages();
-        }
+        if (callback) callback(contentScrollTop, contentHeight, containerHeight);
 
         const scrollRatio = contentScrollTop / (contentHeight - containerHeight);
         const thumbTop = scrollRatio * (containerHeight - thumbRef.current.clientHeight - THUMB_VERTICAL_PADDING);

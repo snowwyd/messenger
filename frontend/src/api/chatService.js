@@ -31,7 +31,7 @@ export const chatService = {
             offset: offset,
         };
         const call = await grpc.chatClient.getMessages(input, rpcOptions);
-        return call.response.messages.reverse();
+        return call.response.messages;
     },
     createChat: async function (token, type, userIds, name) {
         const rpcOptions = grpc.getUnaryOptions(token);

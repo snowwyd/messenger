@@ -4,6 +4,8 @@ import Scroll from '@/components/Scroll/Scroll';
 import emoji from 'emoji.json';
 import styles from './EmojiBlock.module.css';
 
+const LOAD_EMOJI_THRESHOLD = 20;
+
 const EmojiBlock = memo(function EmojiBlock({ setText }) {
     const [visibleCount, setVisibleCount] = useState(200);
 
@@ -11,9 +13,15 @@ const EmojiBlock = memo(function EmojiBlock({ setText }) {
         setVisibleCount((prev) => Math.min(prev + 200, emoji.length));
     };
 
+    function updateThumbPositionCallback(contentScrollTop, contentHeight, containerHeight) {
+        if (contentScrollTop + containerHeight >= contentHeight - LOAD_EMOJI_THRESHOLD) {
+            loadMore();
+        }
+    }
+
     return (
         <div className={styles.emojiBlock}>
-            <Scroll wrapperClass={styles.emojiContainer} loadEmoji={loadMore}>
+            <Scroll wrapperClass={styles.emojiContainer} callback={updateThumbPositionCallback}>
                 {emoji.slice(0, visibleCount).map((item, index) => (
                     <Emoji emoji={item} setText={setText} key={index} />
                 ))}

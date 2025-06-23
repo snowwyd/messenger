@@ -12,100 +12,122 @@ import EmojiBlock from './EmojiBlock';
 import styles from './Messages.module.css';
 
 export default function MessagesWindow({ channelId, membersUsernames }) {
-    const scrollToBottomTrigger = useRef(false);
-
     return (
         <>
-            <MessageList
-                channelId={channelId}
-                membersUsernames={membersUsernames}
-                scrollToBottomTrigger={scrollToBottomTrigger}
-            />
-            <Textarea channelId={channelId} scrollToBottomTrigger={scrollToBottomTrigger} />
+            <MessageList channelId={channelId} membersUsernames={membersUsernames} />
+            <Textarea channelId={channelId} />
         </>
     );
 }
 
-function MessageList({ channelId, membersUsernames, scrollToBottomTrigger }) {
+function MessageList({ channelId, membersUsernames }) {
     const location = useLocation();
     const queryClient = useQueryClient();
     const token = useSelector((state) => state.auth.token);
 
-    const isMessagesLoadingState = useState(false);
-    const [isAllMessagesLoaded, setIsAllMessagesLoaded] = useState(false);
+    const isMessagesLoading = useRef(false);
+    const isAllMessagesLoaded = useRef(false);
+
+    const [messages, setMessages] = useState([]);
 
     const messageList = useQuery({
         queryKey: ['messageList', channelId],
         queryFn: () => chatService.getMessages(token, channelId, 100, 1),
         cacheTime: 30 * 60 * 1000,
-        staleTime: 5 * 60 * 1000,
     });
 
     const messageListMutation = useMutation({
         mutationFn: (data) => chatService.getMessages(token, channelId, data.count, data.offset),
         onSuccess: (prevMessages) => {
-            queryClient.setQueryData(['messageList', channelId], (oldMessages = []) => {
-                if (prevMessages.length === 0) {
-                    setIsAllMessagesLoaded(true);
-                    return oldMessages;
-                }
+            if (prevMessages.length === 0) {
+                isAllMessagesLoaded.current = true;
+            } else {
+                setMessages((prev) => {
+                    if (prev.at(-1).messageId === prevMessages.at(-1).messageId) return prev;
+                    return [...prev, ...prevMessages];
+                });
+            }
 
-                return [...prevMessages, ...oldMessages];
-            });
-            isMessagesLoadingState[1](false);
+            isMessagesLoading.current = false;
         },
     });
-
-    const loadMoreMessages = () => {
-        if (isAllMessagesLoaded) return;
-
-        const data = {
-            count: 100,
-            offset: messageList.data.length + 1,
-        };
-        messageListMutation.mutate(data);
-    };
 
     const messageStream = useStream({
         streamKey: 'messages',
         streamFn: (channelId, key) => chatService.messageStream(token, key, channelId),
         onResponse: (newMessage) => {
             queryClient.setQueryData(['messageList', channelId], (oldMessages = []) => {
-                return [...oldMessages, newMessage];
+                return [newMessage, ...oldMessages];
             });
         },
         onError: (error) => console.log(error.message),
     });
 
     useEffect(() => {
+        setMessages([]);
+        isMessagesLoading.current = false;
+        isAllMessagesLoaded.current = false;
+    }, [location.pathname]);
+
+    useEffect(() => {
         messageStream.stream(channelId);
         return () => messageStream.abortStream();
     }, [location.pathname, queryClient]);
+
+    useEffect(() => {
+        if (!messageList.data) return;
+        if (messageList.data.length < 100) isAllMessagesLoaded.current = true;
+        setMessages((prev) => {
+            if (prev.length === 0) return messageList.data;
+            const index = messageList.data.findIndex((message) => message.messageId === prev[0].messageId);
+            return [...messageList.data.slice(0, index), ...prev];
+        });
+    }, [messageList.data]);
+
+    function loadMoreMessages() {
+        const data = {
+            count: 100,
+            offset: messages.length + 1,
+        };
+        messageListMutation.mutate(data);
+    }
+
+    function updateThumbPositionCallback(contentScrollTop) {
+        if (isMessagesLoading.current || isAllMessagesLoaded.current) return;
+
+        if (contentScrollTop <= 1000) {
+            isMessagesLoading.current = true;
+            loadMoreMessages();
+        }
+    }
 
     if (messageList.isLoading) return <div>Загрузка</div>;
     if (messageList.error) return <div>Ошибка: {messageList.error.message}</div>;
 
     return (
-        <Scroll
-            wrapperClass={styles.messagesWindow}
-            messageTrigger={scrollToBottomTrigger.current}
-            loadMessages={loadMoreMessages}
-            isMessagesLoadingState={isMessagesLoadingState}
-        >
-            {messageList.data.map((item, index) => (
-                <Message
-                    prevMessage={messageList.data[index - 1]}
-                    message={item}
-                    index={index}
-                    membersUsernames={membersUsernames}
-                    key={item.messageId}
-                />
-            ))}
-        </Scroll>
+        <>
+            {messages.length > 0 && (
+                <Scroll
+                    wrapperClass={styles.messagesWindow}
+                    isReversedRender={true}
+                    callback={updateThumbPositionCallback}
+                >
+                    {messages.map((item, index) => (
+                        <Message
+                            nextMessage={messages[index + 1]}
+                            message={item}
+                            membersUsernames={membersUsernames}
+                            lastMessage={messages.at(-1)}
+                            key={item.messageId}
+                        />
+                    ))}
+                </Scroll>
+            )}
+        </>
     );
 }
 
-function Textarea({ channelId, scrollToBottomTrigger }) {
+function Textarea({ channelId }) {
     const [text, setText] = useState('');
     const textareaRef = useRef(null);
     const [isEmojiBlock, setIsEmojiBlock] = useState(false);
@@ -113,10 +135,7 @@ function Textarea({ channelId, scrollToBottomTrigger }) {
 
     const sendMessageMutation = useMutation({
         mutationFn: (message) => chatService.sendMessage(token, message.channelId, message.text),
-        onSuccess: () => {
-            scrollToBottomTrigger.current = !scrollToBottomTrigger.current;
-            setText('');
-        },
+        onSuccess: () => setText(''),
     });
 
     async function sendMessage(event) {
@@ -169,9 +188,9 @@ function Textarea({ channelId, scrollToBottomTrigger }) {
     );
 }
 
-const Message = memo(function Message({ prevMessage, message, index, membersUsernames }) {
-    const isFirstMessage = index === 0 ? true : false;
-    const isFirstInGroup = isFirstMessage || prevMessage.senderId !== message.senderId;
+const Message = memo(function Message({ nextMessage, message, membersUsernames, lastMessage }) {
+    const isLastMessage = message.messageId === lastMessage.messageId ? true : false;
+    const isFirstInGroup = isLastMessage || nextMessage.senderId !== message.senderId;
 
     const date = new Date(Number(message.createdAt.seconds) * 1000);
     const formattedDate = date.toLocaleString('en-GB', {
@@ -195,23 +214,18 @@ const Message = memo(function Message({ prevMessage, message, index, membersUser
         hour12: true,
     });
 
-    const prevDate = !isFirstMessage ? new Date(Number(prevMessage.createdAt.seconds) * 1000) : date;
-    const isAnotherDay = date.toLocaleDateString() !== prevDate.toLocaleDateString() || isFirstMessage ? true : false;
+    const nextDate = !isLastMessage ? new Date(Number(nextMessage.createdAt.seconds) * 1000) : date;
+    const isAnotherDay = date.toLocaleDateString() !== nextDate.toLocaleDateString() || isLastMessage ? true : false;
 
     return (
         <>
-            {isAnotherDay && (
-                <div className={styles.dateLabel}>
-                    <span>{dateLabel}</span>
-                </div>
-            )}
             <div className={styles.message}>
                 {isFirstInGroup || isAnotherDay ? (
                     <div className={styles.messageUserInfo}>
                         <div className={styles.avatar}></div>
                         <div className={styles.usernameMessage}>
                             <span className={styles.username}>
-                                {membersUsernames[message.senderId]}{' '}
+                                {membersUsernames[message.senderId]}
                                 <span className={styles.dateCaption}>{formattedDate}</span>
                             </span>
                             <pre className={styles.messageText}>{message.text}</pre>
@@ -224,6 +238,11 @@ const Message = memo(function Message({ prevMessage, message, index, membersUser
                     </pre>
                 )}
             </div>
+            {isAnotherDay && (
+                <div className={styles.dateLabel}>
+                    <span>{dateLabel}</span>
+                </div>
+            )}
         </>
     );
 });
