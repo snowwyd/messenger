@@ -1,49 +1,97 @@
 @font-face {
-    font-family: 'Roboto';
-    src: url(fonts/Roboto-VariableFont.ttf);
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    src: url('/fonts/InterVariable.woff2') format('woff2');
 }
 
 @font-face {
     font-family: 'Inter';
-    src: url(fonts/Inter-VariableFont.ttf);
+    font-style: italic;
+    font-weight: 100 900;
+    src: url('/fonts/InterVariable-Italic.woff2') format('woff2');
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+@font-face {
+    font-family: 'Emoji';
+    font-style: normal;
+    font-weight: 400;
+    src: url('/fonts/NotoColorEmoji.woff2') format('woff2');
 }
 
 :root {
-    --background-color: #141414;
-    --section-color: #0E0E0E;
-    --message-field-color: #0B0B0B;
+    --background-color: hsl(240 4% 7%);
+    --section-color: hsl(240 4% 5%);
 
-    --dark-gray-selection: #171717;
-    --light-gray-selection: #1D1D1D;
-    --purple-selection: #4144FF;
+    --message-field-radius: 7.5px;
+    --message-field-color: hsl(240 7% 8%);
 
-    --dark-gray-text: #2F2F2F;
-    --gray-text: #595959;
-    --light-gray-text: #838383;
-    --white-text: #eeeeee;
+    --form-color: hsl(240 4% 7%);
+    --input-color: hsl(240 4% 5%);
 
-    --direct-category: linear-gradient(120deg, #485563, #29323c);
-    --groups-category: linear-gradient(120deg, #834d9b, #d04ed6);
+    --white-selection: hsl(0 0 100% / 0.05);
+    --tinted-selection: hsl(240 100% 95% / 0.05);
+    --purple-selection: hsl(240 50% 55%);
+
+    --dark-gray-text: hsl(0 0 20%);
+    --gray-text: hsl(0 0 40%);
+    --light-gray-text: hsl(0 0 75%);
+    --default-text-color: hsl(0 0 95%);
+
+    --block-border-radius: 10px;
+    --button-border-radius: 5px;
+
+    --block-gaps: 10px;
+
+    --direct-category: hsl(240 50% 55%);
+    --groups-category: hsl(270 50% 55%);
+
+    --direct-category-gradient: linear-gradient(120deg, hsl(240 50% 55%), hsl(270 60% 55%));
+    --groups-category-gradient: linear-gradient(120deg, hsl(270 50% 55%), hsl(300 50% 55%));
 }
 
 html {
-    font-family: 'Inter';
+    font-family: 'Inter', 'Emoji';
     font-size: 14px;
-    color: white;
-    overflow: hidden;
+    color: var(--default-text-color);
+    background-color: var(--background-color);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+:where(ul, ol):where([class]) {
+    padding-left: 0;
+}
+
+body,
+:where(blockquote, figure):where([class]) {
+    margin: 0;
+}
+
+:where(h1, h2, h3, h4, h5, h6, p, ul, ol, pre):where([class]) {
+    margin-block: 0;
+}
+
+:where(ul[class]) {
+    list-style: none;
+}
+
+img {
+    display: block;
 }
 
 a {
     text-decoration: none;
 }
 
-textarea, input, button {
-    font-family: 'Inter';
+input,
+textarea,
+select,
+button {
+    font: inherit;
+    color: inherit;
+    border: none;
     outline: none;
 }

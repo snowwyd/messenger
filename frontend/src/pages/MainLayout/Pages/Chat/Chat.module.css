@@ -1,0 +1,48 @@
+.chat {
+    display: flex;
+    flex-grow: 1;
+    column-gap: var(--block-gaps);
+    padding-block: var(--block-gaps);
+    padding-right: var(--block-gaps);
+}
+
+.messagesWindowContainer {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    width: 500px;
+    flex-grow: 1;
+    flex-direction: column;
+    justify-content: end;
+    background-color: var(--section-color);
+    border-radius: var(--block-border-radius);
+}
+
+.chatSidebar {
+    position: relative;
+    display: flex;
+    width: 350px;
+    flex-shrink: 0;
+    flex-direction: column;
+    row-gap: var(--block-gaps);
+}
+
+.avatarBlock {
+    aspect-ratio: 1 / 1;
+    flex-shrink: 0;
+    background-color: var(--section-color);
+    background-size: cover;
+    border-radius: var(--block-border-radius);
+}
+
+.channelListContainer {
+    position: relative;
+    min-height: 0;
+    flex-grow: 1;
+    background-color: var(--section-color);
+    border-radius: var(--block-border-radius);
+}
+
+.sidebarResizer {
+    left: -5px;
+}

@@ -1,0 +1,31 @@
+.embed {
+    display: block;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.marginTop {
+    margin-top: 5px;
+}
+
+.soundcloudWrapperRectangle {
+    width: 500px;
+    height: calc(191px - 3px - 16px);
+    overflow: hidden;
+
+    .soundcloud {
+        position: relative;
+        top: -3px;
+    }
+}
+
+.picture {
+    display: block;
+    overflow: hidden;
+    border-radius: 10px;
+    width: 60%;
+
+    img {
+        width: 100%;
+    }
+}

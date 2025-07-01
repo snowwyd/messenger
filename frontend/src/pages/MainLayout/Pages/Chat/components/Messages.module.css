@@ -1,0 +1,126 @@
+.messagesWindow {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 20px;
+}
+
+.message {
+    flex-shrink: 0;
+}
+
+.username {
+    font-weight: 500;
+    display: flex;
+    align-items: end;
+    gap: 5px;
+
+    .dateCaption {
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--gray-text);
+        margin-left: 2px;
+    }
+}
+
+.messageText {
+    width: 100%;
+    color: #dadada;
+    white-space: pre-line;
+
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
+
+    a {
+        color: var(--purple-selection);
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.messageContent {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    .embeds {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
+.messageUserInfo {
+    margin-top: 10px;
+    display: flex;
+    gap: 15px;
+    padding-block: 5px;
+    padding-right: 15px;
+
+    .avatar {
+        background: url('@/assets/icons/user.png');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        aspect-ratio: 1 / 1;
+        height: 40px;
+        margin-left: 15px;
+        border-radius: 20px;
+    }
+
+    .usernameMessage {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        justify-content: space-between;
+    }
+
+    &:hover {
+        background-color: var(--tinted-selection);
+    }
+}
+
+.messageContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .timeCaption {
+        position: absolute;
+        left: 15px;
+        font-size: 11px;
+        color: var(--gray-text);
+        visibility: hidden;
+        user-select: none;
+    }
+
+    .messageContent {
+        padding-block: 5px;
+        padding-left: 70px;
+        padding-right: 15px;
+    }
+
+    &:hover {
+        background-color: var(--tinted-selection);
+
+        .timeCaption {
+            visibility: visible;
+        }
+    }
+}
+
+.dateLabel {
+    margin-top: 10px;
+    font-weight: 500;
+    position: relative;
+    text-align: center;
+    font-size: 12px;
+    color: var(--light-gray-text);
+
+    & > span {
+        padding: 4px 10px;
+        background-color: var(--tinted-selection);
+        border-radius: 50px;
+    }
+}

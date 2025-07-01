@@ -15,6 +15,8 @@ export function useStream(streamOptions) {
                     store.dispatch(authActions.deauthorize());
                 } else if (error.message === 'stream timeout') {
                     this.stream(data);
+                } else if (error.message === 'network error') {
+                    this.stream(data);
                 }
             }
         },

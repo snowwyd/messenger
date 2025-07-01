@@ -1,0 +1,46 @@
+.channelList {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px;
+    row-gap: 10px;
+}
+
+.channel {
+    display: flex;
+    height: 35px;
+    padding-left: 10px;
+    flex-shrink: 0;
+    align-items: center;
+    column-gap: 5px;
+    font-size: 15px;
+    text-transform: lowercase;
+    color: var(--dark-gray-text);
+    border-radius: var(--button-border-radius);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--default-text-color);
+        background-color: var(--tinted-selection);
+    }
+
+    &.activeChannel {
+        color: var(--default-text-color);
+        background-color: var(--purple-selection);
+    }
+}
+
+.channelIcon {
+    aspect-ratio: 1 / 1;
+    height: 25px;
+    flex-shrink: 0;
+    mask-image: url('@/assets/icons/textChannel.png');
+    mask-position: center;
+    mask-repeat: no-repeat;
+    background-color: currentColor;
+}
+
+.channelName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

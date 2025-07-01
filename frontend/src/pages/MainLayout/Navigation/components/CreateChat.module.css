@@ -1,0 +1,199 @@
+.createChatButton {
+    background: url('@/assets/icons/add.png') no-repeat center;
+    /* background-color: rgba(255, 255, 255, 0.3); */
+    opacity: 0.6;
+    height: 30px;
+    margin-right: 15px;
+    width: 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.createChatModal {
+    top: 0;
+    left: 0;
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+
+    .modalContent {
+        position: relative;
+        background-color: #1d1d1d;
+        /* height: 200px; */
+        width: 500px;
+        border-radius: 5px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 50px;
+    }
+
+    .closeModal {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        height: 30px;
+        width: 30px;
+        background-color: rgb(43, 43, 43);
+        border-radius: 5px;
+        cursor: pointer;
+
+        &:hover {
+            background-color: rgb(53, 53, 53);
+        }
+    }
+
+    input[type='text'] {
+        font-family: 'Roboto';
+        font-size: 14px;
+        border: none;
+        outline: none;
+        height: 35px;
+        color: var(--white-text);
+        background-color: transparent;
+        width: 100%;
+        border-bottom: 1px solid var(--dark-gray-text);
+
+        &::placeholder {
+            color: var(--dark-gray-text);
+        }
+
+        &.searchUserInput {
+            padding: 0 32px;
+            background: url('@/assets/icons/search.svg') no-repeat left;
+            background-size: 15px;
+            background-position: 10px;
+        }
+    }
+}
+
+.userItem {
+    position: relative;
+    height: 50px;
+    width: 100%;
+    background-color: #2e2e2e;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.avatarBlock {
+    background: url('@/assets/icons/user.png') center no-repeat;
+    background-size: 100%;
+    height: 35px;
+    width: 35px;
+    border-radius: 25px;
+    margin-left: 5px;
+    margin-right: 10px;
+}
+
+.createChat {
+    height: 30px;
+    width: 30px;
+    background: url('@/assets/icons/direct.png') no-repeat center;
+    border: none;
+    border-radius: 5px;
+    position: absolute;
+    right: 10px;
+    color: #adadad;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #4b4b4b;
+        color: white;
+    }
+}
+
+.addUser {
+    height: 30px;
+    width: 30px;
+    background: url('@/assets/icons/add.png') no-repeat center;
+    background-size: 60%;
+    border: none;
+    border-radius: 5px;
+    position: absolute;
+    right: 10px;
+    color: #adadad;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #4b4b4b;
+        color: white;
+    }
+}
+
+.addedUser {
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.1);
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 15px;
+    padding-right: 10px;
+    border-radius: 5px;
+
+    .removeAddedUser {
+        height: 25px;
+        width: 25px;
+        background-color: white;
+        opacity: 0.1;
+        border-radius: 5px;
+        cursor: pointer;
+
+        &:hover {
+            opacity: 0.2;
+        }
+    }
+
+    .addedUserUsername {
+        font-weight: 400;
+        font-size: 14px;
+    }
+}
+
+.addedUsersList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.createGroup {
+    width: 100%;
+    height: 50px;
+    background-color: #131313;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.1s;
+
+    &:hover {
+        background-color: #161616;
+    }
+}
+
+.userNotFound {
+    font-size: 14px;
+    font-weight: 400;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #535353;
+}

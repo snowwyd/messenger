@@ -1,10 +1,23 @@
 .container {
-    height: 100vh;
     display: flex;
-    padding: 10px 10px 10px 0;
-    background: var(--background-color);
+    height: 100vh;
+    overflow: hidden;
 }
 
-.leftPanel {
-    min-width: 325px;
+.sidebar {
+    position: relative;
+    display: flex;
+    width: 300px;
+    flex-shrink: 0;
+    flex-direction: column;
+}
+
+.listContainer {
+    position: relative;
+    min-height: 0;
+    flex-grow: 1;
+}
+
+.sidebarResizer {
+    right: -5px;
 }
