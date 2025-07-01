@@ -32,7 +32,7 @@ export default function CreateChat({ type }) {
 
     const createChatMutation = useMutation({
         mutationFn: (chat) => chatService.createChat(token, chat.type, chat.userIds, chat.name),
-        onSuccess: (data) => closeModal(),
+        onSuccess: () => closeModal(),
         onError: (error) => console.log(error.message),
     });
 

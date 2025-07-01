@@ -1,0 +1,35 @@
+.emojiBlock {
+    font-family: 'Roboto', 'Emoji';
+    position: absolute;
+    height: 550px;
+    width: 350px;
+    background-color: var(--message-field-color);
+    border-radius: 5px;
+    right: 10px;
+    bottom: 70px;
+    z-index: 1;
+}
+
+.emojiContainer {
+    padding: 20px;
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+
+    .emoji {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        user-select: none;
+        width: 35px;
+        height: 35px;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    }
+}

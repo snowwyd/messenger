@@ -1,10 +1,9 @@
 .container {
-    height: 100vh;
     display: flex;
-    padding: 10px 10px 10px 0;
-    background: var(--background-color);
+    height: 100vh;
 }
 
 .leftPanel {
-    min-width: 325px;
+    width: 300px;
+    flex-shrink: 0;
 }

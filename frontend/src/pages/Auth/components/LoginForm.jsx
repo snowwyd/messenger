@@ -42,14 +42,13 @@ export default function LoginForm({ formRef }) {
     const errorMessageClasses = [styles.errorMessage, pulse[0] && styles.redPulse, pulse[1] && styles.greenPulse]
         .filter(Boolean)
         .join(' ');
-    const initialFormSyle = { visibility: 'hidden', pointerEvents: 'none' };
 
     return (
-        <form ref={formRef} onSubmit={handleLogin} className={styles.forms} style={initialFormSyle}>
-            <h2>sign in</h2>
+        <form ref={formRef} onSubmit={handleLogin} className={styles.forms}>
+            <h2 className={styles.formName}>sign in</h2>
             <div className={styles.inputsContainer}>
-                <input type="text" name="email" placeholder="email" />
-                <input type="password" name="password" placeholder="password" />
+                <input className={styles.emailInput} type="email" name="email" placeholder="email" />
+                <input className={styles.passwordInput} type="password" name="password" placeholder="password" />
                 <div className={styles.errorMessageContainer}>
                     <p className={errorMessageClasses} onAnimationEnd={resetPulse}>
                         {loginMessage}

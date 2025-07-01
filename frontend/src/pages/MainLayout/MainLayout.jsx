@@ -1,40 +1,43 @@
-import { Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useQuery } from '@tanstack/react-query';
 
-import { chatService } from '@/api/chatService';
-
-import ChatList from './components/ChatList';
 import Categories from './components/Categories';
-import Search from './components/Search';
+import Chat from '@/pages/Chat/Chat.jsx';
+
+import Direct from '@/categories/Direct.jsx';
+import Groups from '@/categories/Groups.jsx';
 
 import styles from './MainLayout.module.css';
 
 export default function MainLayout() {
-    const token = useSelector((state) => state.auth.token);
-    const categoryState = useSelector((state) => state.category.currentCategory);
-
-    const chatList = useQuery({
-        queryKey: ['chatList', categoryState],
-        queryFn: getChatList,
-        enabled: !!categoryState,
-        cacheTime: 60 * 60000,
-    });
-
-    function getChatList() {
-        if (categoryState === 'direct') return chatService.getUserChats(token, 'private');
-        else if (categoryState === 'groups') return chatService.getUserChats(token, 'group');
-        return null;
-    }
-
     return (
         <div className={styles.container}>
             <div className={styles.leftPanel}>
-                <Search />
                 <Categories />
-                {chatList.data && <ChatList chats={chatList.data} />}
+                <Routes>
+                    <Route path="/direct" element={<Direct />} />
+                    <Route path="/groups" element={<Groups />} />
+                    <Route path="*" element={<Navigate to="/direct" />} />
+                </Routes>
             </div>
-            <Outlet />
+            <Page />
         </div>
+    );
+}
+
+function Page() {
+    const currentPageURL = useSelector((state) => state.category.currentPageURL);
+    const categoryOfThePage = useSelector((state) => state.category.categoryOfThePage);
+
+    return (
+        <>
+            {(!categoryOfThePage || !currentPageURL) && <Chat />}
+            {categoryOfThePage === 'direct' && currentPageURL && (
+                <Chat chatId={currentPageURL[0]} channelId={currentPageURL[1]} />
+            )}
+            {categoryOfThePage === 'groups' && currentPageURL && (
+                <Chat chatId={currentPageURL[0]} channelId={currentPageURL[1]} />
+            )}
+        </>
     );
 }

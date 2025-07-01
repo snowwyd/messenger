@@ -8,10 +8,12 @@ const authSlice = createSlice({
     },
     reducers: {
         authorize: function (state, action) {
-            return { isAuth: true, token: action.payload };
+            state.isAuth = true;
+            state.token = action.payload;
         },
         deauthorize: function (state) {
-            return { isAuth: false, token: null };
+            state.isAuth = false;
+            state.token = null;
         },
     },
 });
@@ -19,14 +21,18 @@ const authSlice = createSlice({
 const categorySlice = createSlice({
     name: 'category',
     initialState: {
-        currentCategory: null,
+        currentPageURL: JSON.parse(localStorage.getItem('currentPageURL')) || null,
+        categoryOfThePage: localStorage.getItem('categoryOfThePage') || null,
     },
     reducers: {
         direct: function (state) {
-            return { currentCategory: 'direct' };
+            state.categoryOfThePage = 'direct';
         },
         groups: function (state) {
-            return { currentCategory: 'groups' };
+            state.categoryOfThePage = 'groups';
+        },
+        setCurrentPage: function (state, action) {
+            state.currentPageURL = action.payload;
         },
     },
 });
@@ -43,13 +49,29 @@ const tokenMiddleware = (store) => (next) => (action) => {
     return result;
 };
 
+const categoryMiddleware = (store) => (next) => (action) => {
+    const result = next(action);
+
+    const state = store.getState();
+    const currentPageURL = state.category.currentPageURL;
+    const categoryOfThePage = state.category.categoryOfThePage;
+
+    if (currentPageURL) localStorage.setItem('currentPageURL', JSON.stringify(currentPageURL));
+    else localStorage.removeItem('currentPageURL');
+
+    if (categoryOfThePage) localStorage.setItem('categoryOfThePage', categoryOfThePage);
+    else localStorage.removeItem('categoryOfThePage');
+
+    return result;
+};
+
 export const store = configureStore({
     reducer: {
         auth: authSlice.reducer,
         category: categorySlice.reducer,
     },
     middleware: function (getDefaultMiddleware) {
-        return getDefaultMiddleware().concat(tokenMiddleware);
+        return getDefaultMiddleware().concat(tokenMiddleware, categoryMiddleware);
     },
 });
 

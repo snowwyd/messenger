@@ -1,4 +1,3 @@
-import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 
@@ -9,8 +8,7 @@ import ChannelList from './components/ChannelList';
 
 import styles from './Chat.module.css';
 
-export default function Chat() {
-    const { chatId, channelId } = useParams();
+export default function Chat({ chatId, channelId }) {
     const token = useSelector((state) => state.auth.token);
 
     const chatInfo = useQuery({
@@ -23,16 +21,14 @@ export default function Chat() {
     return (
         <div className={styles.chat}>
             <div className={styles.messagesWindowContainer}>
-                {channelId && !chatInfo.isLoading && !chatInfo.isError && (
-                    <Messages channelId={channelId} membersUsernames={chatInfo.data.usernames} />
+                {channelId && chatInfo.isSuccess && (
+                    <Messages channelId={channelId} usernames={chatInfo.data.usernames} key={channelId} />
                 )}
             </div>
             <div className={styles.chatSidebar}>
-                <div className={styles.chatDetailsContainer}></div>
+                <div className={styles.avatarBlock}></div>
                 <div className={styles.channelListContainer}>
-                    {chatId && !chatInfo.isLoading && !chatInfo.isError && (
-                        <ChannelList chatId={chatId} channels={chatInfo.data.channels} />
-                    )}
+                    {chatId && chatInfo.isSuccess && <ChannelList chatId={chatId} channels={chatInfo.data.channels} />}
                 </div>
             </div>
         </div>

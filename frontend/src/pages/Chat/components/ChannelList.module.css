@@ -1,47 +1,46 @@
 .channelList {
-    height: 100%;
-    width: 100%;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
     padding: 10px;
+    flex-grow: 1;
+    flex-direction: column;
+    row-gap: 10px;
 }
 
 .channel {
-    flex-shrink: 0;
-    height: 35px;
-    padding: 0 10px;
     display: flex;
+    height: 35px;
+    padding-left: 10px;
+    flex-shrink: 0;
     align-items: center;
-    color: var(--dark-gray-text);
+    column-gap: 5px;
     font-size: 15px;
     text-transform: lowercase;
-    border-radius: 5px;
+    color: var(--dark-gray-text);
+    border-radius: var(--button-border-radius);
     cursor: pointer;
-    gap: 5px;
 
     &:hover {
-        color: var(--white-text);
-        background-color: var(--dark-gray-selection);
+        color: var(--default-text-color);
+        background-color: var(--selection);
+    }
 
-        .channelIcon {
-            background-color: var(--white-text);
-        }
+    &.activeChannel {
+        color: var(--default-text-color);
+        background-color: var(--purple-selection);
     }
 }
 
 .channelIcon {
+    aspect-ratio: 1 / 1;
     height: 25px;
-    width: 25px;
+    flex-shrink: 0;
     mask-image: url('@/assets/icons/textChannel.png');
-    background-color: var(--dark-gray-text);
+    mask-position: center;
+    mask-repeat: no-repeat;
+    background-color: currentColor;
 }
 
-.channel.activeChannel {
-    background-color: var(--purple-selection);
-    color: var(--white-text);
-
-    .channelIcon {
-        background-color: var(--white-text);
-    }
+.channelName {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

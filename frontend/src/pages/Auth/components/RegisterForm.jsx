@@ -12,7 +12,7 @@ export default function RegisterForm({ formRef }) {
 
     const registerMutation = useMutation({
         mutationFn: (user) => userService.register(user.username, user.email, user.password),
-        onSuccess: (data) => {
+        onSuccess: () => {
             setRegisterMessage('successful registration');
             setPulse([false, true]);
         },
@@ -41,11 +41,17 @@ export default function RegisterForm({ formRef }) {
 
     return (
         <form className={styles.forms} ref={formRef} onSubmit={handleRegister}>
-            <h2>sign up</h2>
+            <h2 className={styles.formName}>sign up</h2>
             <div className={styles.inputsContainer}>
-                <input type="text" name="username" placeholder="username" />
-                <input type="text" name="email" placeholder="email" />
-                <input type="password" name="password" placeholder="password" />
+                <input className={styles.usernameInput} type="text" name="username" placeholder="username" />
+                <input className={styles.emailInput} type="email" name="email" placeholder="email" />
+                <input
+                    className={styles.passwordInput}
+                    type="password"
+                    name="password"
+                    autoComplete="new-password"
+                    placeholder="password"
+                />
                 <div className={styles.errorMessageContainer}>
                     <p className={errorMessageClasses} onAnimationEnd={resetPulse}>
                         {registerMessage}

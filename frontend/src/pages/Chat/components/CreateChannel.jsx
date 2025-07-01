@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useMutation } from '@tanstack/react-query';
 
@@ -7,9 +6,8 @@ import { chatService } from '@/api/chatService';
 
 import styles from './CreateChannel.module.css';
 
-export default function CreateChannel() {
+export default function CreateChannel({ chatId }) {
     const [channelName, setChannelName] = useState('');
-    const { chatId } = useParams();
     const token = useSelector((state) => state.auth.token);
 
     const createChannelModal = useRef(null);
@@ -19,7 +17,7 @@ export default function CreateChannel() {
 
     const createChannelMutation = useMutation({
         mutationFn: (channel) => chatService.createChannel(token, channel.chatId, channel.name, channel.type),
-        onSuccess: (data) => setChannelName(''),
+        onSuccess: () => setChannelName(''),
     });
 
     async function createChannel() {

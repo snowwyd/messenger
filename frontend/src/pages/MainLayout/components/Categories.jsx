@@ -19,23 +19,25 @@ export default function Categories() {
     return (
         <>
             <nav className={styles.categories}>
-                <NavLink className={setDirectLinkClasses} to="/direct"></NavLink>
-                <NavLink className={setGroupsLinkClasses} to="/groups"></NavLink>
+                <NavLink className={setDirectLinkClasses} to="/direct">
+                    <div className={styles.categoryIcon}></div>
+                </NavLink>
+                <NavLink className={setGroupsLinkClasses} to="/groups">
+                    <div className={styles.categoryIcon}></div>
+                </NavLink>
             </nav>
-            <div className={`${styles.categoryName} ${isGroups ? styles.groupsCategory : ''}`}>
-                {isDirect && (
-                    <>
-                        <div>direct messages</div>
-                        <CreateChat type={'private'} />
-                    </>
-                )}
-                {isGroups && (
-                    <>
-                        <div>groups</div>
-                        <CreateChat type={'group'} />
-                    </>
-                )}
-            </div>
+            {isDirect && (
+                <div className={`${styles.categoryBanner} ${styles.directCategory}`}>
+                    <h3 className={styles.categoryName}>Direct</h3>
+                    <CreateChat type={'private'} />
+                </div>
+            )}
+            {isGroups && (
+                <div className={`${styles.categoryBanner} ${styles.groupsCategory}`}>
+                    <h3 className={styles.categoryName}>Groups</h3>
+                    <CreateChat type={'group'} />
+                </div>
+            )}
         </>
     );
 }
