@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package channel;
+
+import "google/protobuf/empty.proto";
+
+service ChannelService {
+    rpc CreateChannel(Channel.Create.Request) returns (Channel.Create.Response);
+    rpc DeleteChannel(Channel.Delete.Request) returns (google.protobuf.Empty);
+
+    rpc UpdateChannel(Channel.Update.Request) returns (google.protobuf.Empty);
+}
+
+message Channel {
+    
+    message Create {
+
+        message Request {
+            string chat_id = 1;
+            string channel_name = 2;
+            string channel_type = 3;
+        }
+
+        message Response {
+            string channel_id = 1;
+        }
+    }
+
+    message Delete {
+
+        message Request {
+            string chat_id = 1;
+            string channel_id = 2;
+        }
+    }
+
+    message Update {
+
+        message Request {
+            string channel_id = 1;
+            string channel_name = 2;
+            string channel_type = 3;
+        }
+    }
+}

@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package user;
+
+import "google/protobuf/empty.proto";
+
+service AuthService {
+    rpc Register(Auth.Register.Request) returns (Auth.Register.Response);
+    rpc Login(Auth.Login.Request) returns (Auth.Login.Response);
+}
+
+service UserService {
+    rpc GetUserByUsername(User.GetByUsername.Request) returns (User.GetByUsername.Response);
+    rpc GetUserByUserID(User.GetByUserID.Request) returns (User.GetByUserID.Response);
+
+    rpc UpdateUsername(User.UpdateUsername.Request) returns (google.protobuf.Empty);
+    // TODO: update email, password
+    // TODO: update avatar
+}
+
+message Auth {
+
+    message Register {
+
+        message Request {
+            string username = 1;
+            string email = 2;
+            string password = 3;
+        }
+
+        message Response {
+            string user_id = 1;
+            string token = 2;
+        }
+    }
+
+    message Login {
+
+        message Request {
+            string email = 1;
+            string password = 2;
+        }
+
+        message Response {
+            string token = 1;
+        }
+    }
+}
+
+message User {
+
+    message GetByUsername {
+
+        message Request {
+            string username = 1; 
+        }
+
+        message Response {
+            string user_id = 1;
+            string username = 2;
+            // TODO: avatar
+        }
+    }
+
+    message GetByUserID {
+
+        message Request {
+            string user_id = 1;
+        }
+
+        message Response {
+            string user_id = 1;
+            string username = 2;
+        }
+    }
+
+    message UpdateUsername {
+
+        message Request {
+            string username = 1;
+        }
+    }
+}

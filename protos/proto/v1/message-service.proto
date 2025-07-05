@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package message;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service MessageService {
+    rpc GetMessagesByOffset(Message.GetByOffset.Request) returns (Message.GetByOffset.Response);
+    rpc GetMessagesFromID(Message.GetFromID.Request) returns (Message.GetFromID.Response);
+
+    rpc SendMessage(Message.Send.Request) returns (Message.Send.Response);
+    rpc DeleteMessage(Message.Delete.Request) returns(google.protobuf.Empty);
+    // TODO: edit message
+}
+
+message Message {
+
+    message GetByOffset {
+
+        message Request {
+            string channel_id = 1;
+            int32 limit = 2;
+            int32 offset = 3;
+        }
+
+        message Response {
+            repeated Message messages = 1;
+
+            message Message {
+                string message_id = 1;
+                string channel_id = 2;
+                string text = 3;
+                string sender_id = 4;
+                google.protobuf.Timestamp created_at = 5;                 
+            }
+        }
+    }
+
+    message GetFromID {
+
+        message Request {
+            string channel_id = 1;
+            int32 limit = 2;
+            string message_id = 3;
+        }
+
+        message Response {
+            repeated Message messages = 1;
+
+            message Message {
+                string message_id = 1;
+                string channel_id = 2;
+                string text = 3;
+                string sender_id = 4;
+                google.protobuf.Timestamp created_at = 5;                 
+            }
+        }
+    }
+
+    message Send {
+
+        message Request {
+            string channel_id = 1;
+            string text = 2;
+        }
+
+        message Response {
+            string message_id = 1;
+        }
+    }
+
+    message Delete {
+
+        message Request {
+            string message_id = 1;
+        }
+    }
+}

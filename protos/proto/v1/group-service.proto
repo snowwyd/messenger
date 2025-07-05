@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package group;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service GroupService {
+    rpc GetUserGroups(google.protobuf.Empty) returns (Group.GetUserGroups.Response);
+    rpc GetGroupInfo(Group.GetInfo.Request) returns (Group.GetInfo.Response);
+
+    rpc CreateGroup(Group.Create.Request) returns (Group.Create.Response);
+    rpc DeleteGroup(Group.Delete.Request) returns (google.protobuf.Empty);
+    
+    rpc UpdateGroup(Group.Update.Request) returns (google.protobuf.Empty);
+
+    rpc AssignAdmin(Group.AssignAdmin.Request) returns (google.protobuf.Empty);
+
+    rpc SetDefaultChannel(Group.SetDefaultChannel.Request) returns (google.protobuf.Empty);
+}
+
+message Group {
+    
+    message GetUserGroups {
+
+        message Response {
+            repeated GroupPreview groups = 1;
+
+            message GroupPreview {
+                string group_id = 1;
+                string default_channel_id = 2;
+                string group_name = 3;
+                // TODO: avatar
+                LastMessage last_message = 4;
+
+                message LastMessage {
+                    string text = 1;
+                    string channel_name = 2;
+                    string sender_name = 3;
+                    google.protobuf.Timestamp created_at = 4; 
+                }
+            }
+        }
+    }
+
+    message GetInfo {
+
+        message Request {
+            string group_id = 1;
+        }
+
+        message Response {
+            string group_id = 1;
+            string group_name = 2;
+            // TODO: avatar
+            repeated User members = 3;
+            repeated Channel channels = 4;
+
+            message User {
+                string user_id = 1;
+                string username = 2;
+                // TODO: avatar
+            }
+
+            message Channel {
+                string channel_id = 1;
+                string channel_name = 2;
+                string channel_type = 3;
+            }
+        }
+    }
+
+    message Create {
+
+        message Request {
+        string group_name = 1;
+        // TODO: avatar
+        repeated string user_ids = 2;
+        }
+
+        message Response {
+            string group_id = 1;
+        }
+    }
+
+    message Delete {
+
+        message Request {
+            string group_id = 1;
+        }
+    }
+
+    message Update {
+
+        message Request {
+            string group_id = 1;
+            string group_name = 2;
+            // TODO: avatar
+        }
+    }
+
+    message AssignAdmin {
+
+        message Request {
+            string group_id = 1;
+            string user_id = 2;
+        }
+    }
+
+    message SetDefaultChannel {
+
+        message Request {
+            string group_id = 1;
+            string channel_id = 2;
+        }
+    }
+}
