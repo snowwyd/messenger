@@ -1,0 +1,8 @@
+config:
+  env: "local"
+  token_ttl: 12h
+  
+  grpc:
+    port: 809
+    timeout: 24h
+    

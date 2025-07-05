@@ -4,6 +4,8 @@ package user;
 
 import "google/protobuf/empty.proto";
 
+option go_package = "messenger/backend/v1/user-service/gen; userpb";
+
 service AuthService {
     rpc Register(Auth.Register.Request) returns (Auth.Register.Response);
     rpc Login(Auth.Login.Request) returns (Auth.Login.Response);

@@ -2,10 +2,8 @@ version: "3"
 tasks:
   genprotos:
     cmds:
-      - task genuser && task genchat
+      - task genuser
+      
   genuser:
     cmds:
-      - mkdir -p ../backend/user-service/gen && protoc -I proto proto/user.proto --go_out=../backend/user-service/gen --go_opt=paths=source_relative --go-grpc_out=../backend/user-service/gen --go-grpc_opt=paths=source_relative
-  genchat:
-    cmds:
-      - mkdir -p ../backend/chat-service/gen && protoc -I proto proto/chat.proto --go_out=../backend/chat-service/gen --go_opt=paths=source_relative --go-grpc_out=../backend/chat-service/gen --go-grpc_opt=paths=source_relative
+      - mkdir -p ../backend/v1/user-service/gen && protoc -I proto proto/v1/user-service.proto --go_out=../backend/v1/user-service/gen --go_opt=paths=source_relative --go-grpc_out=../backend/v1/user-service/gen --go-grpc_opt=paths=source_relative
