@@ -2,15 +2,18 @@ package service
 
 import (
 	"context"
+	"log/slog"
+	"user-service/internal/config"
 	"user-service/internal/domain"
+	"user-service/internal/lib/jwt"
+	"user-service/internal/lib/regex"
+	"user-service/internal/lib/security"
 )
 
 type AuthService struct {
-}
-
-type RegisterResponse struct {
-	userID string
-	token  string
+	log *slog.Logger
+	cfg *config.Config
+	db  UserRepository
 }
 
 type UserRepository interface {
@@ -22,45 +25,101 @@ type UserRepository interface {
 	UpdateUser(ctx context.Context, user domain.User) (err error)
 }
 
-func (authService *AuthService) Register(ctx context.Context, email, password, username string) (RegisterResponse, error) {
+func NewAuthService(
+	log *slog.Logger,
+	cfg *config.Config,
+	db UserRepository,
+) *AuthService {
+	return &AuthService{
+		log: log,
+		cfg: cfg,
+		db:  db,
+	}
+}
+
+func (authService *AuthService) Register(ctx context.Context, email, password, username string) (domain.RegisterResponse, error) {
 	const op = "service.auth.Register"
 
-	var userID, token string
+	log := authService.log.With(slog.String("op", op), slog.String("email", email))
+	h := NewErrorHandler(log, op)
 
-	// TODO: log
+	log.Info("registering new user")
 
-	// TODO: email, password and username regexp validation
+	log.Debug("validating credentials")
+	if err := regex.CheckCredentials(email, password, username); err != nil {
+		return domain.RegisterResponse{}, h.Handle(err)
+	}
 
-	// TODO: check if username and email are free
+	log.Debug("checking if username and email are free in repo")
+	isFree, err := authService.db.CheckFreeSlot(ctx, email, username)
+	if err != nil {
+		return domain.RegisterResponse{}, h.Handle(err, "check free credentials")
+	}
+	if !isFree {
+		return domain.RegisterResponse{}, h.Handle(domain.ErrRegistered)
+	}
 
 	// TODO: 2FA
 
-	// TODO: hash password
+	log.Debug("hashing password")
+	passHash, err := security.HashPassword(password)
+	if err != nil {
+		return domain.RegisterResponse{}, h.Handle(err, "hash password")
+	}
 
-	// TODO: add to db
+	log.Debug("saving user to repo")
+	user := domain.User{
+		Email:    email,
+		Username: username,
+		PassHash: passHash,
+	}
+	userID, err := authService.db.SaveUser(ctx, user)
+	if err != nil {
+		return domain.RegisterResponse{}, h.Handle(err, "save user to repo")
+	}
 
-	// TODO: generate token
+	log.Debug("generating jwt")
+	token, err := jwt.NewToken(user, authService.cfg.DotEnv.Secrets.AppSecret, authService.cfg.Yaml.TokenTTL)
+	if err != nil {
+		return domain.RegisterResponse{}, h.Handle(err, "generate token")
+	}
 
-	return RegisterResponse{
-		userID: userID,
-		token:  token,
+	log.Info("user registered successfully")
+	return domain.RegisterResponse{
+		UserID: userID,
+		Token:  token,
 	}, nil
 }
 
 func (authService *AuthService) Login(ctx context.Context, email, password string) (string, error) {
 	const op = "service.auth.Login"
 
-	var token string
+	log := authService.log.With(slog.String("op", op), slog.String("email", email))
+	h := NewErrorHandler(log, op)
 
-	// TODO: log
+	log.Info("logging user in")
 
-	// TODO: email and password regexp validation
+	log.Debug("validating credentials")
+	if err := regex.CheckCredentials(email, password, ""); err != nil {
+		return "", h.Handle(err)
+	}
+	log.Debug("finding user in repo")
+	user, err := authService.db.GetUserByField(ctx, "email", email)
+	if err != nil {
+		return "", h.Handle(err)
+	}
 
-	// TODO: find user
+	log.Debug("checking password")
+	if err := security.ComparePassword(password, user.PassHash); err != nil {
+		return "", h.Handle(domain.ErrInvalidCredentials)
+	}
 
-	// TODO: compare password
+	log.Debug("generating jwt")
+	token, err := jwt.NewToken(user, authService.cfg.DotEnv.Secrets.AppSecret, authService.cfg.Yaml.TokenTTL)
+	if err != nil {
+		return "", h.Handle(err, "generate token")
+	}
 
-	// TODO: generate token
-
+	log.Info("user logged in successfully")
 	return token, nil
 }

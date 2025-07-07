@@ -15,7 +15,14 @@ type Config struct {
 }
 
 type DotEnvConfig struct {
+	MongoDB MongoDBConfig
+
 	Secrets SecretsConfig
+}
+
+type MongoDBConfig struct {
+	URI string
+	DB  string
 }
 
 type SecretsConfig struct {
@@ -23,7 +30,8 @@ type SecretsConfig struct {
 }
 
 type YamlConfig struct {
-	GRPC GRPCConfig `yaml:"grpc"`
+	GRPC  GRPCConfig  `yaml:"grpc"`
+	Mongo MongoConfig `yaml:"mongo"`
 
 	Env      string        `yaml:"env"`
 	TokenTTL time.Duration `yaml:"token_ttl"`
@@ -32,6 +40,18 @@ type YamlConfig struct {
 type GRPCConfig struct {
 	Port    int           `yaml:"port"`
 	Timeout time.Duration `yaml:"timeout"`
+}
+
+type MongoConfig struct {
+	ConnectTimeout   time.Duration `yaml:"connect_timeout"`
+	HeartbeatTimeout time.Duration `yaml:"heartbeat_timeout"`
+	PingTimeout      time.Duration `yaml:"ping_timeout"`
+	RequestTimeout   time.Duration `yaml:"req_timeout"`
+
+	MaxPoolSize uint64 `yaml:"max_pool_size"`
+	MinPoolSize uint64 `yaml:"min_pool_size"`
+
+	UsersCol string `yaml:"users_col"`
 }
 
 func MustLoad() *Config {
@@ -54,6 +74,10 @@ func MustLoad() *Config {
 	cfg.DotEnv = DotEnvConfig{
 		Secrets: SecretsConfig{
 			AppSecret: getEnvParam("APP_SECRET", "app_secret"),
+		},
+		MongoDB: MongoDBConfig{
+			URI: getEnvParam("MONGO_URI", ""),
+			DB:  getEnvParam("MONGO_DB", ""),
 		},
 	}
 

@@ -5,4 +5,13 @@ config:
   grpc:
     port: 809
     timeout: 24h
+
+  mongo:
+    connect_timeout: 10s
+    heartbeat_timeout: 30s
+    ping_timeout: 5s
+    req_timeout: 10s
+    max_pool_size: 100
+    min_pool_size: 10
+    users_col: "users"
     

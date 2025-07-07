@@ -16,6 +16,7 @@ type MongoDB struct {
 
 func New(storagePath string, dbName string, usersColName string) *MongoDB {
 	clientOpts := options.Client().ApplyURI(storagePath)
+
 	client, err := mongo.Connect(context.Background(), clientOpts)
 	if err != nil {
 		panic(err)
