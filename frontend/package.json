@@ -3,8 +3,8 @@
     "version": "1.0.0",
     "type": "module",
     "scripts": {
-        "dev": "vite --mode development",
-        "build": "vite build --mode production",
+        "dev": "vite",
+        "build": "vite build",
         "preview": "vite preview --host",
         "prod": "npm run build && npm run preview",
         "genproto": "mkdirp src/proto/gen && npx protoc --proto_path=../protos/proto/ --ts_out=src/proto/gen/ ../protos/proto/*.proto"

@@ -1,30 +1,28 @@
 networks:
-  dev:
+  msg-network:
 
 volumes:
-  mongo-data:
+  msg-mongo-data:
 
 services:
   mongodb:
     image: mongodb/mongodb-community-server:latest
-    container_name: mongodb
+    container_name: msg-mongodb
     networks:
-      - dev
+      - msg-network
     volumes:
-      - mongo-data:/data/db
+      - msg-mongo-data:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     ports:
-      - 807:27017
+      - ${DB_PORT}:27017
   user-service:
     container_name: msg-user-service
     build:
       context: ./backend/user-service
     networks:
-      - dev
-    ports:
-      - 809:809
+      - msg-network
     environment:
       STORAGE_PATH: ${STORAGE_PATH}
       APP_SECRET: ${APP_SECRET}
@@ -33,17 +31,23 @@ services:
     build:
       context: ./backend/chat-service
     networks:
-      - dev
-    ports:
-      - 810:810
+      - msg-network
     environment:
       STORAGE_PATH: ${STORAGE_PATH}
       APP_SECRET: ${APP_SECRET}
   envoy:
-    container_name: envoy
+    container_name: msg-envoy
     build:
       context: ./envoy
     networks:
-      - dev
+      - msg-network
     ports:
-      - 808:808
+      - ${ENVOY_PORT}:808
+  frontend:
+    container_name: msg-frontend
+    build:
+      context: ./frontend
+    ports:
+      - ${FRONTEND_PORT}:4173
+    environment:
+      VITE_BASE_URL: ${VITE_BASE_URL}
