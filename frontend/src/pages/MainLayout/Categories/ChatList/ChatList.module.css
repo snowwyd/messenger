@@ -6,11 +6,11 @@
 
 .chatButton {
     height: 64px;
-    color: var(--default-text-color);
     display: flex;
     flex-shrink: 0;
     align-items: center;
     gap: 12px;
+    color: var(--text-primary);
     user-select: none;
     cursor: pointer;
     padding: 9px;
@@ -29,8 +29,8 @@
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
+    aspect-ratio: 1 / 1;
     height: 46px;
-    width: 46px;
     border-radius: 25px;
     flex-shrink: 0;
 }
@@ -52,13 +52,14 @@
     min-width: 0;
 
     .chatName {
+        font-weight: 500;
         text-wrap: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
     .lastMessage {
-        color: var(--gray-text);
+        color: var(--text-muted);
         text-wrap: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -68,9 +69,15 @@
 .right {
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: end;
     font-size: 12px;
     flex-shrink: 0;
-    color: var(--gray-text);
+    color: var(--text-muted);
+
+    div {
+        height: 17px;
+        display: flex;
+        align-items: center;
+    }
 }

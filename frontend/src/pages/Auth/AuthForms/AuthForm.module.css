@@ -41,7 +41,7 @@
     }
 
     input {
-        border-radius: var(--button-border-radius);
+        border-radius: var(--input-border-radius);
     }
 
     input:not([type='submit']) {
@@ -50,7 +50,7 @@
         background-color: hsl(240 2% 8.5%);
 
         &::placeholder {
-            color: var(--dark-gray-text);
+            color: var(--text-faint);
         }
     }
 

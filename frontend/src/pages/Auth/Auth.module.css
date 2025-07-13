@@ -69,7 +69,7 @@
     user-select: none;
 
     & > span {
-        color: var(--default-text-color);
+        color: var(--primary-text);
         text-decoration: underline;
         transition: 0.1s;
 

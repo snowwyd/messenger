@@ -7,39 +7,97 @@
     position: relative;
     display: flex;
     align-items: end;
-    background-color: var(--message-field-color);
-    border-radius: var(--message-field-radius);
+    padding-right: 10px;
+    background-color: var(--light-block-color);
+    border-radius: var(--middle-border-radius);
+}
 
-    textarea {
-        height: 50px;
-        max-height: 350px;
-        padding-block: 15px;
-        padding-left: 15px;
-        flex-grow: 1;
-        line-height: 20px;
-        font-size: 15px;
-        background: none;
-        resize: none;
-        scrollbar-width: none;
+textarea {
+    height: 45px;
+    max-height: 350px;
+    padding-block: 12.5px;
+    flex-grow: 1;
+    line-height: 20px;
+    font-size: 15px;
+    background: none;
+    resize: none;
+    scrollbar-width: none;
 
-        &::placeholder {
-            color: var(--dark-gray-text);
-        }
+    &::placeholder {
+        color: var(--text-muted);
     }
+}
 
-    .emojiButton {
-        display: flex;
-        aspect-ratio: 1 / 1;
-        height: 50px;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        user-select: none;
-        cursor: pointer;
-        transition: transform 0.4s cubic-bezier(0.15, 0.5, 0, 1);
+.writeMessageIcon {
+    mask-image: url('@/assets/icons/write-message.svg');
+    mask-size: 16px;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    background-color: var(--text-muted);
+    aspect-ratio: 1 / 1;
+    height: 45px;
+}
 
-        &:hover {
-            transform: scale(1.2);
-        }
+.fileButton {
+    background-image: url('@/assets/icons/file.png');
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 45px;
+    width: 39px;
+    cursor: pointer;
+    filter: saturate(0) brightness(1.5);
+    transition: filter 0.2s ease;
+
+    &:hover {
+        filter: saturate(1);
+    }
+}
+
+.favoriteButton {
+    background-image: url('@/assets/icons/bookmark.png');
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 45px;
+    width: 39px;
+    cursor: pointer;
+    filter: saturate(0) brightness(1.6);
+    transition: filter 0.2s ease;
+
+    &:hover {
+        filter: saturate(1);
+    }
+}
+
+.emojiButton {
+    background-image: url('@/assets/icons/smile.png');
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 45px;
+    width: 39px;
+    cursor: pointer;
+    filter: saturate(0);
+    transition: filter 0.2s ease;
+
+    &:hover {
+        filter: saturate(1);
+    }
+}
+
+.sendMessageButton {
+    mask-image: url('@/assets/icons/send-message.png');
+    mask-size: 16px;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    background-color: var(--main-color);
+    height: 45px;
+    width: 39px;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+
+    &:hover {
+        filter: brightness(0.8);
     }
 }

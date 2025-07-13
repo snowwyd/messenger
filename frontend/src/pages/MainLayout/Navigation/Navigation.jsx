@@ -1,6 +1,6 @@
 import { NavLink, useMatch } from 'react-router-dom';
 
-import CreateChat from './components/CreateChat';
+import CreateChat from './CreateChat/CreateChat.jsx';
 
 import styles from './Navigation.module.css';
 

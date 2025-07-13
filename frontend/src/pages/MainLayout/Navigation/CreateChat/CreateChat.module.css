@@ -1,0 +1,20 @@
+.createChatButton {
+    display: flex;
+    aspect-ratio: 1 / 1;
+    height: 40px;
+    margin-right: 10px;
+    align-items: center;
+    justify-content: center;
+    mask-image: url('@/assets/icons/plus.svg');
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: 18px;
+    background-color: var(--text-primary);
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.6;
+
+    &:hover {
+        opacity: 1;
+    }
+}

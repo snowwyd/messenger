@@ -1,0 +1,51 @@
+.blockHeader {
+    display: flex;
+    height: 30px;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--light-gray-text);
+}
+
+.memberList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.member {
+    display: flex;
+    padding-inline: 20px;
+    height: 60px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.memberInfo {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar {
+    background-image: url('@/assets/icons/user.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    aspect-ratio: 1 / 1;
+    height: 40px;
+}
+
+.messageButton {
+    display: flex;
+    height: 25px;
+    width: 80px;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    background-color: var(--main-color);
+    border-radius: var(--input-border-radius);
+    cursor: pointer;
+}

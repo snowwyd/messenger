@@ -29,8 +29,8 @@ export default function ChatList({ type }) {
     return (
         <Scroll className={styles.chatList}>
             {chatList.data &&
-                chatList.data.map((item, index) => (
-                    <ChatButton chatId={item.chatId} name={item.name} key={index} action={action} />
+                chatList.data.map((item) => (
+                    <ChatButton chatId={item.chatId} name={item.name} key={item.chatId} action={action} />
                 ))}
         </Scroll>
     );

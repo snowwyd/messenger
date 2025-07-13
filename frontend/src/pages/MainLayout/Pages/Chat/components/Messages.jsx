@@ -193,24 +193,21 @@ const Message = memo(function Message({ prevMessage, message, usernames }) {
 });
 
 function MessageContent({ text }) {
-    const embedsRef = useRef(null);
-
     const options = {
         target: '_blank',
         rel: 'noopener noreferrer',
     };
 
     const links = linkify.find(text);
-    const trimmedText = text.trim();
     const isSingleImageLink =
-        links.length === 1 && trimmedText === links[0].href && /\.(gif|jpe?g|png|webp)$/i.test(links[0].href.trim());
+        links.length === 1 && text.trim() === links[0].href && /\.(gif|jpe?g|png|webp)$/i.test(links[0].href.trim());
 
     return (
         <div className={styles.messageContent}>
             <div className={styles.messageText}>
                 {!isSingleImageLink && <Linkify options={options}>{text}</Linkify>}
             </div>
-            <div className={styles.embeds} ref={embedsRef}>
+            <div className={styles.embeds}>
                 {links.length > 0 &&
                     links.map((item, index) => (
                         <Embed url={item.href} isSingleImageLink={isSingleImageLink} index={index} key={index}></Embed>

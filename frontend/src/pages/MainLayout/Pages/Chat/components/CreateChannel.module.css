@@ -4,27 +4,30 @@
     bottom: 0;
     aspect-ratio: 1 / 1;
     height: 50px;
-    mask-image: url('@/assets/icons/add.png');
+    mask-image: url('@/assets/icons/plus.svg');
+    mask-size: 18px;
     mask-position: center;
     mask-repeat: no-repeat;
-    background-color: var(--dark-gray-text);
+    background-color: var(--text-primary);
     cursor: pointer;
+    opacity: 0.4;
 
     &:hover {
-        background-color: var(--light-gray-text);
+        opacity: 1;
     }
 }
 
 .createChannelModal {
     position: absolute;
     display: flex;
-    right: 15px;
-    bottom: 50px;
-    width: 320px;
+    z-index: 100;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
     padding: 20px;
     flex-direction: column;
     row-gap: 20px;
-    background-color: var(--form-color);
+    background-color: var(--light-block-color);
     border-radius: var(--block-border-radius);
 }
 
@@ -44,10 +47,10 @@
         aspect-ratio: 1 / 1;
         height: 100%;
         mask-image: url('@/assets/icons/tag.png');
-        mask-size: 15px;
+        mask-size: 16px;
         mask-position: center;
         mask-repeat: no-repeat;
-        background-color: var(--dark-gray-text);
+        background-color: var(--text-faint);
     }
 
     .channelNameInput {
@@ -55,12 +58,74 @@
         width: 100%;
         padding-left: 35px;
         background-color: var(--input-color);
-        border-radius: var(--button-border-radius);
+        border-radius: var(--input-border-radius);
         user-select: none;
 
         &::placeholder {
-            color: var(--dark-gray-text);
+            color: var(--text-faint);
         }
+    }
+}
+
+.radioButtons {
+    display: flex;
+    column-gap: 20px;
+    user-select: none;
+}
+
+.radioButton {
+    display: flex;
+    height: 35px;
+    padding-left: 10px;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-radius: var(--input-border-radius);
+
+    &:hover {
+        background-color: var(--white-selection);
+    }
+
+    & > input {
+        display: none;
+    }
+}
+
+.radioMark {
+    position: relative;
+    width: 15px;
+    height: 15px;
+    border: 1px solid var(--text-muted);
+    border-radius: 50%;
+}
+
+.radioMark::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    background-color: var(--text-primary);
+    border-radius: 50%;
+    position: absolute;
+    top: calc(50% - 3.5px);
+    left: calc(50% - 3.5px);
+    transform: scale(0);
+    transition: transform 0.1s ease;
+}
+
+.activeRadioButton {
+    background-color: var(--white-selection);
+    color: var(--text-primary);
+
+    .radioMark::after {
+        transform: scale(1);
+    }
+
+    .radioMark {
+        background-color: var(--main-color);
+        border-color: var(--main-color);
     }
 }
 
@@ -69,21 +134,23 @@
     column-gap: 20px;
     user-select: none;
     font-weight: 500;
-    color: var(--light-gray-text);
+    color: var(--text-primary);
 
     .button {
         display: flex;
         height: 35px;
-        flex-grow: 1;
         justify-content: center;
         align-items: center;
-        border-radius: var(--button-border-radius);
-        background-color: var(--tinted-selection);
+        flex: 1;
+        background: none;
+        border: 1px solid var(--light-selection);
+        border-radius: var(--input-border-radius);
+        transition: background-color 0.2s, border-color 0.2s;
         cursor: pointer;
 
         &:hover {
-            color: var(--default-text-color);
-            background-color: var(--purple-selection);
+            border-color: hsl(0 0% 100% / 0);
+            background-color: var(--light-selection);
         }
     }
 }

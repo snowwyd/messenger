@@ -8,14 +8,15 @@
 .categoryButton {
     aspect-ratio: 1 / 1;
     height: 40px;
-    border-radius: var(--button-border-radius);
-    color: var(--dark-gray-text);
+    border-radius: var(--middle-border-radius);
+    color: var(--text-faint);
 
     .categoryIcon {
         height: 100%;
         width: 100%;
         mask-position: center;
         mask-repeat: no-repeat;
+        mask-size: 16px;
         background-color: currentColor;
     }
 
@@ -26,30 +27,20 @@
 
     &.activeLink {
         color: white;
+        background-color: var(--middle-selection);
     }
 
-    &.direct {
-        .categoryIcon {
-            mask-image: url('@/assets/icons/direct.png');
-        }
-
-        &.activeLink {
-            background-color: var(--direct-category);
-        }
+    &.direct .categoryIcon {
+        mask-image: url('@/assets/icons/direct.svg');
     }
 
-    &.groups {
-        .categoryIcon {
-            mask-image: url('@/assets/icons/groups.png');
-        }
-
-        &.activeLink {
-            background-color: var(--groups-category);
-        }
+    &.groups .categoryIcon {
+        mask-image: url('@/assets/icons/groups.svg');
     }
 }
 
 .categoryBanner {
+    position: relative;
     display: flex;
     height: 60px;
     padding-left: 20px;
@@ -57,11 +48,11 @@
     align-items: center;
 
     &.directCategory {
-        background-image: var(--direct-category-gradient);
+        background-color: var(--direct-category);
     }
 
     &.groupsCategory {
-        background-image: var(--groups-category-gradient);
+        background-color: var(--groups-category);
     }
 }
 

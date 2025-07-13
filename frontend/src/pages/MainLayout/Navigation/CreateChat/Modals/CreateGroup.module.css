@@ -1,0 +1,235 @@
+.modal {
+    position: absolute;
+    display: flex;
+    z-index: 100;
+    top: 0;
+    left: 100%;
+    width: 320px;
+    margin-left: 10px;
+    padding: 20px;
+    flex-direction: column;
+    row-gap: 20px;
+    background-color: var(--light-block-color);
+    border-radius: var(--block-border-radius);
+}
+
+.modalName {
+    color: var(--light-gray-text);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    user-select: none;
+}
+
+.inputContainer {
+    position: relative;
+
+    .icon {
+        position: absolute;
+        aspect-ratio: 1 / 1;
+        height: 100%;
+        mask-image: url('@/assets/icons/search.svg');
+        mask-size: 16px;
+        mask-position: center;
+        mask-repeat: no-repeat;
+        background-color: var(--text-faint);
+    }
+
+    .usernameInput {
+        height: 35px;
+        width: 100%;
+        padding-left: 35px;
+        background-color: var(--input-color);
+        border-radius: var(--input-border-radius);
+        user-select: none;
+
+        &::placeholder {
+            color: var(--text-faint);
+        }
+    }
+}
+
+.foundUser {
+    display: flex;
+    height: 40px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.userInfo {
+    display: flex;
+    align-items: center;
+    column-gap: 15px;
+
+    .avatar {
+        aspect-ratio: 1 / 1;
+        height: 40px;
+        flex-shrink: 0;
+        background-image: url('@/assets/icons/user.png');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        border-radius: 50%;
+    }
+
+    .username {
+        font-weight: 500;
+    }
+}
+
+.messageButton {
+    display: flex;
+    align-items: center;
+    padding-inline: 14px;
+    height: 30px;
+    border: 1px solid var(--light-selection);
+    border-radius: var(--input-border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+
+    &:hover {
+        border-color: hsl(0 0% 100% / 0);
+        background-color: var(--light-selection);
+    }
+}
+
+.errorMessage {
+    width: 100%;
+    text-align: center;
+}
+
+.userList {
+    display: flex;
+    min-height: 113px;
+    padding: 10px;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-content: start;
+    background-color: hsl(0 0% 0% / 0.05);
+    border: 1px solid var(--middle-selection);
+    border-radius: var(--block-border-radius);
+}
+
+.addedUser {
+    display: flex;
+    height: 27px;
+    padding-inline: 10px;
+    align-items: center;
+    column-gap: 5px;
+    line-height: 1.2;
+    border-radius: var(--input-border-radius);
+    background-color: var(--middle-selection);
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: var(--light-selection);
+    }
+}
+
+.removeUserButton {
+    aspect-ratio: 1 / 1;
+    height: 12px;
+    mask-image: url('@/assets/icons/cross-small.svg');
+    mask-size: cover;
+    background-color: var(--text-primary);
+}
+
+.groupInfo {
+    display: flex;
+    column-gap: 20px;
+}
+
+.groupAvatarContainer {
+    aspect-ratio: 1 / 1;
+    height: 60px;
+    cursor: pointer;
+    z-index: 0;
+
+    img {
+        height: 100%;
+        border-radius: 50%;
+        z-index: 100;
+    }
+}
+
+.groupAvatarBorder {
+    height: 100%;
+    border: 1px solid var(--light-selection);
+    border-radius: 50%;
+}
+
+.groupAvatarImage {
+    height: 100%;
+    mask-image: url('@/assets/icons/add-image.svg');
+    mask-size: 25px;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    background-color: var(--light-selection);
+}
+
+.groupName {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.groupNameText {
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--text-faint);
+}
+
+.groupNameInputContainer {
+    position: relative;
+
+    .icon {
+        position: absolute;
+        aspect-ratio: 1 / 1;
+        height: 100%;
+        mask-image: url('@/assets/icons/tag.png');
+        mask-size: 16px;
+        mask-position: center;
+        mask-repeat: no-repeat;
+        background-color: var(--text-faint);
+    }
+
+    .groupNameInput {
+        height: 35px;
+        width: 100%;
+        padding-left: 35px;
+        background-color: var(--input-color);
+        border-radius: var(--input-border-radius);
+        user-select: none;
+
+        &::placeholder {
+            color: var(--text-faint);
+        }
+    }
+}
+
+.buttons {
+    display: flex;
+    column-gap: 20px;
+    user-select: none;
+    font-weight: 500;
+    color: var(--text-primary);
+
+    .button {
+        display: flex;
+        height: 35px;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+        background: none;
+        border: 1px solid var(--light-selection);
+        border-radius: var(--input-border-radius);
+        transition: background-color 0.2s, border-color 0.2s;
+        cursor: pointer;
+
+        &:hover {
+            border-color: hsl(0 0% 100% / 0);
+            background-color: var(--light-selection);
+        }
+    }
+}

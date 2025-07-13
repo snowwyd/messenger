@@ -23,37 +23,38 @@
     --background-color: hsl(240 4% 7%);
     --section-color: hsl(240 4% 5%);
 
-    --message-field-radius: 7.5px;
-    --message-field-color: hsl(240 7% 8%);
-
-    --form-color: hsl(240 4% 7%);
+    --light-block-color: hsl(240 7% 8%);
     --input-color: hsl(240 4% 5%);
 
+    --light-selection: hsl(0 0 100% / 0.2);
+    --middle-selection: hsl(0 0 100% / 0.1);
     --white-selection: hsl(0 0 100% / 0.05);
     --tinted-selection: hsl(240 100% 95% / 0.05);
-    --purple-selection: hsl(240 50% 55%);
 
-    --dark-gray-text: hsl(0 0 20%);
-    --gray-text: hsl(0 0 40%);
+    --text-primary: hsl(0 0 85%);
+    --text-faint: hsl(0 0 30%);
+    --text-muted: hsl(0 0 45%);
     --light-gray-text: hsl(0 0 75%);
-    --default-text-color: hsl(0 0 95%);
 
     --block-border-radius: 10px;
-    --button-border-radius: 5px;
+    --middle-border-radius: 7.5px;
+    --input-border-radius: 5px;
+
+    --scroll-color: hsl(0 0 100% / 0.1);
 
     --block-gaps: 10px;
 
+    --main-color: hsl(240 50% 55%);
+
     --direct-category: hsl(240 50% 55%);
     --groups-category: hsl(270 50% 55%);
-
-    --direct-category-gradient: linear-gradient(120deg, hsl(240 50% 55%), hsl(270 60% 55%));
-    --groups-category-gradient: linear-gradient(120deg, hsl(270 50% 55%), hsl(300 50% 55%));
 }
 
 html {
     font-family: 'Inter', 'Emoji';
     font-size: 14px;
-    color: var(--default-text-color);
+    font-variant-ligatures: none;
+    color: var(--text-primary);
     background-color: var(--background-color);
 }
 
@@ -86,10 +87,15 @@ a {
     text-decoration: none;
 }
 
+iframe {
+    border: none;
+}
+
 input,
 textarea,
 select,
 button {
+    padding: 0;
     font: inherit;
     color: inherit;
     border: none;

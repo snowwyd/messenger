@@ -5,7 +5,7 @@ import { chatService } from '@/api/chatService';
 
 import TextInput from '@/components/TextInput/TextInput';
 
-export default function MessageField({ channelId }) {
+export default function MessageField({ channelId, channel }) {
     const token = useSelector((state) => state.auth.token);
 
     const sendMessageMutation = useMutation({
@@ -21,5 +21,5 @@ export default function MessageField({ channelId }) {
         sendMessageMutation.mutate(message);
     }
 
-    return <TextInput onSend={sendMessage} placeholder="Message" />;
+    return channel && <TextInput onSend={sendMessage} placeholder={`Message @${channel.name.toLowerCase()}`} />;
 }

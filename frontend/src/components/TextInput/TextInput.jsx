@@ -9,11 +9,13 @@ export default function TextInput({ onSend, placeholder }) {
     const [text, setText] = useState('');
     const [isEmojiBlock, setIsEmojiBlock] = useState(false);
 
+    const fileInputRef = useRef(null);
+
     useEffect(() => textareaRef.current?.focus(), [isEmojiBlock]);
 
     useEffect(() => {
         if (textareaRef.current) {
-            textareaRef.current.style.height = '50px';
+            textareaRef.current.style.height = '45px';
             textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
         }
     }, [text]);
@@ -21,18 +23,25 @@ export default function TextInput({ onSend, placeholder }) {
     function onKeyDown(event) {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-
-            if (text.trim().replace(/\n/g, '') === '') return setText('');
-
-            onSend(text);
-
-            setText('');
+            sendMessage();
         }
+    }
+
+    function sendMessage() {
+        if (text.trim().replace(/\n/g, '') === '') return setText('');
+        onSend(text);
+        setText('');
+    }
+
+    function handleFileChange(event) {
+        const file = event.target.files[0];
+        console.log('Выбран файл:', file);
     }
 
     return (
         <div className={styles.messageFieldContainer}>
             <div className={styles.messageField}>
+                <div className={styles.writeMessageIcon}></div>
                 <textarea
                     ref={textareaRef}
                     onKeyDown={onKeyDown}
@@ -40,9 +49,12 @@ export default function TextInput({ onSend, placeholder }) {
                     onChange={(event) => setText(event.target.value)}
                     placeholder={placeholder}
                 />
-                <div className={styles.emojiButton} onClick={() => setIsEmojiBlock((prev) => !prev)}>
-                    🤔
+                <div className={styles.fileButton} onClick={() => fileInputRef.current.click()}>
+                    <input ref={fileInputRef} onChange={handleFileChange} type="file" style={{ display: 'none' }} />
                 </div>
+                <div className={styles.favoriteButton}></div>
+                <div className={styles.emojiButton} onClick={() => setIsEmojiBlock((prev) => !prev)}></div>
+                <div className={styles.sendMessageButton} onClick={sendMessage}></div>
                 {isEmojiBlock && <EmojiBlock setText={setText} inputRef={textareaRef} />}
             </div>
         </div>

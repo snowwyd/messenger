@@ -2,7 +2,6 @@
     display: flex;
     flex-grow: 1;
     column-gap: var(--block-gaps);
-    padding-block: var(--block-gaps);
     padding-right: var(--block-gaps);
 }
 
@@ -15,16 +14,28 @@
     flex-direction: column;
     justify-content: end;
     background-color: var(--section-color);
+    margin-block: var(--block-gaps);
     border-radius: var(--block-border-radius);
 }
 
 .chatSidebar {
+    overflow: auto;
     position: relative;
     display: flex;
-    width: 350px;
+    width: 325px;
     flex-shrink: 0;
     flex-direction: column;
+    scrollbar-width: none;
+    padding-block: var(--block-gaps);
     row-gap: var(--block-gaps);
+}
+
+.top {
+    display: flex;
+    flex-direction: column;
+    gap: var(--block-gaps);
+    height: 88vh;
+    flex-shrink: 0;
 }
 
 .avatarBlock {
@@ -35,10 +46,18 @@
     border-radius: var(--block-border-radius);
 }
 
-.channelListContainer {
+.channelListBlock {
     position: relative;
-    min-height: 0;
+    min-height: 242px;
     flex-grow: 1;
+    background-color: var(--section-color);
+    border-radius: var(--block-border-radius);
+}
+
+.groupInfoBlock {
+    height: 500px;
+    padding: 10px;
+    flex-shrink: 0;
     background-color: var(--section-color);
     border-radius: var(--block-border-radius);
 }
