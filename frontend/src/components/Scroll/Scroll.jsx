@@ -28,18 +28,24 @@ export default function Scroll({ className, onScrollCallback = null, children })
     }, []);
 
     useEffect(() => {
+        updateThumb();
+
+        const mutationObserver = new MutationObserver(updateThumb);
+        const resizeObserver = new ResizeObserver(updateThumb);
+
+        mutationObserver.observe(contentRef.current, { childList: true, subtree: true });
+        resizeObserver.observe(contentRef.current);
+
+        return () => {
+            mutationObserver.disconnect();
+            resizeObserver.disconnect();
+        };
+    }, []);
+
+    function updateThumb() {
         updateThumbHeight();
         updateThumbPosition();
-
-        const observer = new MutationObserver(() => {
-            updateThumbHeight();
-            updateThumbPosition();
-        });
-
-        observer.observe(contentRef.current, { childList: true, subtree: true });
-
-        return () => observer.disconnect();
-    }, []);
+    }
 
     function startDragging(event) {
         document.body.style.userSelect = 'none';
