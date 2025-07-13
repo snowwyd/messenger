@@ -4,4 +4,5 @@ node_modules/
 dist/
 gen/
 .env*
+*.mp4
 TODO
