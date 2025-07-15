@@ -4,6 +4,50 @@
     padding-bottom: 20px;
 }
 
+.scrollToBottomButton {
+    position: absolute;
+    right: 20px;
+    bottom: 75px;
+    height: 40px;
+    width: 40px;
+    background-color: var(--white-selection);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.2s;
+
+    & > .icon {
+        height: 100%;
+        mask-image: url('@/assets/icons/angle-small-down.svg');
+        mask-size: 20px;
+        mask-repeat: no-repeat;
+        mask-position: center 11px;
+        background-color: currentColor;
+    }
+
+    &:hover {
+        background-color: var(--middle-selection);
+    }
+
+    .newMessagesIcon {
+        font-size: 12px;
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        top: -4px;
+        right: -4px;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background-color: var(--main-color);
+    }
+}
+
+.hiddenButton {
+    opacity: 0;
+    visibility: hidden;
+}
+
 .message {
     flex-shrink: 0;
 }

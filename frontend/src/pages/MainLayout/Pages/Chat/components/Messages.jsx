@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from 'react';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import Linkify from 'linkify-react';
 import * as linkify from 'linkifyjs';
@@ -13,8 +13,8 @@ import Embed from '@/components/Embed/Embed';
 import styles from './Messages.module.css';
 
 const MESSAGES_BATCH_SIZE = 100;
-const SCROLLTOP_THRESHOLD = 1500;
 const SCROLLBOTTOM_THRESHOLD = 100;
+const LOAD_THRESHOLD = 500;
 
 function insertMessageWithOverflow(pages, newMessage) {
     const newPages = [...pages];
@@ -39,12 +39,12 @@ function insertMessageWithOverflow(pages, newMessage) {
 export default function MessageList({ channelId, usernames }) {
     const queryClient = useQueryClient();
     const token = useSelector((state) => state.auth.token);
+    const scrollRef = useRef(null);
 
-    const newestMessageRef = useRef(null);
-    const scrollBottom = useRef(0);
-
-    const [renderedMessagesCount, setRenderedMessagesCount] = useState(MESSAGES_BATCH_SIZE);
     const streamedMessagesCount = useRef(0);
+
+    const [newMessagesCount, setNewMessagesCount] = useState(0);
+    const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false);
 
     const messageList = useInfiniteQuery({
         queryKey: ['messageList', channelId],
@@ -75,8 +75,16 @@ export default function MessageList({ channelId, usernames }) {
                 };
             });
             streamedMessagesCount.current += 1;
+            setNewMessagesCount((prev) => prev + 1);
         },
         onError: (error) => console.log(error.message),
+    });
+
+    const pageOffset = useQuery({
+        queryKey: ['pageOffset', channelId],
+        queryFn: () => 0,
+        initialData: () => queryClient.getQueryData(['pageOffset', channelId]) ?? 0,
+        enabled: false,
     });
 
     useEffect(() => {
@@ -85,41 +93,71 @@ export default function MessageList({ channelId, usernames }) {
     }, [channelId, queryClient]);
 
     useEffect(() => {
-        if (scrollBottom.current < SCROLLBOTTOM_THRESHOLD) {
-            newestMessageRef.current?.scrollIntoView();
+        if (scrollRef.current.scrollBottom.current < SCROLLBOTTOM_THRESHOLD) {
+            scrollRef.current.scrollToBottom();
         }
-    }, [messageList]);
+    }, [messageList.data]);
 
-    function onScrollCallback({ scrollTop, scrollHeight, clientHeight }) {
-        updateScrollBottom(scrollTop, scrollHeight, clientHeight);
+    function onScrollCallback({ scrollTop }) {
+        queryClient.setQueryData(['scrollPosition', channelId], { scrollTop: scrollTop });
+        setShowScrollToBottomButton((prev) => {
+            const shouldShow = scrollRef.current.scrollBottom.current > 500;
+            if (!shouldShow) {
+                setNewMessagesCount(0);
+            }
+            return prev !== shouldShow ? shouldShow : prev;
+        });
         loadMoreMessages(scrollTop);
     }
 
-    function updateScrollBottom(scrollTop, scrollHeight, clientHeight) {
-        scrollBottom.current = scrollHeight - clientHeight - scrollTop;
-    }
+    useEffect(() => {
+        const scrollPosition = queryClient.getQueryData(['scrollPosition', channelId]);
+        if (scrollPosition) {
+            scrollRef.current.setScrollTop(scrollPosition.scrollTop);
+        }
+    }, [channelId]);
 
     function loadMoreMessages(scrollTop) {
         if (messageList.isFetchingPreviousPage) return;
-        if (scrollTop <= SCROLLTOP_THRESHOLD) {
+        if (scrollTop <= LOAD_THRESHOLD) {
             if (messageList.hasPreviousPage) {
                 messageList.fetchPreviousPage();
             }
 
-            const maxCount = messageList.data.pages.length * MESSAGES_BATCH_SIZE;
-
-            if (renderedMessagesCount < maxCount) {
-                setRenderedMessagesCount((prev) => Math.min(prev + MESSAGES_BATCH_SIZE, maxCount));
+            if (messageList.data.pages.length > 1) {
+                queryClient.setQueryData(['pageOffset', channelId], (oldData) => {
+                    const newOffset = Math.min(oldData + 1, messageList.data.pages.length);
+                    return newOffset === oldData ? oldData : newOffset;
+                });
             }
+        }
+
+        if (scrollRef.current.scrollBottom.current <= LOAD_THRESHOLD) {
+            queryClient.setQueryData(['pageOffset', channelId], (oldData) => {
+                const newOffset = Math.max(0, oldData - 1);
+                return newOffset === oldData ? oldData : newOffset;
+            });
         }
     }
 
+    const renderedPages = messageList.data?.pages.slice(
+        Math.max(messageList.data?.pages.length - 2 - pageOffset.data, 0),
+        Math.max(messageList.data?.pages.length - pageOffset.data, 2)
+    );
+
     const allMessages = messageList.data
-        ? messageList.data.pages.flatMap((page) => page).slice(-renderedMessagesCount)
+        ? renderedPages.flatMap((page) => {
+              return page;
+          })
         : [];
 
+    function handleScrollToBottom() {
+        queryClient.setQueryData(['pageOffset', channelId], 0);
+        setTimeout(() => scrollRef.current.scrollToBottom(), 0);
+    }
+
     return (
-        <Scroll className={styles.messagesWindow} onScrollCallback={onScrollCallback}>
+        <Scroll className={styles.messagesWindow} ref={scrollRef} onScrollCallback={onScrollCallback}>
             {allMessages.map((item, index) => (
                 <Message
                     prevMessage={allMessages[index - 1]}
@@ -128,7 +166,13 @@ export default function MessageList({ channelId, usernames }) {
                     key={item.messageId}
                 />
             ))}
-            <div ref={newestMessageRef}></div>
+            <div
+                className={`${styles.scrollToBottomButton} ${!showScrollToBottomButton && styles.hiddenButton}`}
+                onClick={handleScrollToBottom}
+            >
+                <div className={styles.icon}></div>
+                {newMessagesCount > 0 && <div className={styles.newMessagesIcon}>{newMessagesCount}</div>}
+            </div>
         </Scroll>
     );
 }

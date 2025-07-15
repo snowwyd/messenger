@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { createContext, forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react';
+
+const ScrollContext = createContext();
+
+export const useScrollContext = () => useContext(ScrollContext);
 
 import styles from './Scroll.module.css';
 
@@ -6,9 +10,10 @@ const MIN_THUMB_HEIGHT = 40;
 const THUMB_VERTICAL_PADDING = 10;
 const THUMB_TOP_OFFSET = 5;
 
-export default function Scroll({ className, onScrollCallback = null, children }) {
+function Scroll({ className, onScrollCallback = null, children }, ref) {
     const contentRef = useRef(null);
     const thumbRef = useRef(null);
+    const scrollBottom = useRef(null);
 
     const isDragging = useRef(false);
     const startY = useRef(0);
@@ -16,6 +21,20 @@ export default function Scroll({ className, onScrollCallback = null, children })
 
     const [visible, setVisible] = useState(false);
     const timeoutRef = useRef(null);
+
+    const getScrollApi = () => ({
+        setScrollTop: (scrollTop) => {
+            contentRef.current.scrollTop = scrollTop;
+        },
+        scrollToBottom: () => {
+            contentRef.current.scrollTop = contentRef.current.scrollHeight;
+        },
+        scrollBottom: scrollBottom,
+    });
+
+    const contextValue = getScrollApi();
+
+    useImperativeHandle(ref, getScrollApi);
 
     useEffect(() => {
         document.addEventListener('mousemove', onDrag);
@@ -43,6 +62,7 @@ export default function Scroll({ className, onScrollCallback = null, children })
     }, []);
 
     function updateThumb() {
+        showScrollbar();
         updateThumbHeight();
         updateThumbPosition();
     }
@@ -80,6 +100,7 @@ export default function Scroll({ className, onScrollCallback = null, children })
         const contentHeight = contentRef.current.scrollHeight;
         const containerHeight = contentRef.current.clientHeight;
         const contentScrollTop = contentRef.current.scrollTop;
+        scrollBottom.current = contentHeight - containerHeight - contentScrollTop;
         const scrollRatio = contentScrollTop / (contentHeight - containerHeight);
         const thumbTop = scrollRatio * (containerHeight - thumbRef.current.clientHeight - THUMB_VERTICAL_PADDING);
         thumbRef.current.style.top = `${thumbTop + THUMB_TOP_OFFSET}px`;
@@ -100,7 +121,7 @@ export default function Scroll({ className, onScrollCallback = null, children })
     return (
         <>
             <div className={`${styles.scrollableContent} ${className}`} ref={contentRef} onScroll={onScroll}>
-                {children}
+                <ScrollContext.Provider value={contextValue}>{children}</ScrollContext.Provider>
             </div>
             <div className={styles.customScrollbar}>
                 <div
@@ -113,3 +134,5 @@ export default function Scroll({ className, onScrollCallback = null, children })
         </>
     );
 }
+
+export default forwardRef(Scroll);
