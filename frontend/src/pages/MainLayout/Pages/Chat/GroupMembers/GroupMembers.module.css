@@ -1,0 +1,81 @@
+.blockHeader {
+    display: flex;
+    height: 50px;
+    padding-left: 30px;
+    padding-right: 14px;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-faint);
+
+    .memberCount {
+        display: flex;
+        column-gap: 30px;
+        align-items: center;
+
+        .icon {
+            aspect-ratio: 1 / 1;
+            height: 18px;
+            mask-image: url('@/assets/icons/users.svg');
+            mask-position: center;
+            mask-size: cover;
+            background-color: currentColor;
+        }
+    }
+
+    .add {
+        display: flex;
+        aspect-ratio: 1 / 1;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        &:hover {
+            color: var(--text-primary);
+        }
+
+        .icon {
+            aspect-ratio: 1 / 1;
+            height: 16px;
+            mask-image: url('@/assets/icons/user-add.svg');
+            mask-position: center;
+            mask-size: cover;
+            background-color: currentColor;
+        }
+    }
+}
+
+.memberList {
+    display: flex;
+    flex-direction: column;
+}
+
+.member {
+    display: flex;
+    padding-block: 10px;
+    padding-inline: 20px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.memberInfo {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.avatar {
+    background-image: url('@/assets/icons/user.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    aspect-ratio: 1 / 1;
+    height: 40px;
+}
+
+.messageButton {
+    font-size: 13px;
+    padding-inline: 10px;
+    height: 25px;
+}

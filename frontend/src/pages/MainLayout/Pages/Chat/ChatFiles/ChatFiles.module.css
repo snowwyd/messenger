@@ -1,0 +1,46 @@
+.block {
+    height: 50px;
+    display: flex;
+    column-gap: 30px;
+    padding-left: 30px;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-faint);
+
+    &:hover {
+        color: var(--primary-text);
+        background-color: var(--tinted-selection);
+    }
+
+    .icon {
+        aspect-ratio: 1 / 1;
+        height: 18px;
+        mask-position: center;
+        mask-size: cover;
+        background-color: currentColor;
+    }
+}
+
+.photos > .icon {
+    mask-image: url('@/assets/icons/picture.svg');
+}
+
+.videos > .icon {
+    mask-image: url('@/assets/icons/video.svg');
+}
+
+.audio > .icon {
+    mask-image: url('@/assets/icons/headphones.svg');
+}
+
+.gifs > .icon {
+    mask-image: url('@/assets/icons/gif-square.svg');
+}
+
+.files > .icon {
+    mask-image: url('@/assets/icons/document.svg');
+}
+
+.links > .icon {
+    mask-image: url('@/assets/icons/link.svg');
+}

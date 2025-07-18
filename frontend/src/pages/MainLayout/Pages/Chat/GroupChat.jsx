@@ -9,6 +9,7 @@ import Messages from './MessageList/MessageList.jsx';
 import MessageField from './MessageField/MessageField.jsx';
 import ChannelList from './ChannelList/ChannelList.jsx';
 import CreateChannel from './CreateChannel/CreateChannel.jsx';
+import GroupMembers from './GroupMembers/GroupMembers.jsx';
 import ChatFiles from './ChatFiles/ChatFiles.jsx';
 
 import Resizer from '@/shared/components/Resizer/Resizer.jsx';
@@ -64,6 +65,11 @@ export default function Chat({ chatId, channelId }) {
                             </>
                         )}
                     </div>
+                </div>
+                <div className={styles.groupMembersBlock}>
+                    {chatId && chatInfo.isSuccess && (
+                        <GroupMembers memberIds={chatInfo.data.memberIds} usernames={chatInfo.data.usernames} />
+                    )}
                 </div>
                 <div className={styles.chatFilesBlock}>{chatId && chatInfo.isSuccess && <ChatFiles />}</div>
             </div>

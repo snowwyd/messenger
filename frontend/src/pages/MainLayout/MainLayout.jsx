@@ -6,6 +6,7 @@ import Navigation from './Navigation/Navigation.jsx';
 
 import ChatList from './Categories/ChatList/ChatList.jsx';
 import Chat from './Pages/Chat/Chat.jsx';
+import GroupChat from './Pages/Chat/GroupChat.jsx';
 
 import styles from './MainLayout.module.css';
 import Resizer from '@/shared/components/Resizer/Resizer.jsx';
@@ -48,7 +49,7 @@ function Page() {
                 <Chat chatId={currentPageURL[0]} channelId={currentPageURL[1]} />
             )}
             {categoryOfThePage === 'groups' && currentPageURL && (
-                <Chat chatId={currentPageURL[0]} channelId={currentPageURL[1]} />
+                <GroupChat chatId={currentPageURL[0]} channelId={currentPageURL[1]} />
             )}
         </>
     );
