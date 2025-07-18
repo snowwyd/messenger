@@ -7,6 +7,11 @@ import { chatService } from '@/api/chatService';
 
 import styles from './CreateDM.module.css';
 
+import Input from '@/shared/ui/Input/Input';
+import Button from '@/shared/ui/Button/Button';
+import searchIcon from '@/assets/icons/search.svg';
+import Modal from '@/shared/ui/Modal/Modal';
+
 export default function CreateDM({ closeModal }) {
     const token = useSelector((state) => state.auth.token);
 
@@ -51,18 +56,14 @@ export default function CreateDM({ closeModal }) {
     }
 
     return (
-        <div className={styles.modal}>
-            <div className={styles.modalName}>Create DM</div>
-            <div className={styles.inputContainer}>
-                <div className={styles.icon}></div>
-                <input
-                    value={enteredUsername}
-                    onChange={(event) => setEnteredUsername(event.target.value)}
-                    className={styles.usernameInput}
-                    placeholder="Username"
-                    onKeyDown={findUser}
-                />
-            </div>
+        <Modal modalHeader="Create DM" className={styles.createDmModal}>
+            <Input
+                value={enteredUsername}
+                onChange={(event) => setEnteredUsername(event.target.value)}
+                placeholder="Username"
+                icon={searchIcon}
+                onKeyDown={findUser}
+            />
             <div className={styles.foundUser}>
                 {foundUser.userId && (
                     <>
@@ -70,13 +71,11 @@ export default function CreateDM({ closeModal }) {
                             <div className={styles.avatar}></div>
                             <div className={styles.username}>{foundUser.username}</div>
                         </div>
-                        <div className={styles.messageButton} onClick={createChat}>
-                            Message
-                        </div>
+                        <Button onClick={createChat} placeholder="Message" className={styles.messageButton} />
                     </>
                 )}
                 {errorMessage && <span className={styles.errorMessage}>{errorMessage}</span>}
             </div>
-        </div>
+        </Modal>
     );
 }

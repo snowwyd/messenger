@@ -5,13 +5,13 @@ import { useQuery } from '@tanstack/react-query';
 import { chatService } from '@/api/chatService.js';
 import { categoryActions } from '@/store/store.js';
 
-import Messages from './components/Messages.jsx';
-import MessageField from './components/MessageField.jsx';
-import ChannelList from './components/ChannelList.jsx';
-import CreateChannel from './components/CreateChannel.jsx';
-import GroupInfo from './components/GroupInfo.jsx';
+import Messages from './MessageList/MessageList.jsx';
+import MessageField from './MessageField/MessageField.jsx';
+import ChannelList from './ChannelList/ChannelList.jsx';
+import CreateChannel from './CreateChannel/CreateChannel.jsx';
+import GroupInfo from './GroupInfo/GroupInfo.jsx';
 
-import Resizer from '@/components/Resizer/Resizer.jsx';
+import Resizer from '@/shared/components/Resizer/Resizer.jsx';
 
 import styles from './Chat.module.css';
 

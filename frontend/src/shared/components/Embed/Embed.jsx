@@ -1,15 +1,13 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { hslToHex } from '@/utils/colorUtils';
+import { isImage } from '@/utils/urlUtils';
 
 import styles from './Embed.module.css';
 
 const EmbedContext = createContext();
 
-function isImageUrl(url) {
-    return /\.(gif|jpe?g|png|webp)$/i.test(url);
-}
-
-export default function WrappedEmbed({ url, isSingleImageLink, index }) {
-    const marginTop = index === 0 && !isSingleImageLink ? styles.marginTop : '';
+export default function WrappedEmbed({ url, index }) {
+    const marginTop = index === 0 ? styles.marginTop : '';
 
     return (
         <EmbedContext.Provider value={marginTop}>
@@ -46,8 +44,8 @@ function Embed({ url }) {
         return <YouTube url={url} />;
     }
 
-    if (isImageUrl(url)) {
-        return <Image url={url} />;
+    if (isImage(url)) {
+        return <ImagePreview url={url} />;
     }
 
     return null;
@@ -56,11 +54,12 @@ function Embed({ url }) {
 function SoundCloud({ url }) {
     const marginTop = useContext(EmbedContext);
     const showUser = true;
-    const hexColor = '5353c6';
+    const root = document.documentElement;
+    const mainColor = getComputedStyle(root).getPropertyValue('--main-color').trim();
+    const hexColor = hslToHex(mainColor);
     return (
         <div className={`${styles.soundcloudWrapper} ${styles.embed} ${marginTop}`}>
             <LazyIframe
-                timeout={400}
                 className={styles.soundcloud}
                 src={`https://w.soundcloud.com/player/?url=${url}&color=%23${hexColor}&auto_play=false&hide_related=true&show_comments=false&show_user=${showUser}&show_reposts=false&show_teaser=false&visual=true`}
                 width={450}
@@ -74,7 +73,6 @@ function Spotify({ type, id }) {
     if (type === 'track') {
         return (
             <LazyIframe
-                timeout={100}
                 className={styles.embed}
                 src={`https://open.spotify.com/embed/${type}/${id}?utm_source=generator`}
                 width={350}
@@ -86,7 +84,6 @@ function Spotify({ type, id }) {
     if (type === 'playlist' || type === 'album') {
         return (
             <LazyIframe
-                timeout={100}
                 className={styles.embed}
                 src={`https://open.spotify.com/embed/${type}/${id}`}
                 width={400}
@@ -129,8 +126,9 @@ function YouTube({ url }) {
     }
 }
 
-function Image({ url }) {
+function ImagePreview({ url }) {
     const marginTop = useContext(EmbedContext);
+
     return (
         <a href={url} className={`${styles.picture} ${marginTop}`} target="_blank" rel="noopener noreferrer">
             <img src={url} loading="lazy" />
@@ -138,14 +136,15 @@ function Image({ url }) {
     );
 }
 
-function LazyIframe({ timeout = 0, className, src, width, height, ...rest }) {
-    const marginTop = useContext(EmbedContext);
-    const ref = useRef();
-    const [visible, setVisible] = useState(false);
-    const [loaded, setLoaded] = useState(false);
-
+function LazyIframe({ className, src, width, height, ...rest }) {
     const parsedUrl = new URL(src);
     const isSoundCloud = parsedUrl.hostname.startsWith('w.soundcloud.com');
+    const isYouTube = parsedUrl.hostname.includes('youtu');
+
+    const marginTop = useContext(EmbedContext);
+    const iframeRef = useRef();
+    const [visible, setVisible] = useState(false);
+    const [loaded, setLoaded] = useState(isYouTube ? true : false);
 
     useEffect(() => {
         const observer = new IntersectionObserver(([entry]) => {
@@ -154,23 +153,17 @@ function LazyIframe({ timeout = 0, className, src, width, height, ...rest }) {
                 observer.disconnect();
             }
         });
-        if (ref.current) observer.observe(ref.current);
+        if (iframeRef.current) observer.observe(iframeRef.current);
         return () => observer.disconnect();
     }, []);
 
-    function onLoad() {
-        setTimeout(() => {
-            setLoaded(true);
-        }, timeout);
-    }
-
     return (
         <div
-            ref={ref}
+            ref={iframeRef}
             className={isSoundCloud ? '' : marginTop}
-            style={{ minHeight: height, overflow: 'hidden', borderRadius: '1px' }}
+            style={{ height: height, width: width, overflow: 'hidden', position: 'relative' }}
         >
-            {visible ? (
+            {visible && (
                 <iframe
                     className={className}
                     src={src}
@@ -181,14 +174,13 @@ function LazyIframe({ timeout = 0, className, src, width, height, ...rest }) {
                         position: loaded ? 'relative' : 'absolute',
                         opacity: loaded ? 1 : 0,
                         visibility: loaded ? 'visible' : 'hidden',
-                        transition: '0.3s',
+                        transition: '0.2s',
                     }}
-                    onLoad={onLoad}
+                    onLoad={() => setLoaded(true)}
                     {...rest}
                 />
-            ) : (
-                <div style={{ height: height }} />
             )}
+            <div className={styles.plug} />
         </div>
     );
 }

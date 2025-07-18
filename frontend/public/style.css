@@ -16,6 +16,7 @@
     font-family: 'Emoji';
     font-style: normal;
     font-weight: 400;
+    font-display: block;
     src: url('/fonts/NotoColorEmoji.woff2') format('woff2');
 }
 
@@ -24,30 +25,27 @@
     --section-color: hsl(240 4% 5%);
 
     --light-block-color: hsl(240 7% 8%);
-    --input-color: hsl(240 4% 5%);
 
-    --light-selection: hsl(0 0 100% / 0.2);
-    --middle-selection: hsl(0 0 100% / 0.1);
-    --white-selection: hsl(0 0 100% / 0.05);
+    --active-color: hsl(0 0 100% / 0.1);
+    --selection-color: hsl(0 0 100% / 0.05);
     --tinted-selection: hsl(240 100% 95% / 0.05);
 
     --text-primary: hsl(0 0 85%);
-    --text-faint: hsl(0 0 30%);
-    --text-muted: hsl(0 0 45%);
     --light-gray-text: hsl(0 0 75%);
+    --text-muted: hsl(0 0 45%);
+    --text-faint: hsl(0 0 30%);
 
     --block-border-radius: 10px;
     --middle-border-radius: 7.5px;
     --input-border-radius: 5px;
 
-    --scroll-color: hsl(0 0 100% / 0.1);
-
     --block-gaps: 10px;
 
-    --main-color: hsl(240 50% 55%);
+    --main-color-hue: 240;
+    --main-color: hsl(var(--main-color-hue) 50% 55%);
 
-    --direct-category: hsl(240 50% 55%);
-    --groups-category: hsl(270 50% 55%);
+    --direct-category: hsl(var(--main-color-hue) 50% 55%);
+    --groups-category: hsl(calc(var(--main-color-hue) + 30) 50% 55%);
 }
 
 html {

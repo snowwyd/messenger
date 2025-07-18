@@ -10,7 +10,7 @@
     bottom: 75px;
     height: 40px;
     width: 40px;
-    background-color: var(--white-selection);
+    background-color: hsl(0 0 100% / 0.1);
     border-radius: 50%;
     cursor: pointer;
     transition: 0.2s;
@@ -25,7 +25,7 @@
     }
 
     &:hover {
-        background-color: var(--middle-selection);
+        background-color: hsl(0 0 100% / 0.2);
     }
 
     .newMessagesIcon {

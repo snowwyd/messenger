@@ -38,16 +38,19 @@ textarea {
     height: 45px;
 }
 
-.fileButton {
-    background-image: url('@/assets/icons/file.png');
+.button {
     background-size: 16px;
     background-repeat: no-repeat;
     background-position: center;
     height: 45px;
-    width: 39px;
-    cursor: pointer;
-    filter: saturate(0) brightness(1.5);
+    width: 36px;
     transition: filter 0.2s ease;
+    cursor: pointer;
+}
+
+.fileButton {
+    background-image: url('@/assets/icons/file.png');
+    filter: saturate(0) brightness(1.5);
 
     &:hover {
         filter: saturate(1);
@@ -56,14 +59,7 @@ textarea {
 
 .favoriteButton {
     background-image: url('@/assets/icons/bookmark.png');
-    background-size: 16px;
-    background-repeat: no-repeat;
-    background-position: center;
-    height: 45px;
-    width: 39px;
-    cursor: pointer;
     filter: saturate(0) brightness(1.6);
-    transition: filter 0.2s ease;
 
     &:hover {
         filter: saturate(1);
@@ -72,14 +68,7 @@ textarea {
 
 .emojiButton {
     background-image: url('@/assets/icons/smile.png');
-    background-size: 16px;
-    background-repeat: no-repeat;
-    background-position: center;
-    height: 45px;
-    width: 39px;
-    cursor: pointer;
     filter: saturate(0);
-    transition: filter 0.2s ease;
 
     &:hover {
         filter: saturate(1);
@@ -93,7 +82,7 @@ textarea {
     mask-position: center;
     background-color: var(--main-color);
     height: 45px;
-    width: 39px;
+    width: 36px;
     cursor: pointer;
     transition: filter 0.2s ease;
 

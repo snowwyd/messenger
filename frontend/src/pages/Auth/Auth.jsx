@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { startAnimation, curves } from '@/utils/animation';
+import { startAnimation, curves } from '@/utils/animationUtils';
 
 import RegisterForm from './AuthForms/RegisterForm.jsx';
 import LoginForm from './AuthForms/LoginForm.jsx';

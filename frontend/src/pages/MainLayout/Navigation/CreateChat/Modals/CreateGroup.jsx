@@ -7,6 +7,12 @@ import { chatService } from '@/api/chatService';
 
 import styles from './CreateGroup.module.css';
 
+import Button from '@/shared/ui/Button/Button';
+import Input from '@/shared/ui/Input/Input';
+import SearchIcon from '@/assets/icons/search.svg';
+import GroupNameIcon from '@/assets/icons/tag.svg';
+import Modal from '@/shared/ui/Modal/Modal';
+
 export default function CreateGroup({ closeModal }) {
     const token = useSelector((state) => state.auth.token);
 
@@ -75,18 +81,14 @@ export default function CreateGroup({ closeModal }) {
     }
 
     return (
-        <div className={styles.modal}>
-            <div className={styles.modalName}>Create Group</div>
-            <div className={styles.inputContainer}>
-                <div className={styles.icon}></div>
-                <input
-                    value={enteredUsername}
-                    onChange={(event) => setEnteredUsername(event.target.value)}
-                    className={styles.usernameInput}
-                    placeholder="Username"
-                    onKeyDown={findUser}
-                />
-            </div>
+        <Modal modalHeader="Create Group" className={styles.createGroupModal}>
+            <Input
+                value={enteredUsername}
+                onChange={(event) => setEnteredUsername(event.target.value)}
+                placeholder="Username"
+                icon={SearchIcon}
+                onKeyDown={findUser}
+            />
             <div className={styles.foundUser}>
                 {foundUser.userId && (
                     <>
@@ -94,9 +96,7 @@ export default function CreateGroup({ closeModal }) {
                             <div className={styles.avatar}></div>
                             <div className={styles.username}>{foundUser.username}</div>
                         </div>
-                        <div className={styles.messageButton} onClick={addUser}>
-                            Add
-                        </div>
+                        <Button onClick={addUser} placeholder="Add" className={styles.addUserButton} />
                     </>
                 )}
                 {errorMessage && <span className={styles.errorMessage}>{errorMessage}</span>}
@@ -105,51 +105,38 @@ export default function CreateGroup({ closeModal }) {
                 {addedUsers.map((user) => (
                     <div className={styles.addedUser} onClick={() => removeUser(user.userId)} key={user.userId}>
                         <div className={styles.username}>{user.username}</div>
-                        <div className={styles.removeUserButton}></div>
+                        <div className={styles.removeUserIcon}></div>
                     </div>
                 ))}
             </div>
             <div className={styles.groupInfo}>
                 <div className={styles.groupAvatarContainer} onClick={() => avatarInputRef.current.click()}>
+                    <input ref={avatarInputRef} onChange={handleFileChange} type="file" style={{ display: 'none' }} />
                     {!avatarUrl && (
                         <div className={styles.groupAvatarBorder}>
-                            <div className={styles.groupAvatarImage}>
-                                <input
-                                    ref={avatarInputRef}
-                                    onChange={handleFileChange}
-                                    type="file"
-                                    style={{ display: 'none' }}
-                                />
-                            </div>
+                            <div className={styles.groupAvatarAddIcon}></div>
                         </div>
                     )}
-                    {avatarUrl && <img src={avatarUrl} />}
+                    {avatarUrl && (
+                        <div className={styles.groupAvatarImage} style={{ backgroundImage: `url(${avatarUrl})` }}></div>
+                    )}
                 </div>
-                <div className={styles.groupName}>
+                <div className={styles.groupNameSection}>
                     <div className={styles.groupNameText}>Group Name</div>
-                    <div className={styles.groupNameInputContainer}>
-                        <div className={styles.icon}></div>
-                        <input
-                            value={enteredGroupName}
-                            onChange={(event) => setEnteredGroupName(event.target.value)}
-                            className={styles.groupNameInput}
-                            placeholder={
-                                addedUsers.length > 0
-                                    ? addedUsers.map((user) => user.username).join(', ')
-                                    : 'Group Name'
-                            }
-                        />
-                    </div>
+                    <Input
+                        value={enteredGroupName}
+                        onChange={(event) => setEnteredGroupName(event.target.value)}
+                        placeholder={
+                            addedUsers.length > 0 ? addedUsers.map((user) => user.username).join(', ') : 'Group Name'
+                        }
+                        icon={GroupNameIcon}
+                    />
                 </div>
             </div>
             <div className={styles.buttons}>
-                <div onClick={closeModal} className={styles.button}>
-                    Cancel
-                </div>
-                <div onClick={createChat} className={styles.button}>
-                    Create
-                </div>
+                <Button onClick={closeModal} placeholder="Cancel" className={styles.button} />
+                <Button onClick={createChat} placeholder="Create" className={styles.button} />
             </div>
-        </div>
+        </Modal>
     );
 }

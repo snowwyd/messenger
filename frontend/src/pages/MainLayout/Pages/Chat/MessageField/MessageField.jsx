@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 
 import { chatService } from '@/api/chatService';
 
-import TextInput from '@/components/TextInput/TextInput';
+import TextInput from '@/shared/components/TextInput/TextInput';
 
 export default function MessageField({ channelId, channel }) {
     const token = useSelector((state) => state.auth.token);

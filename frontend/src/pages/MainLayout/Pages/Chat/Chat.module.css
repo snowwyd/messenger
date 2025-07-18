@@ -55,7 +55,7 @@
 }
 
 .groupInfoBlock {
-    height: 500px;
+    min-height: 500px;
     padding: 10px;
     flex-shrink: 0;
     background-color: var(--section-color);

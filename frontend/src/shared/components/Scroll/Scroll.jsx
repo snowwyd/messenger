@@ -23,6 +23,7 @@ function Scroll({ className, onScrollCallback = null, children }, ref) {
     const timeoutRef = useRef(null);
 
     const getScrollApi = () => ({
+        updateThumb: updateThumb,
         setScrollTop: (scrollTop) => {
             contentRef.current.scrollTop = scrollTop;
         },
@@ -30,6 +31,7 @@ function Scroll({ className, onScrollCallback = null, children }, ref) {
             contentRef.current.scrollTop = contentRef.current.scrollHeight;
         },
         scrollBottom: scrollBottom,
+        contentRef: contentRef,
     });
 
     const contextValue = getScrollApi();

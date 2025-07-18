@@ -1,0 +1,26 @@
+.inputContainer {
+    position: relative;
+
+    .icon {
+        position: absolute;
+        aspect-ratio: 1 / 1;
+        height: 100%;
+        mask-size: 14px;
+        mask-position: center;
+        mask-repeat: no-repeat;
+        background-color: var(--text-faint);
+    }
+
+    .input {
+        height: 35px;
+        width: 100%;
+        padding-left: 35px;
+        background-color: hsl(240 4% 5%);
+        border-radius: var(--input-border-radius);
+        user-select: none;
+
+        &::placeholder {
+            color: var(--text-faint);
+        }
+    }
+}

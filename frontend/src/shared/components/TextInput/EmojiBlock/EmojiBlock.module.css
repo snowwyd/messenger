@@ -1,6 +1,7 @@
 .emojiBlock {
     position: absolute;
     display: flex;
+    z-index: 200;
     right: 0;
     bottom: 55px;
     height: 550px;
@@ -39,32 +40,8 @@
     }
 }
 
-.inputContainer {
-    position: relative;
+.searchInput {
     margin-top: 20px;
     margin-inline: 20px;
     flex-shrink: 0;
-
-    .icon {
-        position: absolute;
-        aspect-ratio: 1 / 1;
-        height: 100%;
-        mask-image: url('@/assets/icons/search.svg');
-        mask-size: 15px;
-        mask-position: center;
-        mask-repeat: no-repeat;
-        background-color: var(--text-faint);
-    }
-
-    .search {
-        height: 35px;
-        width: 100%;
-        background-color: var(--input-color);
-        border-radius: var(--input-border-radius);
-        padding-left: 35px;
-
-        &::placeholder {
-            color: var(--text-faint);
-        }
-    }
 }

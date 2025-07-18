@@ -1,8 +1,11 @@
 import { memo, useState } from 'react';
-import Scroll from '@/components/Scroll/Scroll';
+import Scroll from '@/shared/components/Scroll/Scroll';
 
 import emojiJson from 'emoji.json';
 import styles from './EmojiBlock.module.css';
+
+import Input from '@/shared/ui/Input/Input.jsx';
+import SearchIcon from '@/assets/icons/search.svg';
 
 const emojis = emojiJson.filter((element) => !element.name.includes('skin tone'));
 
@@ -41,10 +44,7 @@ const EmojiBlock = memo(function EmojiBlock({ setText, inputRef }) {
 
     return (
         <div className={styles.emojiBlock}>
-            <div className={styles.inputContainer}>
-                <div className={styles.icon}></div>
-                <input type="text" className={styles.search} onChange={searchEmoji} placeholder="search" />
-            </div>
+            <Input onChange={searchEmoji} placeholder="Search" icon={SearchIcon} className={styles.searchInput} />
             <div className={styles.emojiContainer}>
                 <Scroll className={styles.emojiGrid} onScrollCallback={onScrollCallback}>
                     {renderedEmojis.map((item, index) => (

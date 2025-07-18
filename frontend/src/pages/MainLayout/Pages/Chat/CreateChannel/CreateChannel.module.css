@@ -1,0 +1,94 @@
+.createChannelButton {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    aspect-ratio: 1 / 1;
+    height: 50px;
+    mask-image: url('@/assets/icons/plus.svg');
+    mask-size: 18px;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    background-color: var(--text-primary);
+    cursor: pointer;
+    opacity: 0.4;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.createChannelModal {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+}
+
+.radioButtons {
+    display: flex;
+    column-gap: 20px;
+    user-select: none;
+}
+
+.radioButton {
+    display: flex;
+    height: 35px;
+    padding-left: 10px;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    color: var(--text-muted);
+    border-radius: var(--input-border-radius);
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--selection-color);
+    }
+
+    & > input {
+        display: none;
+    }
+
+    &.active {
+        color: var(--text-primary);
+        background-color: var(--active-color);
+
+        .radioMark::after {
+            transform: scale(1);
+        }
+
+        .radioMark {
+            background-color: var(--main-color);
+            border-color: var(--main-color);
+        }
+    }
+}
+
+.radioMark {
+    position: relative;
+    width: 15px;
+    height: 15px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+}
+
+.radioMark::after {
+    content: '';
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    top: calc(50% - 3.5px);
+    left: calc(50% - 3.5px);
+    background-color: var(--text-primary);
+    border-radius: 50%;
+    transform: scale(0);
+}
+
+.buttons {
+    display: flex;
+    column-gap: 20px;
+
+    .button {
+        flex: 1;
+        height: 35px;
+    }
+}

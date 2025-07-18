@@ -49,11 +49,14 @@ export default function TextInput({ onSend, placeholder }) {
                     onChange={(event) => setText(event.target.value)}
                     placeholder={placeholder}
                 />
-                <div className={styles.fileButton} onClick={() => fileInputRef.current.click()}>
+                <div className={`${styles.button} ${styles.fileButton}`} onClick={() => fileInputRef.current.click()}>
                     <input ref={fileInputRef} onChange={handleFileChange} type="file" style={{ display: 'none' }} />
                 </div>
-                <div className={styles.favoriteButton}></div>
-                <div className={styles.emojiButton} onClick={() => setIsEmojiBlock((prev) => !prev)}></div>
+                <div className={`${styles.button} ${styles.favoriteButton}`}></div>
+                <div
+                    className={`${styles.button} ${styles.emojiButton}`}
+                    onClick={() => setIsEmojiBlock((prev) => !prev)}
+                ></div>
                 <div className={styles.sendMessageButton} onClick={sendMessage}></div>
                 {isEmojiBlock && <EmojiBlock setText={setText} inputRef={textareaRef} />}
             </div>

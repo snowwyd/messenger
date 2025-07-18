@@ -3,17 +3,16 @@
     height: 100%;
     width: 10px;
     cursor: ew-resize;
-    z-index: 100;
+    z-index: 200;
 }
 
 .label {
     position: fixed;
-    z-index: 100;
+    z-index: 200;
     box-sizing: content-box;
     padding: 4px 8px;
     font-size: 12px;
-    background-color: var(--tinted-selection);
-    border: 1px solid var(--tinted-selection);
+    background-color: hsl(0 0 100% / 0.1);
     border-radius: 20px;
     visibility: hidden;
 }

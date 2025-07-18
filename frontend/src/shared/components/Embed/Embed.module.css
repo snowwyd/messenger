@@ -2,6 +2,7 @@
     display: block;
     overflow: hidden;
     border-radius: 12px;
+    z-index: 100;
 }
 
 .marginTop {
@@ -15,6 +16,8 @@
     .soundcloud {
         position: relative;
         top: -4px;
+        border-radius: 1px;
+        z-index: 100;
     }
 }
 
@@ -24,6 +27,16 @@
     border-radius: 12px;
 
     img {
-        height: 200px;
+        height: 300px;
     }
+}
+
+.plug {
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    background-color: var(--tinted-selection);
+    border-radius: 12px;
 }

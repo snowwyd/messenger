@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import Linkify from 'linkify-react';
@@ -7,13 +7,12 @@ import * as linkify from 'linkifyjs';
 import { useStream } from '@/hooks/useStream';
 import { chatService } from '@/api/chatService';
 
-import Scroll from '@/components/Scroll/Scroll';
-import Embed from '@/components/Embed/Embed';
+import Scroll from '@/shared/components/Scroll/Scroll';
+import Embed from '@/shared/components/Embed/Embed';
 
-import styles from './Messages.module.css';
+import styles from './MessageList.module.css';
 
 const MESSAGES_BATCH_SIZE = 100;
-const SCROLLBOTTOM_THRESHOLD = 100;
 const LOAD_THRESHOLD = 500;
 
 function insertMessageWithOverflow(pages, newMessage) {
@@ -92,12 +91,6 @@ export default function MessageList({ channelId, usernames }) {
         return () => messageStream.abortStream();
     }, [channelId, queryClient]);
 
-    useEffect(() => {
-        if (scrollRef.current.scrollBottom.current < SCROLLBOTTOM_THRESHOLD) {
-            scrollRef.current.scrollToBottom();
-        }
-    }, [messageList.data]);
-
     function onScrollCallback({ scrollTop }) {
         queryClient.setQueryData(['scrollPosition', channelId], { scrollTop: scrollTop });
         setShowScrollToBottomButton((prev) => {
@@ -109,13 +102,6 @@ export default function MessageList({ channelId, usernames }) {
         });
         loadMoreMessages(scrollTop);
     }
-
-    useEffect(() => {
-        const scrollPosition = queryClient.getQueryData(['scrollPosition', channelId]);
-        if (scrollPosition) {
-            scrollRef.current.setScrollTop(scrollPosition.scrollTop);
-        }
-    }, [channelId]);
 
     function loadMoreMessages(scrollTop) {
         if (messageList.isFetchingPreviousPage) return;
@@ -150,6 +136,23 @@ export default function MessageList({ channelId, usernames }) {
               return page;
           })
         : [];
+
+    useLayoutEffect(() => {
+        if (messageList.isSuccess) {
+            const scrollPosition = queryClient.getQueryData(['scrollPosition', channelId]);
+            if (scrollPosition) {
+                scrollRef.current.setScrollTop(scrollPosition.scrollTop);
+            } else {
+                scrollRef.current.scrollToBottom();
+            }
+        }
+    }, [messageList.isSuccess]);
+
+    useLayoutEffect(() => {
+        if (scrollRef.current.scrollBottom.current === 0) {
+            scrollRef.current.scrollToBottom();
+        }
+    }, [newMessagesCount]);
 
     function handleScrollToBottom() {
         queryClient.setQueryData(['pageOffset', channelId], 0);
@@ -243,19 +246,15 @@ function MessageContent({ text }) {
     };
 
     const links = linkify.find(text);
-    const isSingleImageLink =
-        links.length === 1 && text.trim() === links[0].href && /\.(gif|jpe?g|png|webp)$/i.test(links[0].href.trim());
 
     return (
         <div className={styles.messageContent}>
             <div className={styles.messageText}>
-                {!isSingleImageLink && <Linkify options={options}>{text}</Linkify>}
+                <Linkify options={options}>{text}</Linkify>
             </div>
             <div className={styles.embeds}>
                 {links.length > 0 &&
-                    links.map((item, index) => (
-                        <Embed url={item.href} isSingleImageLink={isSingleImageLink} index={index} key={index}></Embed>
-                    ))}
+                    links.map((item, index) => <Embed url={item.href} index={index} key={index}></Embed>)}
             </div>
         </div>
     );

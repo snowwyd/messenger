@@ -1,52 +1,8 @@
-.modal {
-    position: absolute;
-    display: flex;
-    z-index: 100;
+.createDmModal {
     top: 0;
     left: 100%;
     width: 320px;
     margin-left: 10px;
-    padding: 20px;
-    flex-direction: column;
-    row-gap: 20px;
-    background-color: var(--light-block-color);
-    border-radius: var(--block-border-radius);
-}
-
-.modalName {
-    color: var(--light-gray-text);
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    user-select: none;
-}
-
-.inputContainer {
-    position: relative;
-
-    .icon {
-        position: absolute;
-        aspect-ratio: 1 / 1;
-        height: 100%;
-        mask-image: url('@/assets/icons/search.svg');
-        mask-size: 16px;
-        mask-position: center;
-        mask-repeat: no-repeat;
-        background-color: var(--text-faint);
-    }
-
-    .usernameInput {
-        height: 35px;
-        width: 100%;
-        padding-left: 35px;
-        background-color: var(--input-color);
-        border-radius: var(--input-border-radius);
-        user-select: none;
-
-        &::placeholder {
-            color: var(--text-faint);
-        }
-    }
 }
 
 .foundUser {
@@ -78,19 +34,8 @@
 }
 
 .messageButton {
-    display: flex;
-    align-items: center;
     padding-inline: 14px;
     height: 30px;
-    border: 1px solid var(--light-selection);
-    border-radius: var(--input-border-radius);
-    cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
-
-    &:hover {
-        border-color: hsl(0 0% 100% / 0);
-        background-color: var(--light-selection);
-    }
 }
 
 .errorMessage {

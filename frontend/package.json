@@ -1,6 +1,8 @@
 {
     "name": "frontend",
     "version": "1.0.0",
+    "private": true,
+    "author": "deoxce",
     "type": "module",
     "scripts": {
         "dev": "vite",
@@ -9,9 +11,6 @@
         "prod": "npm run build && npm run preview",
         "genproto": "mkdirp src/proto/gen && npx protoc --proto_path=../protos/proto/ --ts_out=src/proto/gen/ ../protos/proto/*.proto"
     },
-    "author": "deoxce",
-    "license": "ISC",
-    "description": "",
     "dependencies": {
         "@protobuf-ts/grpcweb-transport": "^2.11.0",
         "@reduxjs/toolkit": "^2.8.2",

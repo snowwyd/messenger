@@ -50,7 +50,7 @@
         background-color: hsl(240 2% 8.5%);
 
         &::placeholder {
-            color: var(--text-faint);
+            color: hsl(0 0 20%);
         }
     }
 

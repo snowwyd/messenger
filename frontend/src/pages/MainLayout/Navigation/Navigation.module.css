@@ -22,12 +22,12 @@
 
     &:hover {
         color: white;
-        background-color: var(--white-selection);
+        background-color: var(--selection-color);
     }
 
     &.activeLink {
         color: white;
-        background-color: var(--middle-selection);
+        background-color: var(--active-color);
     }
 
     &.direct .categoryIcon {

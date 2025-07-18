@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useMutation } from '@tanstack/react-query';
 
@@ -6,10 +6,14 @@ import { chatService } from '@/api/chatService';
 
 import styles from './CreateChannel.module.css';
 
+import Button from '@/shared/ui/Button/Button';
+import Input from '@/shared/ui/Input/Input';
+import ChannelNameIcon from '@/assets/icons/tag.svg';
+import Modal from '@/shared/ui/Modal/Modal';
+
 export default function CreateChannel({ chatId }) {
     const token = useSelector((state) => state.auth.token);
 
-    const createChannelModal = useRef(null);
     const [channelName, setChannelName] = useState('');
     const [isOpened, setIsOpened] = useState(false);
 
@@ -36,21 +40,15 @@ export default function CreateChannel({ chatId }) {
     return (
         <>
             {isOpened && (
-                <div ref={createChannelModal} className={styles.createChannelModal}>
-                    <div className={styles.modalName}>Create Channel</div>
-                    <div className={styles.inputContainer}>
-                        <div className={styles.icon}></div>
-                        <input
-                            value={channelName}
-                            onChange={(event) => setChannelName(event.target.value)}
-                            className={styles.channelNameInput}
-                            placeholder="Channel Name"
-                        />
-                    </div>
+                <Modal modalHeader="Create Channel" className={styles.createChannelModal}>
+                    <Input
+                        value={channelName}
+                        onChange={(event) => setChannelName(event.target.value)}
+                        placeholder="Channel Name"
+                        icon={ChannelNameIcon}
+                    />
                     <div className={styles.radioButtons}>
-                        <label
-                            className={`${styles.radioButton} ${selectedType === 'text' && styles.activeRadioButton}`}
-                        >
+                        <label className={`${styles.radioButton} ${selectedType === 'text' && styles.active}`}>
                             <input
                                 type="radio"
                                 name="channelType"
@@ -61,9 +59,7 @@ export default function CreateChannel({ chatId }) {
                             <span className={styles.radioMark}></span>
                             Text
                         </label>
-                        <label
-                            className={`${styles.radioButton} ${selectedType === 'voice' && styles.activeRadioButton}`}
-                        >
+                        <label className={`${styles.radioButton} ${selectedType === 'voice' && styles.active}`}>
                             <input
                                 type="radio"
                                 name="channelType"
@@ -76,14 +72,10 @@ export default function CreateChannel({ chatId }) {
                         </label>
                     </div>
                     <div className={styles.buttons}>
-                        <div onClick={() => setIsOpened(false)} className={styles.button}>
-                            Cancel
-                        </div>
-                        <div onClick={createChannel} className={styles.button}>
-                            Create
-                        </div>
+                        <Button onClick={() => setIsOpened(false)} placeholder="Cancel" className={styles.button} />
+                        <Button onClick={createChannel} placeholder="Create" className={styles.button} />
                     </div>
-                </div>
+                </Modal>
             )}
             <div onClick={() => setIsOpened((prev) => !prev)} className={styles.createChannelButton}></div>
         </>

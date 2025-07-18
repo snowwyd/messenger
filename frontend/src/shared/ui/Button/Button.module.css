@@ -1,0 +1,18 @@
+.button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: none;
+    color: var(--text-primary);
+    font-weight: 500;
+    border: 1px solid hsl(0 0 100% / 0.2);
+    border-radius: var(--input-border-radius);
+    transition: background-color 0.2s, border-color 0.2s;
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+        border-color: hsl(0 0 100% / 0);
+        background-color: hsl(0 0 100% / 0.2);
+    }
+}

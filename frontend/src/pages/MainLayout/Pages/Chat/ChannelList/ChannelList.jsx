@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { categoryActions } from '@/store/store.js';
 
-import Scroll from '@/components/Scroll/Scroll';
+import Scroll from '@/shared/components/Scroll/Scroll';
 
 import styles from './ChannelList.module.css';
 
