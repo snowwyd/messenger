@@ -1,11 +1,11 @@
 import js from '@eslint/js';
 import globals from 'globals';
-import react from 'eslint-plugin-react';
+import reactPlugin from 'eslint-plugin-react';
 import { defineConfig } from 'eslint/config';
 
 export default defineConfig([
-    react.configs.flat.recommended,
-    react.configs.flat['jsx-runtime'],
+    reactPlugin.configs.flat.recommended,
+    reactPlugin.configs.flat['jsx-runtime'],
     js.configs.recommended,
     {
         files: ['**/*.{js,jsx}'],

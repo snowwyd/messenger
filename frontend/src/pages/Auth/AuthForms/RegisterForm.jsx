@@ -1,24 +1,26 @@
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
+import clsx from 'clsx';
 
 import { userService } from '@/api/userService';
+import Button from '@/shared/ui/Button/Button.jsx';
 
 import styles from './AuthForm.module.css';
 
-export default function RegisterForm({ formRef }) {
+export default function RegisterForm({ ref }) {
     const [registerMessage, setRegisterMessage] = useState('');
-    const [pulse, setPulse] = useState([false, false]);
-    const resetPulse = () => setPulse([false, false]);
+    const [pulse, setPulse] = useState('none');
+    const resetPulse = () => setPulse('none');
 
     const registerMutation = useMutation({
         mutationFn: (user) => userService.register(user.username, user.email, user.password),
         onSuccess: () => {
             setRegisterMessage('successful registration');
-            setPulse([false, true]);
+            setPulse('success');
         },
         onError: (error) => {
             setRegisterMessage('error: ' + error.message);
-            setPulse([true, false]);
+            setPulse('error');
         },
     });
 
@@ -35,30 +37,57 @@ export default function RegisterForm({ formRef }) {
         registerMutation.mutate(user);
     }
 
-    const errorMessageClasses = [styles.errorMessage, pulse[0] && styles.redPulse, pulse[1] && styles.greenPulse]
-        .filter(Boolean)
-        .join(' ');
-
     return (
-        <form className={styles.forms} ref={formRef} onSubmit={handleRegister}>
-            <h2 className={styles.formName}>sign up</h2>
+        <form className={styles.form} ref={ref} onSubmit={handleRegister}>
+            <header>
+                <h2 className={styles.formHeader}>sign up</h2>
+            </header>
             <div className={styles.inputsContainer}>
-                <input className={styles.usernameInput} type="text" name="username" placeholder="username" />
-                <input className={styles.emailInput} type="email" name="email" placeholder="email" />
                 <input
-                    className={styles.passwordInput}
+                    className={clsx(styles.input, styles.usernameInput)}
+                    type="text"
+                    name="username"
+                    placeholder="username"
+                    minLength="3"
+                    maxLength="32"
+                    pattern="[a-zA-Z0-9_]+"
+                    required
+                />
+                <input
+                    className={clsx(styles.input, styles.emailInput)}
+                    type="email"
+                    name="email"
+                    placeholder="email"
+                    minLength="8"
+                    maxLength="254"
+                    required
+                />
+                <input
+                    className={clsx(styles.input, styles.passwordInput)}
                     type="password"
                     name="password"
                     autoComplete="new-password"
                     placeholder="password"
+                    minLength="8"
+                    maxLength="64"
+                    required
                 />
                 <div className={styles.errorMessageContainer}>
-                    <p className={errorMessageClasses} onAnimationEnd={resetPulse}>
+                    <span
+                        className={clsx(
+                            styles.errorMessage,
+                            pulse === 'error' && styles.redPulse,
+                            pulse === 'success' && styles.greenPulse
+                        )}
+                        onAnimationEnd={resetPulse}
+                    >
                         {registerMessage}
-                    </p>
+                    </span>
                 </div>
             </div>
-            <input type="submit" value="sign up" />
+            <Button type="submit" className={styles.submitButton} disabled={registerMutation.isLoading}>
+                sign up
+            </Button>
         </form>
     );
 }

@@ -1,10 +1,10 @@
-import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import Linkify from 'linkify-react';
 import * as linkify from 'linkifyjs';
 
-import { useStream } from '@/hooks/useStream';
+import { createStreamHandler } from '@/services/createStreamHandler';
 import { chatService } from '@/api/chatService';
 
 import Scroll from '@/shared/components/Scroll/Scroll';
@@ -63,7 +63,7 @@ export default function MessageList({ channelId, usernames }) {
         cacheTime: 30 * 60 * 1000,
     });
 
-    const messageStream = useStream({
+    const messageStream = createStreamHandler({
         streamKey: 'messages',
         streamFn: (channelId, key) => chatService.messageStream(token, key, channelId),
         onResponse: (newMessage) => {
@@ -137,7 +137,7 @@ export default function MessageList({ channelId, usernames }) {
           })
         : [];
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if (messageList.isSuccess) {
             const scrollPosition = queryClient.getQueryData(['scrollPosition', channelId]);
             if (scrollPosition) {
@@ -148,8 +148,8 @@ export default function MessageList({ channelId, usernames }) {
         }
     }, [messageList.isSuccess]);
 
-    useLayoutEffect(() => {
-        if (scrollRef.current.scrollBottom.current === 0) {
+    useEffect(() => {
+        if (scrollRef.current.scrollBottom.current < 100) {
             scrollRef.current.scrollToBottom();
         }
     }, [newMessagesCount]);

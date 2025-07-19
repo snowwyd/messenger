@@ -2,14 +2,14 @@ import { useRef } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-import Navigation from './Navigation/Navigation.jsx';
+import Resizer from '@/shared/components/Resizer/Resizer.jsx';
 
+import Navigation from './Navigation/Navigation.jsx';
 import ChatList from './Categories/ChatList/ChatList.jsx';
 import Chat from './Pages/Chat/Chat.jsx';
 import GroupChat from './Pages/Chat/GroupChat.jsx';
 
 import styles from './MainLayout.module.css';
-import Resizer from '@/shared/components/Resizer/Resizer.jsx';
 
 export default function MainLayout() {
     const resizableRef = useRef(null);

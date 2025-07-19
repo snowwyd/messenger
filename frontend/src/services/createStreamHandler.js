@@ -1,7 +1,7 @@
 import { store, authActions } from '@/store/store';
 import { grpc } from '@/api/grpc';
 
-export function useStream(streamOptions) {
+export function createStreamHandler(streamOptions) {
     const stream = {
         stream: async function (data) {
             try {

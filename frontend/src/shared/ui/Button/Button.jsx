@@ -1,9 +1,11 @@
+import clsx from 'clsx';
+
 import styles from './Button.module.css';
 
-export default function Button({ onClick, placeholder, className }) {
+export default function Button({ className, onClick, type, disabled, children }) {
     return (
-        <button className={`${styles.button} ${className}`} onClick={onClick}>
-            {placeholder}
+        <button className={clsx(styles.button, className)} onClick={onClick} type={type} disabled={disabled}>
+            {children}
         </button>
     );
 }

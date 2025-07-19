@@ -25,10 +25,6 @@
     display: block;
     overflow: hidden;
     border-radius: 12px;
-
-    img {
-        height: 200px;
-    }
 }
 
 .plug {

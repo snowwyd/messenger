@@ -4,20 +4,26 @@ import { userService } from './userService';
 export const chatService = {
     getUserChats: async function (token, type) {
         const rpcOptions = grpc.getUnaryOptions(token);
-        const input = { type: type };
+        const input = {
+            type: type,
+        };
         const call = await grpc.chatClient.getUserChats(input, rpcOptions);
         const chats = call.response.chats;
 
         if (type === 'private') {
             const usernames = await userService.getUsernames(chats.map((item) => item.name));
-            for (let i = 0; i < chats.length; i++) chats[i].name = usernames[chats[i].name];
+            for (let i = 0; i < chats.length; i++) {
+                chats[i].name = usernames[chats[i].name];
+            }
         }
 
         return chats;
     },
     getChatInfo: async function (token, chatId) {
         const rpcOptions = grpc.getUnaryOptions(token);
-        const chatInput = { chatId: chatId };
+        const chatInput = {
+            chatId: chatId,
+        };
         const chatCall = await grpc.chatClient.getChatInfo(chatInput, rpcOptions);
         const usernames = await userService.getUsernames(chatCall.response.memberIds);
         chatCall.response.usernames = usernames;
@@ -64,7 +70,9 @@ export const chatService = {
     },
     messageStream: async function* (token, controllerKey, channelId) {
         const rpcOptions = grpc.getStreamingOptions(token, controllerKey);
-        const input = { channelId: channelId };
+        const input = {
+            channelId: channelId,
+        };
         const call = grpc.chatClient.chatStream(input, rpcOptions);
         for await (const response of call.responses) {
             yield response.payload.newMessage;

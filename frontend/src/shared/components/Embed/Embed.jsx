@@ -131,7 +131,7 @@ function ImagePreview({ url }) {
 
     return (
         <a href={url} className={`${styles.picture} ${marginTop}`} target="_blank" rel="noopener noreferrer">
-            <img src={url} loading="lazy" />
+            <img src={url} loading="lazy" height="200" alt="" />
         </a>
     );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+
 import { startAnimation, curves } from '@/utils/animationUtils';
 
 import RegisterForm from './AuthForms/RegisterForm.jsx';
@@ -7,13 +8,13 @@ import LoginForm from './AuthForms/LoginForm.jsx';
 import styles from './Auth.module.css';
 
 const images = import.meta.glob('@/assets/images/auth-page/*.png', { eager: true });
-const authImages = Object.values(images).map((mod) => mod.default);
-const currentImageNumber = Number(localStorage.getItem('currentAuthImage') || 0);
+const authVisuals = Object.values(images).map((mod) => mod.default);
+const currentVisualNumber = Number(localStorage.getItem('currentAuthImage') || 0);
 
 export default function AuthPage() {
-    const imageContainerRef = useRef(null);
-    const imageRef = useRef(null);
-    const [currentImage, setCurrentImage] = useState(currentImageNumber);
+    const visualContainerRef = useRef(null);
+    const visualRef = useRef(null);
+    const [currentVisual, setCurrentVisual] = useState(currentVisualNumber);
 
     const signUpRefs = {
         button: useRef(null),
@@ -32,23 +33,9 @@ export default function AuthPage() {
         login: useRef(null),
     };
 
-    const [isRegisterFormActive, setIsRegisterFormActive] = useState(true);
-
-    const switchImage = () => setCurrentImage((prev) => (prev < authImages.length - 1 ? prev + 1 : 0));
-    useEffect(() => localStorage.setItem('currentAuthImage', currentImage), [currentImage]);
+    const switchImage = () => setCurrentVisual((prev) => (prev < authVisuals.length - 1 ? prev + 1 : 0));
+    useEffect(() => localStorage.setItem('currentAuthImage', currentVisual), [currentVisual]);
     useEffect(() => formRefs.login.current.classList.add(styles.hiddenForm), []);
-
-    function showLoginForm() {
-        formRefs.login.current.classList.remove(styles.hiddenForm);
-        formRefs.register.current.classList.add(styles.hiddenForm);
-        setIsRegisterFormActive(false);
-    }
-
-    function showRegisterForm() {
-        formRefs.register.current.classList.remove(styles.hiddenForm);
-        formRefs.login.current.classList.add(styles.hiddenForm);
-        setIsRegisterFormActive(true);
-    }
 
     const switchFormToRegister = () => switchForm(false);
     const switchFormToLogin = () => switchForm(true);
@@ -59,12 +46,12 @@ export default function AuthPage() {
     const deselectSignInButton = () => runHoverEffect(signInRefs, false);
 
     function runHoverEffect({ button, text, selection }, isHoverIn) {
+        const height = button.current.offsetHeight * 0.95;
+        const textOffset = button.current.offsetHeight * 2;
         const duration = 400;
-        const animateHover = (progress) => {
-            const height = button.current.offsetHeight * 0.95;
-            const textOffset = button.current.offsetHeight * 2;
-            const textTop = progress > 0.5 ? textOffset * progress - textOffset : textOffset * progress;
 
+        const animateHover = (progress) => {
+            const textTop = progress > 0.5 ? textOffset * progress - textOffset : textOffset * progress;
             selection.current.style.height = (isHoverIn ? progress * height : height - progress * height) + 'px';
             text.current.style.top = textTop + 'px';
         };
@@ -73,14 +60,11 @@ export default function AuthPage() {
     }
 
     function switchForm(toLeft) {
+        const isRegisterOpening = !toLeft;
+        const isLoginOpening = toLeft;
         const duration = 1000;
-        const animateImageBlock = (progress) => {
-            const isRegisterOpening = !toLeft;
-            const isLoginOpening = toLeft;
 
-            if (isRegisterOpening) setIsRegisterFormActive(true);
-            if (isLoginOpening) setIsRegisterFormActive(false);
-
+        const animateVisualBlock = (progress) => {
             const showRegister = (progress > 0.4 && isRegisterOpening) || (progress < 0.6 && isLoginOpening);
             const showLogin = (progress > 0.4 && isLoginOpening) || (progress < 0.6 && isRegisterOpening);
 
@@ -91,10 +75,10 @@ export default function AuthPage() {
             const buttonsInterval = 80;
             const formsInterval = 100;
 
-            imageContainerRef.current.style.clipPath = `xywh(${
+            visualContainerRef.current.style.clipPath = `xywh(${
                 toLeft ? 50 - progress * 50 : progress * 50
             }% 0% 50% 100%)`;
-            imageRef.current.style.left = toLeft
+            visualRef.current.style.left = toLeft
                 ? -backgroundInterval + progress * backgroundInterval + 'px'
                 : progress * -backgroundInterval + 'px';
 
@@ -113,22 +97,22 @@ export default function AuthPage() {
                 : progress * -formsInterval + 'px';
         };
 
-        startAnimation(curves.easeOutExpo, animateImageBlock, duration);
+        startAnimation(curves.easeOutExpo, animateVisualBlock, duration);
     }
 
     return (
-        <div className={styles.authFormsContainer}>
-            <div className={styles.authForms}>
-                <RegisterForm formRef={formRefs.register} />
-                <LoginForm formRef={formRefs.login} />
-                <div className={styles.imageBlock} ref={imageContainerRef}>
+        <div className={styles.container}>
+            <div className={styles.forms}>
+                <RegisterForm ref={formRefs.register} />
+                <LoginForm ref={formRefs.login} />
+                <div className={styles.visualBlock} ref={visualContainerRef}>
                     <img
-                        src={authImages[currentImage]}
-                        ref={imageRef}
-                        className={styles.footage}
+                        src={authVisuals[currentVisual]}
+                        ref={visualRef}
+                        className={styles.visual}
                         onClick={switchImage}
                     />
-                    <div
+                    <button
                         ref={signUpRefs.button}
                         className={styles.switchFormButton}
                         onClick={switchFormToRegister}
@@ -137,8 +121,8 @@ export default function AuthPage() {
                     >
                         <div ref={signUpRefs.selection} className={styles.selection}></div>
                         <span ref={signUpRefs.text}>sign up</span>
-                    </div>
-                    <div
+                    </button>
+                    <button
                         ref={signInRefs.button}
                         className={styles.switchFormButton}
                         onClick={switchFormToLogin}
@@ -147,18 +131,7 @@ export default function AuthPage() {
                     >
                         <div ref={signInRefs.selection} className={styles.selection}></div>
                         <span ref={signInRefs.text}>sign in</span>
-                    </div>
-                </div>
-                <div className={styles.switchFormMobileButton}>
-                    {isRegisterFormActive ? (
-                        <>
-                            already have an account? <span onClick={showLoginForm}>sign in</span>
-                        </>
-                    ) : (
-                        <>
-                            are you new here? <span onClick={showRegisterForm}>create account</span>
-                        </>
-                    )}
+                    </button>
                 </div>
             </div>
         </div>

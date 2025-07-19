@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useMutation } from '@tanstack/react-query';
+import clsx from 'clsx';
 
 import { chatService } from '@/api/chatService';
 
@@ -48,7 +49,7 @@ export default function CreateChannel({ chatId }) {
                         icon={ChannelNameIcon}
                     />
                     <div className={styles.radioButtons}>
-                        <label className={`${styles.radioButton} ${selectedType === 'text' && styles.active}`}>
+                        <label className={clsx(styles.radioButton, selectedType === 'text' && styles.active)}>
                             <input
                                 type="radio"
                                 name="channelType"
@@ -59,7 +60,7 @@ export default function CreateChannel({ chatId }) {
                             <span className={styles.radioMark}></span>
                             Text
                         </label>
-                        <label className={`${styles.radioButton} ${selectedType === 'voice' && styles.active}`}>
+                        <label className={clsx(styles.radioButton, selectedType === 'voice' && styles.active)}>
                             <input
                                 type="radio"
                                 name="channelType"
@@ -72,12 +73,20 @@ export default function CreateChannel({ chatId }) {
                         </label>
                     </div>
                     <div className={styles.buttons}>
-                        <Button onClick={() => setIsOpened(false)} placeholder="Cancel" className={styles.button} />
-                        <Button onClick={createChannel} placeholder="Create" className={styles.button} />
+                        <Button onClick={() => setIsOpened(false)} className={styles.button} type="button">
+                            Cancel
+                        </Button>
+                        <Button onClick={createChannel} className={styles.button} type="button">
+                            Create
+                        </Button>
                     </div>
                 </Modal>
             )}
-            <div onClick={() => setIsOpened((prev) => !prev)} className={styles.createChannelButton}></div>
+            <button
+                onClick={() => setIsOpened((prev) => !prev)}
+                className={styles.createChannelButton}
+                type="button"
+            ></button>
         </>
     );
 }

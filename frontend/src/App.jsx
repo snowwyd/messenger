@@ -7,12 +7,16 @@ import MainLayoutPage from '@/pages/MainLayout/MainLayout.jsx';
 export default function App() {
     const isAuthorized = useSelector((state) => state.auth.isAuth);
 
-    return isAuthorized ? (
-        <MainLayoutPage />
-    ) : (
-        <Routes>
-            <Route path="/" element={<AuthPage />} />
-            <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+    return (
+        <main>
+            {isAuthorized ? (
+                <MainLayoutPage />
+            ) : (
+                <Routes>
+                    <Route path="/" element={<AuthPage />} />
+                    <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+            )}
+        </main>
     );
 }
