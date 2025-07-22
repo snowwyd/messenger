@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "private": true,
     "author": "deoxce",
+    "license": "MIT",
     "type": "module",
     "scripts": {
         "dev": "vite",
@@ -12,26 +13,35 @@
         "genproto": "mkdirp src/proto/gen && npx protoc --proto_path=../protos/proto/ --ts_out=src/proto/gen/ ../protos/proto/*.proto"
     },
     "dependencies": {
-        "@protobuf-ts/grpcweb-transport": "^2.11.0",
+        "@protobuf-ts/grpcweb-transport": "^2.11.1",
         "@reduxjs/toolkit": "^2.8.2",
-        "@tanstack/react-query": "^5.79.0",
-        "emoji.json": "^15.1.0",
+        "@tanstack/react-query": "^5.83.0",
+        "clsx": "^2.1.1",
+        "emoji.json": "^16.0.0",
         "linkify-react": "^4.3.1",
         "linkifyjs": "^4.3.1",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
         "react-redux": "^9.2.0",
-        "react-router-dom": "^7.6.1"
+        "react-router-dom": "^7.7.0"
     },
     "devDependencies": {
-        "@eslint/js": "^9.28.0",
-        "@protobuf-ts/plugin": "^2.11.0",
-        "@vitejs/plugin-react": "^4.5.0",
-        "eslint": "^9.28.0",
-        "eslint-plugin-react": "^7.37.5",
-        "globals": "^16.2.0",
+        "@eslint/js": "^9.31.0",
+        "@protobuf-ts/plugin": "^2.11.1",
+        "@protobuf-ts/runtime-rpc": "^2.11.1",
+        "@types/react": "^19.1.8",
+        "@types/react-dom": "^19.1.6",
+        "@vitejs/plugin-react": "^4.7.0",
+        "eslint": "^9.31.0",
+        "eslint-plugin-jsx-a11y": "^6.10.2",
+        "eslint-plugin-react-hooks": "^5.2.0",
+        "eslint-plugin-react-refresh": "^0.4.20",
+        "eslint-plugin-react-x": "^1.52.3",
+        "globals": "^16.3.0",
         "mkdirp": "^3.0.1",
-        "vite": "^6.3.5"
+        "typescript": "^5.8.3",
+        "typescript-eslint": "^8.38.0",
+        "vite": "^7.0.5"
     },
     "prettier": {
         "singleQuote": true,

@@ -1,20 +1,25 @@
-import js from '@eslint/js';
+import eslint from '@eslint/js';
 import globals from 'globals';
-import react from 'eslint-plugin-react';
-import { defineConfig } from 'eslint/config';
+import reactXPlugin from 'eslint-plugin-react-x';
+import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
+import reactHooks from 'eslint-plugin-react-hooks';
+import tseslint from 'typescript-eslint';
+import { globalIgnores } from 'eslint/config';
 
-export default defineConfig([
-    react.configs.flat.recommended,
-    react.configs.flat['jsx-runtime'],
-    js.configs.recommended,
+export default tseslint.config(
+    eslint.configs.recommended,
+    reactXPlugin.configs.recommended,
+    jsxA11yPlugin.flatConfigs.recommended,
+    reactHooks.configs['recommended-latest'],
+    globalIgnores(['dist']),
     {
         files: ['**/*.{js,jsx}'],
         languageOptions: {
-            ecmaVersion: 2022,
             globals: globals.browser,
         },
-        rules: {
-            'react/prop-types': 'off',
-        },
     },
-]);
+    {
+        files: ['**/*.{ts,tsx}'],
+        extends: [tseslint.configs.recommended, tseslint.configs.stylistic],
+    }
+);
