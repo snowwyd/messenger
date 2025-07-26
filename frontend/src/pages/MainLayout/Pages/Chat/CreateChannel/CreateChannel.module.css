@@ -18,9 +18,9 @@
 }
 
 .createChannelModal {
-    right: 10px;
-    bottom: 10px;
-    left: 10px;
+    right: var(--block-gaps);
+    bottom: var(--block-gaps);
+    left: var(--block-gaps);
 }
 
 .radioButtons {

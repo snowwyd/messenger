@@ -17,7 +17,8 @@
     font-weight: 500;
     text-transform: lowercase;
     color: var(--text-faint);
-    border-radius: var(--middle-border-radius);
+    background-color: transparent;
+    border-radius: var(--button-border-radius);
     cursor: pointer;
 
     &:hover {

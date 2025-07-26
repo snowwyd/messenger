@@ -2,7 +2,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: none;
+    background-color: transparent;
     color: var(--text-primary);
     font-weight: 500;
     border: 1px solid hsl(0 0 100% / 0.2);
@@ -11,8 +11,13 @@
     cursor: pointer;
     user-select: none;
 
-    &:hover {
+    &:hover:not(:disabled) {
         border-color: hsl(0 0 100% / 0);
         background-color: hsl(0 0 100% / 0.2);
+    }
+
+    &:disabled {
+        color: var(--text-muted);
+        cursor: default;
     }
 }

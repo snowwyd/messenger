@@ -21,3 +21,11 @@
 .sidebarResizer {
     right: -5px;
 }
+
+.plug {
+    flex-grow: 1;
+    background-color: var(--section-color);
+    margin-block: var(--block-gaps);
+    margin-right: var(--block-gaps);
+    border-radius: var(--block-border-radius);
+}

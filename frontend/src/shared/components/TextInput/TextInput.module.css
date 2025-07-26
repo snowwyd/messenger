@@ -1,6 +1,6 @@
 .messageFieldContainer {
-    padding-inline: 10px;
-    padding-bottom: 10px;
+    padding-inline: var(--block-gaps);
+    padding-bottom: var(--block-gaps);
 }
 
 .messageField {
@@ -9,7 +9,7 @@
     align-items: end;
     padding-right: 10px;
     background-color: var(--light-block-color);
-    border-radius: var(--middle-border-radius);
+    border-radius: var(--mini-block-border-radius);
 }
 
 textarea {
@@ -19,7 +19,7 @@ textarea {
     flex-grow: 1;
     line-height: 20px;
     font-size: 15px;
-    background: none;
+    background-color: transparent;
     resize: none;
     scrollbar-width: none;
 
@@ -42,6 +42,7 @@ textarea {
     background-size: 16px;
     background-repeat: no-repeat;
     background-position: center;
+    background-color: transparent;
     height: 45px;
     width: 36px;
     transition: filter 0.2s ease;

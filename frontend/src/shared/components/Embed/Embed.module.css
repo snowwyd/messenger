@@ -1,7 +1,7 @@
 .embed {
     display: block;
     overflow: hidden;
-    border-radius: 12px;
+    border-radius: var(--embed-border-radius);
     z-index: 100;
 }
 
@@ -24,11 +24,7 @@
 .picture {
     display: block;
     overflow: hidden;
-    border-radius: 12px;
-
-    img {
-        height: 200px;
-    }
+    border-radius: var(--embed-border-radius);
 }
 
 .plug {
@@ -38,5 +34,5 @@
     height: 100%;
     width: 100%;
     background-color: var(--tinted-selection);
-    border-radius: 12px;
+    border-radius: var(--embed-border-radius);
 }

@@ -36,8 +36,8 @@
         align-items: center;
         top: -4px;
         right: -4px;
-        height: 20px;
-        width: 20px;
+        aspect-ratio: 1 / 1;
+        height: 21px;
         border-radius: 50%;
         background-color: var(--main-color);
     }
@@ -50,6 +50,15 @@
 
 .message {
     flex-shrink: 0;
+
+    &.selected :is(.messageContainer, .messageUserInfo) {
+        background-color: var(--main-color);
+
+        .dateCaption,
+        .timeCaption {
+            color: var(--light-gray-text);
+        }
+    }
 }
 
 .messageContent {
@@ -95,7 +104,7 @@
         aspect-ratio: 1 / 1;
         height: 40px;
         margin-left: 15px;
-        border-radius: 20px;
+        border-radius: var(--avatar-border-radius);
     }
 
     .usernameMessage {
@@ -164,7 +173,7 @@
     & > span {
         padding: 4px 10px;
         background-color: var(--tinted-selection);
-        border-radius: 50px;
+        border-radius: var(--date-label-border-radius);
         user-select: none;
     }
 }

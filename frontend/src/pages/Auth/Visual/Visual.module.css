@@ -1,0 +1,11 @@
+.visual {
+    position: absolute;
+    height: 100%;
+    filter: brightness(0.5);
+    left: -100px;
+
+    img,
+    video {
+        height: 100%;
+    }
+}

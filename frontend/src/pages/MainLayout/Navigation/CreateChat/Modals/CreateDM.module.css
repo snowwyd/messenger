@@ -2,7 +2,7 @@
     top: 0;
     left: 100%;
     width: 320px;
-    margin-left: 10px;
+    margin-left: var(--block-gaps);
 }
 
 .foundUser {
@@ -25,7 +25,7 @@
         background-position: center;
         background-repeat: no-repeat;
         background-size: cover;
-        border-radius: 50%;
+        border-radius: var(--avatar-border-radius);
     }
 
     .username {

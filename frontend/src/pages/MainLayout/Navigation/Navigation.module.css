@@ -1,14 +1,13 @@
 .categories {
     display: flex;
-    gap: 10px;
+    column-gap: 10px;
     padding: 10px;
-    height: 60px;
 }
 
 .categoryButton {
     aspect-ratio: 1 / 1;
     height: 40px;
-    border-radius: var(--middle-border-radius);
+    border-radius: var(--button-border-radius);
     color: var(--text-faint);
 
     .categoryIcon {
@@ -18,24 +17,24 @@
         mask-repeat: no-repeat;
         mask-size: 16px;
         background-color: currentColor;
+
+        &.direct {
+            mask-image: url('@/assets/icons/direct.svg');
+        }
+
+        &.groups {
+            mask-image: url('@/assets/icons/groups.svg');
+        }
     }
 
     &:hover {
-        color: white;
+        color: var(--primary-text);
         background-color: var(--selection-color);
     }
 
     &.activeLink {
-        color: white;
+        color: var(--primary-text);
         background-color: var(--active-color);
-    }
-
-    &.direct .categoryIcon {
-        mask-image: url('@/assets/icons/direct.svg');
-    }
-
-    &.groups .categoryIcon {
-        mask-image: url('@/assets/icons/groups.svg');
     }
 }
 
@@ -46,17 +45,10 @@
     padding-left: 20px;
     justify-content: space-between;
     align-items: center;
-
-    &.directCategory {
-        background-color: var(--direct-category);
-    }
-
-    &.groupsCategory {
-        background-color: var(--groups-category);
-    }
+    background-color: var(--main-color);
 }
 
 .categoryName {
     font-size: 16px;
-    font-weight: 400;
+    font-weight: 500;
 }

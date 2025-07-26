@@ -42,6 +42,7 @@
         aspect-ratio: 1 / 1;
         flex-shrink: 0;
         background-color: var(--section-color);
+        background-image: url('@/assets/icons/user.png');
         background-size: cover;
         border-radius: var(--block-border-radius);
     }

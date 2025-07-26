@@ -66,12 +66,13 @@
 }
 
 .avatar {
+    aspect-ratio: 1 / 1;
+    height: 40px;
     background-image: url('@/assets/icons/user.png');
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-    aspect-ratio: 1 / 1;
-    height: 40px;
+    border-radius: var(--avatar-border-radius);
 }
 
 .messageButton {
