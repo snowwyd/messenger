@@ -33,8 +33,9 @@ export default function MessageList({ channelId, usernames }: MessageListProps) 
 
     const [newMessagesCount, setNewMessagesCount] = useState(0);
     const [showScrollButton, setShowScrollButton] = useState(false);
+    const [isScrollToBottom, setIsScrollToBottom] = useState(false);
 
-    const { allMessages, loadMoreMessages, isSuccess, lastMessage } = useMessages(channelId);
+    const { allMessages, loadMoreMessages, isSuccess, lastMessage, pageOffset } = useMessages(channelId);
 
     function onScrollCallback({ scrollTop }: HTMLDivElement) {
         queryClient.setQueryData(['scrollPosition', channelId], scrollTop);
@@ -70,15 +71,21 @@ export default function MessageList({ channelId, usernames }: MessageListProps) 
         }
     }, [lastMessage]);
 
+    useLayoutEffect(() => {
+        if (pageOffset.data === 0 && isScrollToBottom) {
+            setIsScrollToBottom(false);
+            scrollRef.current?.scrollToBottom();
+        }
+    }, [pageOffset.data, isScrollToBottom]);
+
     function scrollToBottom() {
+        setIsScrollToBottom(true);
         queryClient.setQueryData(['pageOffset', channelId], 0);
-        scrollRef.current?.scrollToBottom();
-        setTimeout(() => scrollRef.current?.scrollToBottom(), 0);
     }
 
     return (
         <Scroll className={styles.messagesWindow} ref={scrollRef} onScrollCallback={onScrollCallback}>
-            {allMessages?.map((message, index) => (
+            {allMessages.map((message, index) => (
                 <Message
                     prevMessage={allMessages[index - 1]}
                     message={message}

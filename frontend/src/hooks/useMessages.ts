@@ -110,11 +110,7 @@ export function useMessages(channelId: string) {
         Math.max(messageList.data?.pages.length - pageOffset.data, 2)
     );
 
-    const allMessages = messageList.data
-        ? renderedPages?.flatMap((page) => {
-              return page;
-          })
-        : [];
+    const allMessages = renderedPages ? renderedPages.flatMap((page) => page) : [];
 
-    return { allMessages, loadMoreMessages, isSuccess: messageList.isSuccess, lastMessage };
+    return { allMessages, loadMoreMessages, isSuccess: messageList.isSuccess, lastMessage, pageOffset };
 }
