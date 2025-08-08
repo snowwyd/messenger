@@ -1,0 +1,34 @@
+.embed {
+    display: block;
+    overflow: hidden;
+    border-radius: var(--embed-border-radius);
+    z-index: 100;
+}
+
+.soundcloudWrapper {
+    width: 450px;
+    height: calc(150px - 4px - 16px);
+
+    .soundcloud {
+        position: relative;
+        top: -4px;
+        border-radius: 1px;
+        z-index: 100;
+    }
+}
+
+.picture {
+    display: block;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.plug {
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    background-color: var(--tinted-selection);
+    border-radius: var(--embed-border-radius);
+}

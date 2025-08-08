@@ -1,0 +1,133 @@
+.message {
+    flex-shrink: 0;
+
+    &.selected :is(.messageContainer, .messageUserInfo) {
+        background-color: var(--main-color);
+
+        .dateCaption,
+        .timeCaption {
+            color: var(--light-gray-text);
+        }
+    }
+}
+
+.messageContent {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    .messageText {
+        width: 100%;
+        white-space: pre-line;
+        line-height: 1.5;
+
+        overflow-wrap: anywhere;
+        text-wrap: pretty;
+
+        a {
+            color: var(--main-color);
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    .embeds {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-block: 5px;
+    }
+}
+
+.messageUserInfo {
+    margin-top: 10px;
+    display: flex;
+    gap: 15px;
+    padding-block: 3px;
+    padding-right: 15px;
+
+    .avatar {
+        background: url('@/assets/icons/user.png');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        aspect-ratio: 1 / 1;
+        height: 40px;
+        margin-left: 15px;
+        border-radius: var(--avatar-border-radius);
+    }
+
+    .usernameMessage {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .username {
+        font-weight: 600;
+        display: flex;
+        align-items: end;
+        gap: 5px;
+        color: var(--main-color);
+
+        .dateCaption {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-left: 2px;
+        }
+    }
+
+    &:hover {
+        background-color: var(--tinted-selection);
+    }
+}
+
+.messageContainer {
+    position: relative;
+    display: flex;
+
+    .timeCaption {
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        width: 70px;
+        top: 6.5px;
+        font-size: 11px;
+        color: var(--text-muted);
+        visibility: hidden;
+        user-select: none;
+    }
+
+    .messageContent {
+        padding-block: 3px;
+        padding-left: 70px;
+        padding-right: 15px;
+    }
+
+    &:hover {
+        background-color: var(--tinted-selection);
+
+        .timeCaption {
+            visibility: visible;
+        }
+    }
+}
+
+.dateLabel {
+    margin-top: 10px;
+    font-weight: 500;
+    position: relative;
+    text-align: center;
+    font-size: 12px;
+    color: var(--light-gray-text);
+
+    & > span {
+        padding: 4px 10px;
+        background-color: var(--tinted-selection);
+        border-radius: var(--date-label-border-radius);
+        user-select: none;
+    }
+}

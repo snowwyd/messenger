@@ -1,8 +1,7 @@
 .container {
-    display: flex;
     height: 100vh;
-    justify-content: center;
-    align-items: center;
+    display: grid;
+    place-content: center;
     background-image: linear-gradient(120deg, hsl(240 7% 4%), hsl(240 7% 7%));
 }
 

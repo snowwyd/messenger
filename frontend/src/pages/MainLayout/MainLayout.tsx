@@ -1,14 +1,11 @@
 import { useRef } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
-import type { State } from '@/types/State';
-import Resizer from '@/shared/components/Resizer/Resizer';
-
-import Navigation from './Navigation/Navigation';
-import ChatList from './Categories/ChatList/ChatList';
-import Chat from './Pages/Chat/Chat';
-import GroupChat from './Pages/Chat/GroupChat';
+import Navigation from '@/widgets/Navigation/Navigation';
+import AudioPlayer from '@/widgets/AudioPlayer/AudioPlayer';
+import ChatList from '@/widgets/ChatList/ChatList';
+import Page from '@/widgets/Page/Page';
+import Resizer from '@/shared/widgets/Resizer/Resizer';
 
 import styles from './MainLayout.module.css';
 
@@ -17,41 +14,21 @@ export default function MainLayout() {
 
     return (
         <div className={styles.container}>
-            <div className={styles.sidebar} ref={resizableRef}>
+            <aside className={styles.sidebar} ref={resizableRef}>
                 <Resizer className={styles.sidebarResizer} resizableRef={resizableRef} clamp={[200, 400]} />
                 <Navigation />
-                <Category />
-            </div>
-            <Page />
+                <nav className={styles.listContainer}>
+                    <Routes>
+                        <Route path="direct" element={<ChatList type={'direct'} />} />
+                        <Route path="groups" element={<ChatList type={'groups'} />} />
+                        <Route path="*" element={<Navigate to="/direct" />} />
+                    </Routes>
+                </nav>
+                <AudioPlayer />
+            </aside>
+            <main className={styles.content}>
+                <Page />
+            </main>
         </div>
-    );
-}
-
-function Category() {
-    return (
-        <div className={styles.listContainer}>
-            <Routes>
-                <Route path="/direct" element={<ChatList type={'direct'} />} />
-                <Route path="/groups" element={<ChatList type={'groups'} />} />
-                <Route path="*" element={<Navigate to="/direct" />} />
-            </Routes>
-        </div>
-    );
-}
-
-function Page() {
-    const currentPageURL = useSelector((state: State) => state.category.currentPageURL);
-    const categoryOfThePage = useSelector((state: State) => state.category.categoryOfThePage);
-
-    return (
-        <>
-            {(!categoryOfThePage || !currentPageURL) && <div className={styles.plug}></div>}
-            {categoryOfThePage === 'direct' && currentPageURL && (
-                <Chat chatId={currentPageURL[0]} channelId={currentPageURL[1]} />
-            )}
-            {categoryOfThePage === 'groups' && currentPageURL && (
-                <GroupChat chatId={currentPageURL[0]} channelId={currentPageURL[1]} />
-            )}
-        </>
     );
 }

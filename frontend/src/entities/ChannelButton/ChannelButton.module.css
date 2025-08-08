@@ -1,0 +1,48 @@
+.channel {
+    display: flex;
+    height: 35px;
+    padding-left: 10px;
+    flex-shrink: 0;
+    align-items: center;
+    column-gap: 5px;
+    font-size: 15px;
+    font-weight: 500;
+    text-transform: lowercase;
+    color: var(--text-faint);
+    background-color: transparent;
+    border-radius: var(--button-border-radius);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-primary);
+        background-color: var(--tinted-selection);
+    }
+
+    &.activeChannel {
+        color: var(--text-primary);
+        background-color: var(--main-color);
+    }
+}
+
+.channelIcon {
+    aspect-ratio: 1 / 1;
+    height: 25px;
+    flex-shrink: 0;
+    mask-size: 15px;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    background-color: currentColor;
+
+    &.text {
+        mask-image: url('@/assets/icons/text-channel.svg');
+    }
+
+    &.voice {
+        mask-image: url('@/assets/icons/voice-channel.svg');
+    }
+}
+
+.channelName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

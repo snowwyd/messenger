@@ -1,0 +1,70 @@
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    src: url('/fonts/InterVariable.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: italic;
+    font-weight: 100 900;
+    src: url('/fonts/InterVariable-Italic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Emoji';
+    font-style: normal;
+    font-weight: 400;
+    font-display: block;
+    src: url('/fonts/NotoColorEmoji.woff2') format('woff2');
+}
+
+#app {
+    font-family: 'Inter', 'Emoji';
+    font-size: 14px;
+    font-variant-ligatures: none;
+    color: var(--text-primary);
+    background-color: var(--background-color);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+:where(ul, ol):where([class]) {
+    padding-left: 0;
+}
+
+body,
+:where(blockquote, figure):where([class]) {
+    margin: 0;
+}
+
+:where(h1, h2, h3, h4, h5, h6, p, ul, ol, pre):where([class]) {
+    margin-block: 0;
+}
+
+:where(ul[class]) {
+    list-style: none;
+}
+
+img {
+    display: block;
+}
+
+a {
+    text-decoration: none;
+}
+
+iframe {
+    border: none;
+}
+
+:where(input, textarea, select, button) {
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    border: none;
+    outline: none;
+}

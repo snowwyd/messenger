@@ -1,10 +1,9 @@
 import { useRef } from 'react';
 
-import { useAnimation } from '@/hooks/useAnimation';
-
-import RegisterForm from './Forms/RegisterForm';
-import LoginForm from './Forms/LoginForm';
-import Visual from './Visual/Visual';
+import { useAnimation } from '@/shared/hooks/useAnimation';
+import RegisterForm from '@/features/auth/components/RegisterForm';
+import LoginForm from '@/features/auth/components/LoginForm';
+import Visual from '@/features/auth/ui/Visual';
 
 import styles from './Auth.module.css';
 

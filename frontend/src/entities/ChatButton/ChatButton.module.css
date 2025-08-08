@@ -1,0 +1,82 @@
+.chatButton {
+    display: flex;
+    padding: 10px;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary);
+    background-color: transparent;
+    user-select: none;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--selection-color);
+    }
+}
+
+.chatButton.activeChat {
+    background-color: var(--active-color);
+
+    .right {
+        color: var(--text-muted);
+    }
+}
+
+.avatarBlock {
+    background-image: url('@/assets/icons/user.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    aspect-ratio: 1 / 1;
+    height: 46px;
+    border-radius: var(--avatar-border-radius);
+    flex-shrink: 0;
+}
+
+.chatInfo {
+    display: flex;
+    height: 100%;
+    min-width: 0;
+    padding-block: 3px;
+    justify-content: space-between;
+    flex-grow: 1;
+}
+
+.left {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: start;
+    flex-grow: 1;
+    min-width: 0;
+
+    .chatName {
+        font-weight: 500;
+        text-wrap: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .lastMessage {
+        color: var(--text-muted);
+        text-wrap: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.right {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: end;
+    font-size: 12px;
+    flex-shrink: 0;
+    color: var(--text-faint);
+
+    div {
+        height: 17px;
+        display: flex;
+        align-items: center;
+    }
+}

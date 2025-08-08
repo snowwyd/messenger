@@ -7,9 +7,13 @@
 .sidebar {
     position: relative;
     display: flex;
-    width: 300px;
+    width: 325px;
     flex-shrink: 0;
     flex-direction: column;
+}
+
+.sidebarResizer {
+    right: -5px;
 }
 
 .listContainer {
@@ -18,14 +22,9 @@
     flex-grow: 1;
 }
 
-.sidebarResizer {
-    right: -5px;
-}
-
-.plug {
+.content {
+    display: flex;
     flex-grow: 1;
-    background-color: var(--section-color);
-    margin-block: var(--block-gaps);
-    margin-right: var(--block-gaps);
-    border-radius: var(--block-border-radius);
+    column-gap: var(--block-gaps);
+    padding-right: var(--block-gaps);
 }

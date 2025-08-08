@@ -1,0 +1,156 @@
+.playerContainer {
+    position: relative;
+    margin-bottom: var(--block-gaps);
+    margin-inline: var(--block-gaps);
+
+    &:hover .cover,
+    .cover.hover {
+        filter: brightness(0.5);
+    }
+
+    &:hover .player,
+    .player.hover {
+        opacity: 1;
+    }
+}
+
+.cover {
+    aspect-ratio: 1 / 1;
+    background-color: var(--light-block-color);
+    border-radius: var(--block-border-radius);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: filter 0.2s;
+}
+
+.player {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.pauseIcon {
+    height: 100%;
+    mask-image: url('@/assets/icons/pause.svg');
+    mask-size: 40px;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    pointer-events: none;
+    background-color: white;
+}
+
+.playIcon {
+    height: 100%;
+    mask-image: url('@/assets/icons/play.svg');
+    mask-size: 40px;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    pointer-events: none;
+    background-color: white;
+}
+
+.closeButton {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 50px;
+    aspect-ratio: 1 / 1;
+    background-color: white;
+    mask-image: url('@/assets/icons/cross-small.svg');
+    mask-size: 25px;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    cursor: pointer;
+}
+
+.sliderContainer {
+    position: absolute;
+    height: 50px;
+    bottom: 0;
+    inset-inline: 20px;
+    display: flex;
+    align-items: center;
+
+    &:hover .sliderThumb {
+        background-color: white;
+    }
+
+    &:active .sliderThumb {
+        background-color: white;
+    }
+
+    /* &:hover .sliderProgress {
+        background: var(--main-color);
+    }
+
+    &:active .sliderProgress {
+        background: var(--main-color);
+    } */
+}
+
+.sliderTrack {
+    position: absolute;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background-color: var(--light-block-color);
+    border-radius: 5px;
+}
+
+.sliderProgress {
+    position: absolute;
+    left: 0;
+    height: 3px;
+    width: 0;
+    background: white;
+    border-radius: 5px;
+}
+
+.sliderThumb {
+    position: absolute;
+    left: 0;
+    height: 10px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    transform: translateX(-50%);
+}
+
+/* .time {
+    position: relative;
+    display: flex;
+    gap: 10px;
+
+    color: var(--text-muted);
+    font-size: 0.6875rem;
+    font-weight: 400;
+}
+
+.playbarRight {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.sliders {
+    display: flex;
+}
+
+.progress.sliderContainer {
+    width: 400px;
+}
+
+.volume.sliderContainer {
+    width: 100px;
+
+    & > .sliderProgress {
+        width: 100%;
+    }
+
+    & > .sliderThumb {
+        left: 100%;
+    }
+} */

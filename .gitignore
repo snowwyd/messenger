@@ -5,4 +5,6 @@ dist/
 gen/
 .env*
 *.mp4
+*.mp3
+*.flac
 TODO
